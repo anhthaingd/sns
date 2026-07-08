@@ -8,9 +8,11 @@ export const crawlDaiJob = async (req, res) => {
     }`;
 
     // Sử dụng Puppeteer để mở trang web và lấy CSS của trang
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     const cssContent = await page.evaluate(() => {
       return Array.from(document.styleSheets)
         .map((styleSheet) => {
@@ -31,12 +33,14 @@ export const crawlDaiJob = async (req, res) => {
     const $ = cheerio.load(htmlContent);
 
     const data = [];
-    $('.jobs_box.mb16').each((index, element) => {
+    // Daijob đã đổi giao diện: mỗi job nằm trong `.job-card-wrap` (trước đây là `.jobs_box.mb16`)
+    $('.job-card-wrap').each((index, element) => {
       const el = $(element)
         .html()
-        .replace(/\/jobs/g, 'https://www.daijob.com/jobs')
-        .replace('src="/images/.png?"', '')
-        .replace('data-src', 'src');
+        // link chi tiết là tương đối (/jobs/detail/...) -> gắn domain đầy đủ
+        .replace(/href="\/jobs/g, 'href="https://www.daijob.com/jobs')
+        // ảnh dùng lazy-load: đảm bảo có thuộc tính src để hiển thị
+        .replace(/data-src=/g, 'src=');
       data.push(el);
     });
 
@@ -56,9 +60,11 @@ export const crawlLinked = async (req, res) => {
     const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?currentJobId=3942468982&keywords=information%2Btechnology&location=japan&start=${offset}`;
 
     // Sử dụng Puppeteer để mở trang web và lấy CSS của trang
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     const cssContent = await page.evaluate(() => {
       return Array.from(document.styleSheets)
         .map((styleSheet) => {
@@ -105,9 +111,11 @@ export const crawlNihongo = async (req, res) => {
     const url = `https://nihongo-engineer.com/?page=${curPage ? curPage : 1}`;
 
     // Sử dụng Puppeteer để mở trang web và lấy CSS của trang
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     const cssContent = await page.evaluate(() => {
       return Array.from(document.styleSheets)
         .map((styleSheet) => {
@@ -151,9 +159,11 @@ export const crawlGaijinpot = async (req, res) => {
     }`;
 
     // Sử dụng Puppeteer để mở trang web và lấy CSS của trang
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     const cssContent = await page.evaluate(() => {
       return Array.from(document.styleSheets)
         .map((styleSheet) => {
@@ -194,9 +204,11 @@ export const crawlJobsinjapan = async (req, res) => {
     }`;
 
     // Sử dụng Puppeteer để mở trang web và lấy CSS của trang
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     const page = await browser.newPage();
-    await page.goto(url);
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
     const cssContent = await page.evaluate(() => {
       return Array.from(document.styleSheets)
         .map((styleSheet) => {

@@ -1,0 +1,13 @@
+# Bien moi truong chua secret - KHONG commit (.env.example van duoc giu)
+.env
+
+# Node
+node_modules/
+
+# Editor / MongoDB extension scratch
+*.mongodb.js
+.DS_Store
+
+# File upload nguoi dung tao luc chay (giu lai thu muc bang .gitkeep)
+server/public/uploads/*
+!server/public/uploads/.gitkeep

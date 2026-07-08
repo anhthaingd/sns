@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fuurin — Đề xuất phát triển</title>
+<style>
+  /* ============ Tokens ============ */
+  :root {
+    --paper:   #f6f3ea;
+    --card:    #fffdf7;
+    --sunk:    #efe9db;
+    --ink:     #1b2130;
+    --ink-soft:#48505f;
+    --ink-faint:#79808d;
+    --line:    #e3dccb;
+    --line-strong:#d3c9b3;
+    --indigo:  #34528a;   /* ai-iro 藍色 */
+    --indigo-deep:#263c66;
+    --brass:   #a9781f;   /* bell / seal */
+    --brass-soft:#c79a3f;
+    --good:    #3f8a5c;
+    --warn:    #b1802b;
+    --crit:    #b0503d;
+    --muted:   #96907f;
+
+    --shadow: 0 1px 2px rgba(38,60,102,.05), 0 8px 30px -14px rgba(38,60,102,.18);
+    --radius: 14px;
+
+    --serif: "Hiragino Mincho ProN","Yu Mincho","YuMincho",Georgia,"Times New Roman",serif;
+    --sans: system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    --mono: "SF Mono","JetBrains Mono",ui-monospace,"Cascadia Code",Menlo,monospace;
+
+    --maxw: 1080px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:   #10131b;
+      --card:    #191e29;
+      --sunk:    #141822;
+      --ink:     #ece8dc;
+      --ink-soft:#b2b8c4;
+      --ink-faint:#7f8694;
+      --line:    #29303f;
+      --line-strong:#394152;
+      --indigo:  #83a4dc;
+      --indigo-deep:#a6c0ec;
+      --brass:   #d7ab52;
+      --brass-soft:#e3bd6f;
+      --good:    #60b080;
+      --warn:    #d8a94e;
+      --crit:    #d97a66;
+      --muted:   #7b8290;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 34px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper:#f6f3ea;--card:#fffdf7;--sunk:#efe9db;--ink:#1b2130;--ink-soft:#48505f;
+    --ink-faint:#79808d;--line:#e3dccb;--line-strong:#d3c9b3;--indigo:#34528a;
+    --indigo-deep:#263c66;--brass:#a9781f;--brass-soft:#c79a3f;--good:#3f8a5c;
+    --warn:#b1802b;--crit:#b0503d;--muted:#96907f;
+    --shadow:0 1px 2px rgba(38,60,102,.05),0 8px 30px -14px rgba(38,60,102,.18);
+  }
+  :root[data-theme="dark"] {
+    --paper:#10131b;--card:#191e29;--sunk:#141822;--ink:#ece8dc;--ink-soft:#b2b8c4;
+    --ink-faint:#7f8694;--line:#29303f;--line-strong:#394152;--indigo:#83a4dc;
+    --indigo-deep:#a6c0ec;--brass:#d7ab52;--brass-soft:#e3bd6f;--good:#60b080;
+    --warn:#d8a94e;--crit:#d97a66;--muted:#7b8290;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 34px -16px rgba(0,0,0,.6);
+  }
+
+  /* ============ Base ============ */
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(20px, 5vw, 48px); }
+  h1,h2,h3 { font-family: var(--serif); font-weight: 600; text-wrap: balance; line-height: 1.18; }
+  p { max-width: 66ch; }
+  a { color: inherit; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .72rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin: 0 0 .9rem;
+  }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  /* ============ Top bar ============ */
+  .topbar {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .row {
+    display: flex; align-items: center; gap: 16px;
+    height: 60px;
+  }
+  .seal {
+    width: 34px; height: 34px; flex: 0 0 auto;
+    border: 1.5px solid var(--brass);
+    border-radius: 7px;
+    display: grid; place-items: center;
+    color: var(--brass);
+    font-family: var(--serif);
+    font-size: 20px; line-height: 1;
+    background: color-mix(in srgb, var(--brass) 8%, transparent);
+  }
+  .brandline { display: flex; flex-direction: column; }
+  .brandline b { font-family: var(--serif); font-size: 1.02rem; letter-spacing: .01em; }
+  .brandline span { font-size: .72rem; color: var(--ink-faint); }
+  .topbar .spacer { flex: 1; }
+  .toggle {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .08em;
+    color: var(--ink-soft);
+    background: transparent; border: 1px solid var(--line-strong);
+    padding: 7px 12px; border-radius: 999px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: border-color .2s, color .2s;
+  }
+  .toggle:hover { border-color: var(--brass); color: var(--brass); }
+  .toggle:focus-visible { outline: 2px solid var(--indigo); outline-offset: 2px; }
+
+  /* ============ Hero ============ */
+  .hero { padding: clamp(48px, 8vw, 96px) 0 clamp(40px, 6vw, 72px); }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: clamp(24px, 5vw, 56px);
+    align-items: center;
+  }
+  .hero h1 {
+    font-size: clamp(2.6rem, 6.5vw, 4.6rem);
+    margin: 0 0 .2em;
+    letter-spacing: -.01em;
+  }
+  .hero h1 .sub {
+    display: block;
+    font-size: clamp(1rem, 2.2vw, 1.35rem);
+    font-family: var(--sans);
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-top: .55em;
+    letter-spacing: 0;
+  }
+  .thesis { font-size: 1.08rem; color: var(--ink-soft); margin: 1.5rem 0 0; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.8rem; }
+  .chip {
+    font-family: var(--mono); font-size: .72rem; letter-spacing: .04em;
+    color: var(--ink-soft);
+    border: 1px solid var(--line-strong); border-radius: 999px;
+    padding: 5px 11px;
+    background: var(--card);
+  }
+  .chip b { color: var(--indigo); font-weight: 600; }
+
+  /* ---- Wind chime (fuurin) ---- */
+  .chime-stage { display: grid; place-items: start center; min-height: 260px; }
+  .chime {
+    transform-origin: 50% 6px;
+    animation: sway 5.2s ease-in-out infinite;
+  }
+  .tanzaku { transform-origin: 50% 0; animation: swayPaper 4.1s ease-in-out infinite; }
+  @keyframes sway { 0%,100%{transform:rotate(-3.2deg)} 50%{transform:rotate(3.2deg)} }
+  @keyframes swayPaper { 0%,100%{transform:rotate(5deg)} 50%{transform:rotate(-5deg)} }
+  @media (prefers-reduced-motion: reduce) {
+    .chime, .tanzaku { animation: none; }
+  }
+
+  /* ============ Section frame ============ */
+  section { padding: clamp(40px, 6vw, 72px) 0; border-top: 1px solid var(--line); }
+  .sec-head { margin-bottom: 2.4rem; }
+  .sec-head h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); margin: 0; }
+  .sec-head p { color: var(--ink-soft); margin: .7rem 0 0; }
+
+  /* ============ Feature groups ============ */
+  .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .fcard {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px 24px 20px;
+    box-shadow: var(--shadow);
+  }
+  .fcard > header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+  .fcard h3 { font-size: 1.15rem; margin: 0; }
+  .fcard .jp { font-family: var(--serif); color: var(--brass); font-size: .95rem; }
+  .fcard ul { list-style: none; margin: 0; padding: 0; }
+  .fcard li {
+    position: relative; padding: 7px 0 7px 20px;
+    border-top: 1px dashed var(--line);
+    font-size: .93rem; color: var(--ink-soft);
+  }
+  .fcard li:first-child { border-top: none; }
+  .fcard li::before {
+    content: ""; position: absolute; left: 2px; top: 15px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--indigo);
+  }
+  .fcard li b { color: var(--ink); font-weight: 600; }
+
+  /* ============ Crawl table ============ */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; min-width: 560px; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-weight: 500;
+    font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 14px 18px; border-bottom: 1px solid var(--line-strong);
+  }
+  tbody td { padding: 15px 18px; border-bottom: 1px solid var(--line); font-size: .93rem; }
+  tbody tr:last-child td { border-bottom: none; }
+  td .src { font-weight: 600; color: var(--ink); }
+  td .ep { font-family: var(--mono); font-size: .78rem; color: var(--ink-faint); }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: .76rem; font-weight: 600;
+    padding: 4px 10px; border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill::before { content:""; width:7px; height:7px; border-radius:50%; background: currentColor; }
+  .pill.ok   { color: var(--good); background: color-mix(in srgb, var(--good) 13%, transparent); }
+  .pill.fix  { color: var(--indigo); background: color-mix(in srgb, var(--indigo) 14%, transparent); }
+  .pill.off  { color: var(--muted); background: color-mix(in srgb, var(--muted) 15%, transparent); }
+  .note { margin-top: 14px; font-size: .86rem; color: var(--ink-faint); }
+  .note b { color: var(--indigo); }
+
+  /* ============ Upsell tracks ============ */
+  .tracks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .track {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column;
+  }
+  .track .tag {
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--brass); margin-bottom: 10px;
+  }
+  .track h3 { font-size: 1.2rem; margin: 0 0 4px; }
+  .track .lede { font-size: .88rem; color: var(--ink-faint); margin: 0 0 16px; }
+  .track ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .track li { font-size: .9rem; }
+  .track li b { display: block; color: var(--ink); font-weight: 600; margin-bottom: 1px; }
+  .track li span { color: var(--ink-soft); font-size: .85rem; }
+
+  /* ============ Roadmap ============ */
+  .road { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .phase { position: relative; padding: 24px 22px; border: 1px solid var(--line); }
+  .road .phase:not(:first-child) { border-left: none; }
+  .phase:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+  .phase:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+  .phase .n {
+    font-family: var(--mono); font-size: .72rem; color: var(--brass);
+    letter-spacing: .1em;
+  }
+  .phase h3 { font-size: 1.12rem; margin: 6px 0 4px; }
+  .phase .goal { font-size: .8rem; color: var(--brass); font-family: var(--mono); letter-spacing: .04em; margin-bottom: 12px; }
+  .phase ul { margin: 0; padding-left: 18px; }
+  .phase li { font-size: .88rem; color: var(--ink-soft); margin: 5px 0; }
+
+  /* ============ Footer ============ */
+  footer { border-top: 1px solid var(--line); padding: 40px 0 64px; }
+  .foot { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .foot .seal { width: 42px; height: 42px; font-size: 24px; }
+  .foot .txt b { font-family: var(--serif); font-size: 1.05rem; }
+  .foot .txt div { font-size: .82rem; color: var(--ink-faint); }
+  .foot .spacer { flex: 1; }
+  .foot .date { font-family: var(--mono); font-size: .78rem; color: var(--ink-faint); }
+
+  /* ============ Responsive ============ */
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .chime-stage { order: -1; min-height: 200px; }
+    .features, .tracks { grid-template-columns: 1fr; }
+    .road { grid-template-columns: 1fr; }
+    .phase, .phase:first-child, .phase:last-child { border-radius: 0; border-left: 1px solid var(--line); border-top: none; }
+    .phase:first-child { border-top: 1px solid var(--line); border-radius: var(--radius) var(--radius) 0 0; }
+    .phase:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="wrap row">
+      <div class="seal" aria-hidden="true">風</div>
+      <div class="brandline">
+        <b>Fuurin</b>
+        <span>Đề xuất phát triển &amp; mở rộng</span>
+      </div>
+      <div class="spacer"></div>
+      <button class="toggle" id="themeBtn" type="button" aria-label="Đổi giao diện sáng/tối">
+        <span id="themeIcon">◐</span> <span id="themeLbl">Theme</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">提案書 · Proposal</p>
+        <h1>Fuurin
+          <span class="sub">Mạng xã hội tuyển dụng cho thị trường việc làm tại Nhật Bản</span>
+        </h1>
+        <p class="thesis">Nền tảng lõi đã chạy được — mạng xã hội, nhắn tin &amp; gọi video thời gian thực, và sàn việc làm tự tổng hợp. Tài liệu này tóm tắt các chức năng hiện có và đề xuất lộ trình đưa sản phẩm lên quy mô thương mại.</p>
+        <div class="hero-meta">
+          <span class="chip">Stack <b>MERN</b></span>
+          <span class="chip">Realtime <b>Socket.io + WebRTC</b></span>
+          <span class="chip">Nguồn việc làm <b>4/4 hoạt động</b></span>
+          <span class="chip">Trạng thái <b>Đang chạy local</b></span>
+        </div>
+      </div>
+
+      <div class="chime-stage" aria-hidden="true">
+        <!-- Wind chime: bell + clapper + tanzaku (paper strip) -->
+        <svg width="150" height="240" viewBox="0 0 150 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+          <!-- hanging line -->
+          <line x1="75" y1="0" x2="75" y2="34" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <g class="chime">
+            <!-- bell dome -->
+            <path d="M40 92 C40 52 110 52 110 92 L110 96 C110 100 106 104 100 104 L50 104 C44 104 40 100 40 96 Z"
+                  fill="color-mix(in srgb, var(--brass) 22%, transparent)"
+                  stroke="var(--brass)" stroke-width="2"/>
+            <ellipse cx="75" cy="52" rx="12" ry="6" fill="var(--brass)" opacity="0.35"/>
+            <path d="M63 34 C63 26 87 26 87 34 L87 54 L63 54 Z" fill="none" stroke="var(--brass)" stroke-width="2"/>
+            <!-- rim -->
+            <rect x="46" y="102" width="58" height="5" rx="2.5" fill="var(--brass)"/>
+            <!-- clapper -->
+            <line x1="75" y1="104" x2="75" y2="150" stroke="var(--indigo)" stroke-width="1.5"/>
+            <circle cx="75" cy="150" r="8" fill="color-mix(in srgb, var(--indigo) 30%, transparent)" stroke="var(--indigo)" stroke-width="2"/>
+            <!-- tanzaku paper strip -->
+            <g class="tanzaku">
+              <line x1="75" y1="158" x2="75" y2="170" stroke="var(--indigo)" stroke-width="1.5"/>
+              <rect x="62" y="170" width="26" height="60" rx="4"
+                    fill="var(--card)" stroke="var(--indigo)" stroke-width="1.5"/>
+              <text x="75" y="192" text-anchor="middle" font-family="var(--serif)" font-size="15" fill="var(--indigo)">風</text>
+              <text x="75" y="212" text-anchor="middle" font-family="var(--serif)" font-size="15" fill="var(--indigo)">鈴</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ============ MAIN FEATURES ============ -->
+    <section id="features">
+      <div class="sec-head">
+        <p class="eyebrow">Hiện trạng</p>
+        <h2>Các chức năng chính</h2>
+        <p>Bốn nhóm năng lực đã được xây dựng và đang vận hành trong hệ thống.</p>
+      </div>
+
+      <div class="features">
+        <article class="fcard">
+          <header><h3>Mạng xã hội</h3><span class="jp">交流</span></header>
+          <ul>
+            <li><b>Xác thực JWT</b> — đăng ký, đăng nhập, đăng xuất kèm token blacklist</li>
+            <li><b>Bài viết</b> — soạn thảo rich-text, sửa/xóa, bookmark</li>
+            <li><b>Kênh &amp; nhóm</b> — tạo kênh, quản lý thành viên, đăng bài trong kênh</li>
+            <li><b>Follow &amp; thông báo</b> — theo dõi người dùng, thông báo real-time</li>
+            <li><b>Tìm kiếm</b> — hỗ trợ tiếng Việt không dấu (unidecode)</li>
+          </ul>
+        </article>
+
+        <article class="fcard">
+          <header><h3>Giao tiếp thời gian thực</h3><span class="jp">通信</span></header>
+          <ul>
+            <li><b>Nhắn tin 1-1</b> — qua Socket.io, lưu tin mới nhất, đánh dấu đã đọc</li>
+            <li><b>Gọi video</b> — WebRTC (simple-peer), STUN miễn phí, không cần API trả phí</li>
+            <li><b>Trạng thái online</b> — quản lý socket theo người dùng</li>
+          </ul>
+        </article>
+
+        <article class="fcard">
+          <header><h3>Việc làm &amp; CV</h3><span class="jp">求人</span></header>
+          <ul>
+            <li><b>Tổng hợp tin tuyển dụng</b> — crawl tự động từ 4 nguồn tại Nhật</li>
+            <li><b>Recruitment feed</b> — hiển thị job theo trang, phân trang</li>
+            <li><b>Trình tạo CV</b> — soạn hồ sơ trong app, in ra PDF</li>
+          </ul>
+        </article>
+
+        <article class="fcard">
+          <header><h3>Quản trị</h3><span class="jp">管理</span></header>
+          <ul>
+            <li><b>Quản lý người dùng</b> — danh sách &amp; phân quyền (user / admin)</li>
+            <li><b>Kiểm duyệt bài viết</b> — quản lý nội dung toàn hệ thống</li>
+            <li><b>Tùy biến website</b> — tên, logo, màu sắc, quote trang login/register</li>
+            <li><b>Shortcut</b> — lối tắt tùy biến cho người dùng</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ CRAWL STATUS ============ -->
+    <section id="crawl">
+      <div class="sec-head">
+        <p class="eyebrow">Kiểm thử thực tế</p>
+        <h2>Trạng thái thu thập việc làm</h2>
+        <p>Kết quả chạy trực tiếp các endpoint crawl. Nguồn DaiJob vừa được sửa lại selector sau khi trang đổi giao diện.</p>
+      </div>
+
+      <div class="tablewrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nguồn</th>
+              <th>Endpoint</th>
+              <th>Trạng thái</th>
+              <th style="text-align:right">Job / trang</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="src">DaiJob</span></td>
+              <td><span class="ep">/crawl/dai_job</span></td>
+              <td><span class="pill fix">Vừa sửa</span></td>
+              <td class="num">22</td>
+            </tr>
+            <tr>
+              <td><span class="src">GaijinPot</span></td>
+              <td><span class="ep">/crawl/gaijinpot</span></td>
+              <td><span class="pill ok">Hoạt động</span></td>
+              <td class="num">55</td>
+            </tr>
+            <tr>
+              <td><span class="src">Nihongo Engineer</span></td>
+              <td><span class="ep">/crawl/nihongo</span></td>
+              <td><span class="pill ok">Hoạt động</span></td>
+              <td class="num">22</td>
+            </tr>
+            <tr>
+              <td><span class="src">LinkedIn JP</span></td>
+              <td><span class="ep">/crawl/linked_jp_jobs</span></td>
+              <td><span class="pill ok">Hoạt động</span></td>
+              <td class="num">10</td>
+            </tr>
+            <tr>
+              <td><span class="src">JobsInJapan</span></td>
+              <td><span class="ep">/crawl/jobsinjapan</span></td>
+              <td><span class="pill off">Đang tắt</span></td>
+              <td class="num">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note"><b>Rủi ro kỹ thuật:</b> crawl phụ thuộc cấu trúc HTML của trang nguồn — khi họ đổi giao diện, selector sẽ hỏng (như DaiJob). Đề xuất chuyển sang hàng đợi có lịch chạy + cảnh báo tự động khi selector không còn khớp (xem track DevOps).</p>
+    </section>
+
+    <!-- ============ UPSELL TRACKS ============ -->
+    <section id="upsell">
+      <div class="sec-head">
+        <p class="eyebrow">Đề xuất mở rộng</p>
+        <h2>Ba hướng đầu tư tạo giá trị</h2>
+        <p>Từ nền tảng lõi hiện có, đây là các năng lực có thể bổ sung — theo thứ tự đóng góp vào sản phẩm, doanh thu và lợi thế cạnh tranh.</p>
+      </div>
+
+      <div class="tracks">
+        <article class="track">
+          <div class="tag">Product · Web</div>
+          <h3>Sản phẩm &amp; Web</h3>
+          <p class="lede">Biến nền tảng thành sàn tuyển dụng tạo doanh thu.</p>
+          <ul>
+            <li><b>Tài khoản Nhà tuyển dụng</b><span>Đăng tin, xem ứng viên, gói premium — nguồn doanh thu chính.</span></li>
+            <li><b>Apply job &amp; theo dõi hồ sơ</b><span>Biến job board thành quy trình tuyển dụng thật.</span></li>
+            <li><b>Chat nhóm &amp; call nhiều người</b><span>Nâng từ 1-1 lên nhóm — cạnh tranh công cụ họp.</span></li>
+            <li><b>Thanh toán</b><span>Stripe / VNPay cho gói premium, đẩy tin, verified.</span></li>
+            <li><b>SSR + SEO cho trang job</b><span>Next.js → job lên Google, kéo traffic miễn phí.</span></li>
+            <li><b>PWA / Mobile &amp; đa ngôn ngữ</b><span>Mở rộng thị trường Nhật – Việt – English.</span></li>
+          </ul>
+        </article>
+
+        <article class="track">
+          <div class="tag">Intelligence</div>
+          <h3>Trí tuệ nhân tạo</h3>
+          <p class="lede">Điểm khác biệt tạo lợi thế cạnh tranh năm 2026.</p>
+          <ul>
+            <li><b>AI viết &amp; chấm CV</b><span>Gợi ý cải thiện, chấm độ phù hợp CV với job.</span></li>
+            <li><b>Gợi ý việc làm (matching)</b><span>Đề xuất job theo hồ sơ, tăng tỷ lệ apply.</span></li>
+            <li><b>Chatbot tư vấn nghề nghiệp</b><span>Trợ lý ảo trả lời "job nào hợp với tôi".</span></li>
+            <li><b>Tóm tắt &amp; dịch tin</b><span>Job tiếng Nhật → tóm tắt tiếng Việt tự động.</span></li>
+            <li><b>Kiểm duyệt nội dung</b><span>Lọc bài viết / tin nhắn xấu bằng AI.</span></li>
+            <li><b>Semantic search</b><span>Tìm job theo ngữ nghĩa thay vì từ khóa.</span></li>
+          </ul>
+        </article>
+
+        <article class="track">
+          <div class="tag">Infra · DevOps</div>
+          <h3>Hạ tầng &amp; DevOps</h3>
+          <p class="lede">Điều kiện bắt buộc trước khi thương mại hóa.</p>
+          <ul>
+            <li><b>CI/CD</b><span>GitHub Actions: tự động test, build, deploy.</span></li>
+            <li><b>Kiểm thử tự động</b><span>Hiện chưa có test — bổ sung Jest / Vitest.</span></li>
+            <li><b>Docker hóa toàn stack</b><span>Dockerfile + docker-compose, hết cài tay.</span></li>
+            <li><b>Crawl ổn định</b><span>Hàng đợi BullMQ + cron + cảnh báo khi selector hỏng.</span></li>
+            <li><b>Lưu trữ &amp; scale</b><span>Chuyển upload lên S3, Redis adapter cho Socket.io.</span></li>
+            <li><b>Bảo mật &amp; giám sát</b><span>Vá lỗ hổng npm, Helmet, rate-limit, Sentry, logging.</span></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ ROADMAP ============ -->
+    <section id="roadmap">
+      <div class="sec-head">
+        <p class="eyebrow">Lộ trình đề xuất</p>
+        <h2>Ba giai đoạn triển khai</h2>
+        <p>Ưu tiên ổn định nền tảng trước, rồi mở khóa doanh thu, cuối cùng tạo khác biệt.</p>
+      </div>
+
+      <div class="road">
+        <div class="phase">
+          <div class="n">01</div>
+          <h3>Ổn định</h3>
+          <div class="goal">Deploy an toàn</div>
+          <ul>
+            <li>Docker hóa &amp; CI/CD</li>
+            <li>Bộ test cơ bản</li>
+            <li>Vá bảo mật, khóa CORS, rate-limit</li>
+            <li>Monitoring &amp; logging</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <div class="n">02</div>
+          <h3>Doanh thu</h3>
+          <div class="goal">Dòng tiền</div>
+          <ul>
+            <li>Tài khoản nhà tuyển dụng</li>
+            <li>Apply job &amp; quản lý hồ sơ</li>
+            <li>Thanh toán &amp; gói premium</li>
+            <li>SEO cho trang việc làm</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <div class="n">03</div>
+          <h3>Khác biệt</h3>
+          <div class="goal">Lợi thế cạnh tranh</div>
+          <ul>
+            <li>AI chấm CV &amp; matching</li>
+            <li>Chatbot tư vấn nghề nghiệp</li>
+            <li>Semantic search</li>
+            <li>Đa ngôn ngữ &amp; mobile</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot">
+      <div class="seal" aria-hidden="true">鈴</div>
+      <div class="txt">
+        <b>Fuurin — Đề xuất phát triển</b>
+        <div>Chuẩn bị bởi đội ngũ phát triển · Tài liệu nội bộ</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="date">MERN · Socket.io · WebRTC · Puppeteer</div>
+    </div>
+  </footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('themeBtn');
+    var icon = document.getElementById('themeIcon');
+    var lbl = document.getElementById('themeLbl');
+    function apply(mode) {
+      if (mode === 'system') { root.removeAttribute('data-theme'); }
+      else { root.setAttribute('data-theme', mode); }
+      var dark = mode === 'dark' ||
+        (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      icon.textContent = dark ? '☾' : '☀';
+      lbl.textContent = mode === 'system' ? 'Tự động' : (dark ? 'Tối' : 'Sáng');
+    }
+    var order = ['system', 'light', 'dark'];
+    var cur = 0;
+    apply(order[cur]);
+    btn.addEventListener('click', function () {
+      cur = (cur + 1) % order.length;
+      apply(order[cur]);
+    });
+    window.matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', function () { apply(order[cur]); });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+# Chạy toàn bộ dự án Fuurin chỉ với: docker compose up
+# - mongo:  database + tự seed roles/website lần đầu
+# - server: backend Express + Socket.io + Puppeteer (Chromium)
+# - client: frontend React (Vite dev server)
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: fuurin-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./server/data:/seed:ro
+      - ./docker/mongo-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build: ./server
+    container_name: fuurin-server
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DATABASE_URL: mongodb://mongo:27017/fuurin
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:?can dat ACCESS_TOKEN_SECRET trong file .env}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?can dat REFRESH_TOKEN_SECRET trong file .env}
+      CLIENT_URL: http://localhost:5173
+    volumes:
+      # giữ lại file upload giữa các lần chạy
+      - ./server/public/uploads:/home/pptruser/app/public/uploads
+
+  client:
+    build: ./client
+    container_name: fuurin-client
+    restart: unless-stopped
+    depends_on:
+      - server
+    ports:
+      - "5173:5173"
+
+volumes:
+  mongo-data:
