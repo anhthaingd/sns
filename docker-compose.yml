@@ -32,8 +32,10 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: mongodb://mongo:27017/fuurin
-      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:?can dat ACCESS_TOKEN_SECRET trong file .env}
-      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?can dat REFRESH_TOKEN_SECRET trong file .env}
+      # Chay duoc ngay voi secret mac dinh cho dev.
+      # Muon dung secret rieng (production): tao file .env o thu muc goc de ghi de.
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_change_in_production}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-dev_refresh_secret_change_in_production}
       CLIENT_URL: http://localhost:5173
     volumes:
       # giữ lại file upload giữa các lần chạy
