@@ -13,7 +13,7 @@ function GaijinpotJob() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/crawl/gaijinpot?curPage=${curPage}`,
+          `${import.meta.env.VITE_BACKEND_URL}/crawl/gaijinpot?curPage=${curPage}`,
           {
             method: 'GET',
           }

@@ -1,19 +1,17 @@
 import json
 
-from bson import ObjectId
-
+from app.errors import ApiError
 from app.models.web import Web
 from app.utils.file_utils import delete_file
+from app.utils.ids import to_object_id
+from app.utils.permissions import require_admin
+from app.utils.responses import ok
 from app.utils.serialization import serialize_doc
 
 
 async def get_web():
-    try:
-        websites = await Web.find_all().to_list()
-        website = serialize_doc(websites[0]) if websites else None
-        return {"status": 200, "body": {"error": False, "success": True, "website": website}}
-    except Exception as e:
-        return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
+    websites = await Web.find_all().to_list()
+    return ok(website=serialize_doc(websites[0]) if websites else None)
 
 
 async def update_web(
@@ -26,33 +24,25 @@ async def update_web(
     old_logo: str = None,
     files: dict = None,
 ):
+    require_admin(decoded_user)
+
     try:
-        role_data = decoded_user.get("role")
-        role_value = role_data.get("value", 0) if isinstance(role_data, dict) else 0
-        if role_value != 1:
-            return {
-                "status": 403,
-                "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"},
-            }
-
         parse_old_logo = json.loads(old_logo) if old_logo else None
-        update_data = {
-            "website_name": website_name,
-            "color_title": color_title,
-            "website_quotes_register": website_quotes_register,
-            "website_quotes_login": website_quotes_login,
-        }
+    except json.JSONDecodeError as err:
+        raise ApiError(400, "Dữ liệu logo cũ không hợp lệ!") from err
 
-        images = files.get("images", []) if files else []
-        if images:
-            if parse_old_logo and parse_old_logo.get("name") != "vite.svg":
-                await delete_file(parse_old_logo.get("url", ""))
-            update_data["logo"] = {"name": images[0]["filename"], "url": images[0]["path"]}
+    update_data = {
+        "website_name": website_name,
+        "color_title": color_title,
+        "website_quotes_register": website_quotes_register,
+        "website_quotes_login": website_quotes_login,
+    }
 
-        await Web.find_one(Web.id == ObjectId(web_id)).update({"$set": update_data})
-        return {
-            "status": 200,
-            "body": {"error": False, "success": True, "message": "Cập nhật thông tin website thành công!"},
-        }
-    except Exception as e:
-        return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
+    images = files.get("images", []) if files else []
+    if images:
+        if parse_old_logo and parse_old_logo.get("name") != "vite.svg":
+            await delete_file(parse_old_logo.get("url", ""))
+        update_data["logo"] = {"name": images[0]["filename"], "url": images[0]["path"]}
+
+    await Web.find_one(Web.id == to_object_id(web_id, "web_id")).update({"$set": update_data})
+    return ok(message="Cập nhật thông tin website thành công!")

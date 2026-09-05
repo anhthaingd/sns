@@ -1,43 +1,41 @@
-from bson import ObjectId
-
+from app.errors import ApiError
 from app.models.channel import Channel
 from app.models.shortcut import Shortcut
+from app.utils.ids import to_object_id
+from app.utils.loaders import load_channels
+from app.utils.responses import ok
 
 
 async def get_shortcuts(decoded_user: dict):
-    try:
-        user_id = ObjectId(decoded_user["_id"])
-        shortcuts = await Shortcut.find({"user": user_id, "isJoin": True}).sort("count").to_list()
+    user_id = to_object_id(decoded_user["_id"], "user_id")
+    shortcuts = await Shortcut.find({"user": user_id, "isJoin": True}).sort("count").to_list()
 
-        shortcuts_list = []
-        for s in shortcuts:
-            d = {"_id": str(s.id), "user": str(s.user), "count": s.shortcut_count, "isJoin": s.isJoin}
-            if s.channel:
-                ch = await Channel.get(s.channel)
-                if ch:
-                    d["channel"] = {"_id": str(ch.id), "name": ch.name, "background": ch.background}
-            shortcuts_list.append(d)
+    # Một truy vấn cho toàn bộ channel của mọi shortcut thay vì `Channel.get()`
+    # trong vòng lặp.
+    channel_map = await load_channels([s.channel for s in shortcuts])
 
-        return {"status": 200, "body": {"error": False, "success": True, "shortcuts": shortcuts_list}}
-    except Exception as e:
-        return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
+    shortcuts_list = []
+    for s in shortcuts:
+        d = {"_id": str(s.id), "user": str(s.user), "count": s.shortcut_count, "isJoin": s.isJoin}
+        channel = channel_map.get(str(s.channel)) if s.channel else None
+        if channel:
+            d["channel"] = {"_id": str(channel.id), "name": channel.name, "background": channel.background}
+        shortcuts_list.append(d)
+
+    return ok(shortcuts=shortcuts_list)
 
 
 async def update_shortcut(decoded_user: dict, channel_id: str):
-    try:
-        user_id = ObjectId(decoded_user["_id"])
-        channel_oid = ObjectId(channel_id)
+    user_id = to_object_id(decoded_user["_id"], "user_id")
+    channel_oid = to_object_id(channel_id, "channel_id")
 
-        is_join = await Channel.find_one({"_id": channel_oid, "members": user_id})
-        if is_join:
-            existed = await Shortcut.find_one({"user": user_id, "channel": channel_oid})
-            if existed:
-                await Shortcut.find_one({"user": user_id, "channel": channel_oid}).update({"$inc": {"count": 1}})
-                return {"status": 200, "body": {"error": False, "success": True}}
+    is_join = await Channel.find_one({"_id": channel_oid, "members": user_id})
+    if not is_join:
+        raise ApiError(403, "Bạn chưa gia nhập channel này!")
 
-            await Shortcut(user=user_id, channel=channel_oid, count=1, isJoin=True).insert()
-            return {"status": 200, "body": {"error": False, "success": True}}
-
-        return {"status": 403, "body": {"error": True, "success": False, "message": "Bạn chưa gia nhập channel này!"}}
-    except Exception as e:
-        return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
+    existed = await Shortcut.find_one({"user": user_id, "channel": channel_oid})
+    if existed:
+        await Shortcut.find_one({"user": user_id, "channel": channel_oid}).update({"$inc": {"count": 1}})
+    else:
+        await Shortcut(user=user_id, channel=channel_oid, count=1, isJoin=True).insert()
+    return ok()

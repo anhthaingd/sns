@@ -50,7 +50,8 @@ async def test_wrong_password_shows_backend_error_message(page):
     await page.get_by_placeholder("Enter your email...").fill(email)
     await page.get_by_placeholder("Enter your password...").fill("wrong-password")
     await page.get_by_role("button", name="Login").click()
-    await page.wait_for_selector("text=Sai mật khẩu!", timeout=15000)
+    # Thông báo cố ý CHUNG cho cả email lạ lẫn sai mật khẩu (chống dò email).
+    await page.wait_for_selector("text=Email hoặc mật khẩu không đúng!", timeout=15000)
 
 
 async def test_plain_user_has_no_admin_menu(page):
@@ -176,3 +177,37 @@ async def test_client_connects_to_socketio_and_receives_new_message(page, db):
     await page.wait_for_timeout(4000)
     body = await page.inner_text("body")
     assert "alice e2e" in body, f"tin nhắn mới không hiện trên UI. body={body[:400]}"
+
+
+async def test_refresh_token_is_never_exposed_to_javascript(page):
+    """Refresh token không được nằm ở nơi JavaScript đọc được.
+
+    XSS đọc `localStorage` và `document.cookie`; cookie `httpOnly` thì không.
+    Đó là lý do access token (15 phút) ở localStorage còn refresh token (7 ngày)
+    ở cookie httpOnly.
+
+    Giới hạn của môi trường test này: trình duyệt mở `http://client:5173` còn
+    API là `http://server:3000` — khác host nên là *cross-site*, và Chromium
+    không lưu cookie `SameSite=Lax` đến từ phản hồi cross-site. Vì vậy phần
+    "cookie thật sự hoạt động" được kiểm ở `server_python/tests/test_auth.py`
+    (set-cookie có HttpOnly, xoay vòng, thu hồi). Chạy thật ở
+    localhost:5173 -> localhost:3000 là CÙNG site nên cookie đi bình thường;
+    deploy hai domain khác nhau cần COOKIE_SAMESITE=none + COOKIE_SECURE=true
+    (bắt buộc HTTPS) — xem README mục 6.
+    """
+    email = unique_email("cookie")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+
+    exposed = await page.evaluate(
+        "() => JSON.stringify({"
+        " local: Object.entries(window.localStorage),"
+        " session: Object.entries(window.sessionStorage),"
+        " cookie: document.cookie })"
+    )
+    assert "refresh_token" not in exposed, f"refresh token bị lộ cho JavaScript: {exposed}"
+
+    # Nếu trình duyệt có lưu cookie (trường hợp cùng site) thì nó phải httpOnly.
+    refresh = next((c for c in await page.context.cookies() if c["name"] == "refresh_token"), None)
+    if refresh is not None:
+        assert refresh["httpOnly"] is True, "refresh token phải httpOnly"

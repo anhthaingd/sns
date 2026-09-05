@@ -19,17 +19,23 @@ import asyncio
 import sys
 
 from app.controllers.crawl import _get_page_content_and_css
+from app.services.browser import browser_service
 
 PROBE_URL = "data:text/html,<h1 id='probe'>fuurin</h1>"
 
 
 async def main() -> int:
-    html, _css = await _get_page_content_and_css(PROBE_URL)
-    if "fuurin" not in html:
-        print(f"FAIL: browser khong render duoc trang thu. HTML nhan duoc: {html[:200]!r}", file=sys.stderr)
-        return 1
-    print("OK: crawl mo duoc browser va render duoc trang")
-    return 0
+    try:
+        html, _css = await _get_page_content_and_css(PROBE_URL)
+        if "fuurin" not in html:
+            print(f"FAIL: browser khong render duoc trang thu. HTML nhan duoc: {html[:200]!r}", file=sys.stderr)
+            return 1
+        print("OK: crawl mo duoc browser va render duoc trang")
+        return 0
+    finally:
+        # Browser dung chung khong tu dong tat khi chay ngoai vong doi cua app;
+        # thieu buoc nay thi tien trinh Chromium con lai sau khi script ket thuc.
+        await browser_service.stop()
 
 
 if __name__ == "__main__":

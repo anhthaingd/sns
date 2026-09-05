@@ -9,9 +9,9 @@
 - **client** — React + Vite + Redux Toolkit + Socket.io + WebRTC (simple-peer)
 - **server_python** — Python + FastAPI + MongoDB (Beanie/pymongo) + Socket.io + Playwright  ← **backend đang dùng**
 - **server** — Node.js + Express (bản cũ, giữ lại để tham chiếu, không còn được compose build)
-- **hạ tầng** — Docker Compose (MongoDB + backend + frontend)
+- **hạ tầng** — Docker Compose (MongoDB + Redis + backend + frontend)
 
-**Tính năng chính:** đăng ký/đăng nhập (JWT), đăng bài, kênh/nhóm, follow, thông báo, nhắn tin & gọi video 1-1, tạo CV, tổng hợp tin tuyển dụng (crawl), trang quản trị.
+**Tính năng chính:** đăng ký/đăng nhập (JWT access token 15 phút + refresh token trong cookie httpOnly),  đăng bài, kênh/nhóm, follow, thông báo, nhắn tin & gọi video 1-1, tạo CV, tổng hợp tin tuyển dụng (crawl), trang quản trị.
 
 ---
 
@@ -41,6 +41,7 @@ docker compose up -d --build
 
 Lệnh này tự động:
 - Khởi động **MongoDB** và **nạp sẵn** dữ liệu roles + cấu hình website
+- Khởi động **Redis** (giữ danh sách token đã thu hồi + bộ đếm chống dò mật khẩu)
 - Build & chạy **backend FastAPI** (kèm sẵn Chromium của Playwright cho chức năng crawl)
 - Build & chạy **frontend**
 
@@ -55,6 +56,7 @@ Lệnh này tự động:
 | API docs (Swagger) | http://localhost:3000/docs |
 | Health check | http://localhost:3000/health |
 | MongoDB | mongodb://localhost:27017/fuurin |
+| Redis | redis://localhost:6379 (không mở ra ngoài) |
 
 Xong! Chuyển sang [mục 4 — Hướng dẫn sử dụng](#4-hướng-dẫn-sử-dụng-lần-đầu).
 
@@ -80,6 +82,9 @@ mongoimport --db fuurin --collection webs  --jsonArray --drop --file server_pyth
 cd server_python
 cp .env.example .env          # xem muc 6 de dien cac bien
 # Sua .env: DATABASE_URL=mongodb://127.0.0.1:27017/fuurin
+# Tuy chon: REDIS_URL=redis://127.0.0.1:6379/0
+#   Khong dat REDIS_URL thi app van chay, nhung blacklist token va bo dem
+#   rate limit nam trong RAM tien trinh -> mat sach khi restart backend.
 
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
@@ -159,10 +164,26 @@ Chỉ khi muốn dùng **secret riêng** (ví dụ deploy production), tạo fil
 cp .env.example .env
 ```
 
-| Biến | Ý nghĩa |
-|---|---|
-| `ACCESS_TOKEN_SECRET` | Chuỗi bí mật ký JWT access token |
-| `REFRESH_TOKEN_SECRET` | Chuỗi bí mật ký JWT refresh token |
+| Biến | Mặc định | Ý nghĩa |
+|---|---|---|
+| `ACCESS_TOKEN_SECRET` | `secret` | Chuỗi bí mật ký JWT access token |
+| `REFRESH_TOKEN_SECRET` | = access secret | Chuỗi bí mật ký JWT refresh token |
+| `REDIS_URL` | trống | Nơi lưu blacklist token + bộ đếm rate limit. Trống = dùng RAM tiến trình (mất khi restart) |
+| `ACCESS_TOKEN_TTL_SECONDS` | `900` (15 phút) | Hạn access token |
+| `REFRESH_TOKEN_TTL_SECONDS` | `604800` (7 ngày) | Hạn refresh token |
+| `COOKIE_SECURE` | `false` | Đặt `true` khi chạy sau HTTPS |
+| `COOKIE_SAMESITE` | `lax` | Xem lưu ý bên dưới nếu deploy hai domain khác nhau |
+| `LOGIN_FAIL_LIMIT_PER_EMAIL` | `10` | Số lần đăng nhập SAI cho một email trong 15 phút |
+| `LOGIN_FAIL_LIMIT_PER_IP` | `30` | Số lần đăng nhập SAI từ một IP trong 15 phút |
+| `REGISTER_RATE_LIMIT_MAX` | `60` | Số lần đăng ký / giờ / IP |
+| `TRUST_PROXY_HEADERS` | `false` | Chỉ bật khi thật sự có reverse proxy. Bật mà không có proxy thì ai cũng giả được `X-Forwarded-For` để qua mặt giới hạn theo IP |
+| `CLIENT_URL` | `http://localhost:5173` | Danh sách origin được phép gọi API, phân tách bằng dấu phẩy |
+
+> **Lưu ý khi deploy frontend và backend trên hai domain khác nhau:** refresh
+> token nằm trong cookie, và cookie `SameSite=lax` **không** được trình duyệt gửi
+> kèm request cross-site. Khi đó phải đặt `COOKIE_SAMESITE=none` **và**
+> `COOKIE_SECURE=true` — mà `SameSite=None` chỉ hợp lệ trên HTTPS. Chạy ở
+> localhost (`:5173` gọi `:3000`) là cùng site nên mặc định `lax` hoạt động bình thường.
 
 Tạo secret mạnh:
 ```bash
@@ -182,6 +203,9 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 | Không thấy mục Admin | Chưa nâng quyền, hoặc chưa đăng nhập lại sau khi nâng. Xem mục 4.2. |
 | Tạo channel bị lỗi 500 | Chưa upload ảnh Background. Xem mục 4.3. |
 | Crawl trả về rỗng | Trang nguồn có thể đã đổi giao diện (cần cập nhật selector), hoặc mạng chậm/timeout. |
+| Đăng nhập báo *"Bạn thao tác quá nhiều lần"* (429) | Đã sai mật khẩu quá 10 lần cho cùng một email. Chờ 15 phút, hoặc `docker exec fuurin-redis redis-cli FLUSHDB` khi đang dev. |
+| Đăng nhập báo *"Email hoặc mật khẩu không đúng!"* dù email chưa đăng ký | Cố ý: một thông báo duy nhất cho mọi trường hợp để không lộ email nào đã tồn tại. |
+| Bị đăng xuất sau ~15 phút | Client phải gọi được `POST /api/users/refresh`. Kiểm tra `CLIENT_URL` có đúng origin đang dùng và xem lưu ý SameSite ở mục 6. |
 
 ---
 
@@ -190,13 +214,14 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 Test chạy trong Docker, không cần cài gì trên máy. Stack phải đang chạy (`docker compose up -d`).
 
 ```bash
-# Test API (61 test: auth, phan quyen, post, channel, chat, upload, socket)
+# Test API (81 test: auth/refresh token, rate limit, phan quyen, post, channel,
+# chat + phan trang, upload, socket, dem so query chong N+1, hop dong response)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
 
 # Test crawl that (can internet, mo browser Playwright)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py
 
-# Test E2E qua giao dien that bang Playwright (8 test)
+# Test E2E qua giao dien that bang Playwright (9 test)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
 
 # Chay xong E2E, tra client ve cau hinh thuong de dung tu trinh duyet:
@@ -231,17 +256,22 @@ trang `data:` (không cần mạng), để bảo vệ quyết định chỉ tả
 ```
 .
 ├── client/                   # Frontend React + Vite
+│   └── src/services/redux/query/baseQuery.js   # tu gia han access token khi 401
 ├── server_python/            # Backend FastAPI (dang dung)
 │   ├── app/
-│   │   ├── config/           # settings, ket noi MongoDB
-│   │   ├── controllers/      # Xu ly logic nghiep vu
+│   │   ├── config/           # settings, ket noi MongoDB, ket noi Redis
+│   │   ├── controllers/      # Xu ly logic nghiep vu (raise ApiError, khong tu bat Exception)
+│   │   ├── errors.py         # Bat loi tap trung -> {error, success, message}
 │   │   ├── middleware/       # auth (JWT), upload file
 │   │   ├── models/           # Beanie Document (schema MongoDB)
-│   │   ├── routes/           # Dinh nghia API
+│   │   ├── routes/           # Dinh nghia API + response_model
+│   │   ├── schemas/          # Pydantic cho request & response (sinh /docs)
+│   │   ├── services/         # browser dung chung (crawl), rate limit, blacklist token
 │   │   ├── sockets/          # Socket.io handler (chat, video call)
-│   │   ├── utils/            # token, serialize, xoa file
+│   │   ├── utils/            # loaders (chong N+1), token, cookie, serialize, quyen
 │   │   └── main.py           # Khoi tao FastAPI + Socket.io
 │   ├── tests/                # Test API (pytest + httpx)
+│   ├── scripts/              # browser_smoke.py — kiem tra Chromium trong image
 │   ├── data/                 # Du lieu seed (roles, website)
 │   ├── public/               # File tinh + file upload
 │   └── Dockerfile

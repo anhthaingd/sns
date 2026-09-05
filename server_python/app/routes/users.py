@@ -1,6 +1,12 @@
-from fastapi import APIRouter, Depends, Form, Header, Query
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Cookie, Depends, Form, Header, Query, Request, Response
 
+from app.config.settings import (
+    REFRESH_COOKIE_NAME,
+    REFRESH_RATE_LIMIT_MAX,
+    REFRESH_RATE_LIMIT_WINDOW_SECONDS,
+    REGISTER_RATE_LIMIT_MAX,
+    REGISTER_RATE_LIMIT_WINDOW_SECONDS,
+)
 from app.controllers.users import (
     following_user,
     get_followers,
@@ -12,6 +18,7 @@ from app.controllers.users import (
     login_user,
     logout_user,
     post_resume,
+    refresh_access_token,
     register_user,
     remove_followers,
     remove_following,
@@ -20,47 +27,73 @@ from app.controllers.users import (
 )
 from app.middleware.auth import get_current_user
 from app.middleware.upload import save_uploaded_files
+from app.schemas.requests import LoginRequest, RegisterRequest
+from app.schemas.responses import (
+    ERROR_RESPONSES,
+    AdminUserListResponse,
+    CurrentUserResponse,
+    FollowersResponse,
+    FollowingResponse,
+    MessageResponse,
+    ResumeResponse,
+    TokenResponse,
+    UserDetailsResponse,
+    UserListResponse,
+)
+from app.services.rate_limit import client_ip, rate_limit
 
-router = APIRouter()
+router = APIRouter(tags=["users"], responses=ERROR_RESPONSES)
+
+# Đăng ký và refresh đếm MỌI lần gọi theo IP. Đăng nhập không dùng dependency
+# vì chỉ được đếm lần THẤT BẠI — logic đó nằm trong `login_user`.
+register_rate_limit = Depends(rate_limit("register", REGISTER_RATE_LIMIT_MAX, REGISTER_RATE_LIMIT_WINDOW_SECONDS))
+refresh_rate_limit = Depends(rate_limit("refresh", REFRESH_RATE_LIMIT_MAX, REFRESH_RATE_LIMIT_WINDOW_SECONDS))
 
 
-@router.get("/api/users/getByToken")
+@router.get("/api/users/getByToken", response_model=CurrentUserResponse)
 async def route_get_user_by_token(decoded=Depends(get_current_user)):
-    result = await get_user_by_token(decoded)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await get_user_by_token(decoded)
 
 
-@router.post("/api/users/login")
-async def route_login(body: dict):
-    result = await login_user(body.get("email", ""), body.get("password", ""))
-    return JSONResponse(status_code=result["status"], content=result["body"])
+@router.post("/api/users/login", response_model=TokenResponse)
+async def route_login(body: LoginRequest, request: Request, response: Response):
+    return await login_user(body.email, body.password, response, client_ip(request))
 
 
-@router.post("/api/users/register")
-async def route_register(body: dict):
-    result = await register_user(
-        email=body.get("email"),
-        password=body.get("password"),
-        username=body.get("username"),
-        address=body.get("address"),
-        intro=body.get("intro"),
+@router.post("/api/users/register", status_code=201, response_model=MessageResponse, dependencies=[register_rate_limit])
+async def route_register(body: RegisterRequest):
+    return await register_user(
+        email=body.email,
+        password=body.password,
+        username=body.username,
+        address=body.address,
+        intro=body.intro,
     )
-    return JSONResponse(status_code=result["status"], content=result["body"])
 
 
-@router.post("/api/users/logout")
-async def route_logout(authorization: str | None = Header(default=None)):
-    result = await logout_user(authorization or "")
-    return JSONResponse(status_code=result["status"], content=result["body"])
+@router.post("/api/users/refresh", response_model=TokenResponse, dependencies=[refresh_rate_limit])
+async def route_refresh(
+    response: Response,
+    refresh_token: str | None = Cookie(default=None, alias=REFRESH_COOKIE_NAME),
+):
+    return await refresh_access_token(refresh_token, response)
 
 
-@router.get("/api/users/{user_id}")
+@router.post("/api/users/logout", response_model=MessageResponse)
+async def route_logout(
+    response: Response,
+    authorization: str | None = Header(default=None),
+    refresh_token: str | None = Cookie(default=None, alias=REFRESH_COOKIE_NAME),
+):
+    return await logout_user(authorization, refresh_token, response)
+
+
+@router.get("/api/users/{user_id}", response_model=UserDetailsResponse)
 async def route_get_user_details(user_id: str):
-    result = await get_user_details(user_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await get_user_details(user_id)
 
 
-@router.put("/api/users/{user_id}")
+@router.put("/api/users/{user_id}", response_model=MessageResponse)
 async def route_update_user(
     user_id: str,
     username: str | None = Form(None),
@@ -74,7 +107,7 @@ async def route_update_user(
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
-    result = await update_user(
+    return await update_user(
         user_id=user_id,
         decoded_user=decoded,
         username=username,
@@ -87,72 +120,57 @@ async def route_update_user(
         update_images=update_images,
         files=files,
     )
-    return JSONResponse(status_code=result["status"], content=result["body"])
 
 
-@router.post("/api/users/{user_id}/following")
+@router.post("/api/users/{user_id}/following", response_model=MessageResponse)
 async def route_following_user(user_id: str, decoded=Depends(get_current_user)):
-    result = await following_user(decoded, user_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await following_user(decoded, user_id)
 
 
-@router.get("/api/users")
+@router.get("/api/users", response_model=UserListResponse)
 async def route_search_users(
     search: str | None = Query(None),
-    page: int | None = Query(None),
+    page: int | None = Query(None, ge=1),
     decoded=Depends(get_current_user),
 ):
-    result = await search_users(decoded, search, page or 1)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await search_users(decoded, search, page or 1)
 
 
-@router.get("/api/get_users_by_admin")
+@router.get("/api/get_users_by_admin", response_model=AdminUserListResponse)
 async def route_get_users_by_admin(
-    page: int | None = Query(1),
+    page: int | None = Query(1, ge=1),
     search: str | None = Query(None),
     decoded=Depends(get_current_user),
 ):
-    result = await get_users_by_admin(decoded, page or 1, search)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await get_users_by_admin(decoded, page or 1, search)
 
 
-@router.get("/api/get_following")
-async def route_get_following(
-    page: int | None = Query(1),
-    decoded=Depends(get_current_user),
-):
-    result = await get_following(decoded, page or 1)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+@router.get("/api/get_following", response_model=FollowingResponse)
+async def route_get_following(page: int | None = Query(1, ge=1), decoded=Depends(get_current_user)):
+    return await get_following(decoded, page or 1)
 
 
-@router.get("/api/get_followers")
-async def route_get_followers(
-    page: int | None = Query(1),
-    decoded=Depends(get_current_user),
-):
-    result = await get_followers(decoded, page or 1)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+@router.get("/api/get_followers", response_model=FollowersResponse)
+async def route_get_followers(page: int | None = Query(1, ge=1), decoded=Depends(get_current_user)):
+    return await get_followers(decoded, page or 1)
 
 
-@router.delete("/api/remove_following/{target_id}")
+@router.delete("/api/remove_following/{target_id}", response_model=MessageResponse)
 async def route_remove_following(target_id: str, decoded=Depends(get_current_user)):
-    result = await remove_following(decoded, target_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await remove_following(decoded, target_id)
 
 
-@router.delete("/api/remove_followers/{target_id}")
+@router.delete("/api/remove_followers/{target_id}", response_model=MessageResponse)
 async def route_remove_followers(target_id: str, decoded=Depends(get_current_user)):
-    result = await remove_followers(decoded, target_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await remove_followers(decoded, target_id)
 
 
-@router.get("/api/resume")
+@router.get("/api/resume", response_model=ResumeResponse)
 async def route_get_resume(decoded=Depends(get_current_user)):
-    result = await get_resume(decoded)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await get_resume(decoded)
 
 
-@router.post("/api/resume")
+@router.post("/api/resume", response_model=MessageResponse)
 async def route_post_resume(
     name: str | None = Form(None),
     position: str | None = Form(None),
@@ -177,7 +195,7 @@ async def route_post_resume(
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
-    result = await post_resume(
+    return await post_resume(
         decoded_user=decoded,
         name=name,
         position=position,
@@ -201,4 +219,3 @@ async def route_post_resume(
         projects=projects,
         files=files,
     )
-    return JSONResponse(status_code=result["status"], content=result["body"])

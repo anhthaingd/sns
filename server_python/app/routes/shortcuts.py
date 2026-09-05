@@ -1,19 +1,17 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 
 from app.controllers.shortcuts import get_shortcuts, update_shortcut
 from app.middleware.auth import get_current_user
+from app.schemas.responses import ERROR_RESPONSES, ApiEnvelope, ShortcutListResponse
 
-router = APIRouter()
+router = APIRouter(tags=["shortcuts"], responses=ERROR_RESPONSES)
 
 
-@router.get("/api/shortcuts")
+@router.get("/api/shortcuts", response_model=ShortcutListResponse)
 async def route_get_shortcuts(decoded=Depends(get_current_user)):
-    result = await get_shortcuts(decoded)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await get_shortcuts(decoded)
 
 
-@router.put("/api/shortcuts/{channel_id}")
+@router.put("/api/shortcuts/{channel_id}", response_model=ApiEnvelope)
 async def route_update_shortcut(channel_id: str, decoded=Depends(get_current_user)):
-    result = await update_shortcut(decoded, channel_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await update_shortcut(decoded, channel_id)

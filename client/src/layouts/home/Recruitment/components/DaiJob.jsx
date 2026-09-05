@@ -12,7 +12,7 @@ function DaiJob() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/crawl/dai_job?curPage=${curPage}`,
+          `${import.meta.env.VITE_BACKEND_URL}/crawl/dai_job?curPage=${curPage}`,
           {
             method: 'GET',
           }

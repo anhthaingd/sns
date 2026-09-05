@@ -1,33 +1,42 @@
+"""Xác thực request bằng access token."""
+
 import jwt
-from fastapi import Header, HTTPException
+from fastapi import Header
 
-from app.config.settings import ACCESS_TOKEN_SECRET
-from app.utils.blacklist import blacklist
+from app.errors import ApiError
+from app.services.token_store import is_revoked
+from app.utils.token import decode_access_token
+
+MISSING_TOKEN_MESSAGE = "Token không tồn tại"
+REVOKED_TOKEN_MESSAGE = "Token đã hết hạn hoặc không hợp lệ."
+INVALID_TOKEN_MESSAGE = "Token không chính xác!"
 
 
-async def get_current_user(authorization: str = Header(default=None)):
+def extract_bearer_token(authorization: str | None) -> str | None:
     if not authorization:
-        raise HTTPException(
-            status_code=401,
-            detail={"error": True, "success": False, "message": "Token không tồn tại"},
-        )
+        return None
     parts = authorization.split(" ")
-    if len(parts) < 2:
-        raise HTTPException(
-            status_code=401,
-            detail={"error": True, "success": False, "message": "Token không tồn tại"},
-        )
-    token = parts[1]
-    if token in blacklist:
-        raise HTTPException(
-            status_code=401,
-            detail={"error": True, "success": False, "message": "Token đã hết hạn hoặc không hợp lệ."},
-        )
+    if len(parts) < 2 or not parts[1]:
+        return None
+    return parts[1]
+
+
+async def get_current_user(authorization: str = Header(default=None)) -> dict:
+    token = extract_bearer_token(authorization)
+    if not token:
+        raise ApiError(401, MISSING_TOKEN_MESSAGE)
+
     try:
-        decoded = jwt.decode(token, ACCESS_TOKEN_SECRET, algorithms=["HS256"])
-        return decoded
+        decoded = decode_access_token(token)
+    except jwt.ExpiredSignatureError as err:
+        # 401 (không phải 403) để client biết cần gọi /api/users/refresh rồi
+        # thử lại, thay vì đá người dùng ra màn hình đăng nhập.
+        raise ApiError(401, REVOKED_TOKEN_MESSAGE) from err
     except jwt.PyJWTError as err:
-        raise HTTPException(
-            status_code=403,
-            detail={"error": True, "success": False, "message": "Token không chính xác!"},
-        ) from err
+        raise ApiError(403, INVALID_TOKEN_MESSAGE) from err
+
+    # Thu hồi tra theo `jti` trong Redis -> đăng xuất sống sót qua restart.
+    if await is_revoked(decoded.get("jti", "")):
+        raise ApiError(401, REVOKED_TOKEN_MESSAGE)
+
+    return decoded

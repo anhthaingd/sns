@@ -20,6 +20,20 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: fuurin-redis
+    restart: unless-stopped
+    # appendonly: blacklist token sống sót cả khi container redis khởi động lại.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   server:
     build: ./server_python
     container_name: fuurin-server
@@ -27,11 +41,16 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
       PORT: 3000
       DATABASE_URL: mongodb://mongo:27017/fuurin
+      # Redis giu blacklist token va bo dem rate limit -> dang xuat co hieu
+      # luc that su, song sot qua restart backend.
+      REDIS_URL: redis://redis:6379/0
       # Chay duoc ngay voi secret mac dinh cho dev.
       # Muon dung secret rieng (production): tao file .env o thu muc goc de ghi de.
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_change_in_production}
@@ -39,6 +58,10 @@ services:
       # Danh sach origin duoc phep goi API (phan tach bang dau phay).
       # `client:5173` la origin khi trinh duyet chay ben trong docker network (bo test E2E).
       CLIENT_URL: ${CLIENT_URL:-http://localhost:5173,http://client:5173}
+      # Gioi han dang ky mac dinh la 60 lan/gio/IP. Bo test API tao hon 100
+      # tai khoan moi lan chay tu cung mot IP, nen noi long o moi truong dev.
+      # Deploy that: BO dong nay di de dung lai muc mac dinh.
+      REGISTER_RATE_LIMIT_MAX: ${REGISTER_RATE_LIMIT_MAX:-100000}
     volumes:
       # Named volume thay vì bind mount: container chạy bằng user thường (uid 10001),
       # bind mount từ host sẽ bị "permission denied" trên Linux.
@@ -66,5 +89,6 @@ services:
 
 volumes:
   mongo-data:
+  redis-data:
   uploads-data:
   certificates-data:

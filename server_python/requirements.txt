@@ -13,3 +13,8 @@ playwright==1.62.0
 beautifulsoup4==4.15.0
 Unidecode==1.4.0
 aiofiles==25.1.0
+# Trạng thái dùng chung giữa các tiến trình: blacklist token, rate limit,
+# và pub/sub cho Socket.io khi chạy nhiều worker.
+redis[hiredis]==6.4.0
+# Cho `EmailStr` trong app/schemas/requests.py.
+email-validator==2.3.0

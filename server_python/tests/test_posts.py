@@ -216,3 +216,21 @@ async def test_update_profile_tolerates_null_file_fields(client, user):
         data={"username": "still works", "images": "null", "avatar": "null", "certificates": "null"},
     )
     assert r.status_code == 200, r.text
+
+
+async def test_upload_wrong_format_gets_explicit_message(client, user, admin, channel):
+    """Sai định dạng file phải nói rõ lý do, không phải 'Đã có lỗi xảy ra'.
+
+    Trước đây tầng upload ném `ValueError` -> rơi vào chốt chặn 500 -> người
+    dùng chỉ thấy thông báo chung chung và không biết phải sửa gì.
+    """
+    await client.post(f"/api/channels/{channel['_id']}", headers=user.headers)
+    r = await client.post(
+        f"/api/posts/{channel['_id']}",
+        headers=user.headers,
+        data={"content": "file sai dinh dang"},
+        files={"images": ("virus.exe", b"MZ\x00\x00", "application/octet-stream")},
+    )
+    assert r.status_code == 400, r.text
+    message = r.json()["message"]
+    assert "định dạng" in message.lower(), message

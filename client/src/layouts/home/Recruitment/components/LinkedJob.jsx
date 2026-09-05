@@ -13,7 +13,7 @@ function LinkedJob() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/crawl/linked_jp_jobs?curPage=${curPage}`,
+          `${import.meta.env.VITE_BACKEND_URL}/crawl/linked_jp_jobs?curPage=${curPage}`,
           {
             method: 'GET',
           }

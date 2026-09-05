@@ -1,17 +1,9 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { endpoint } from '../../../config/endpoint';
-import { getAccessToken } from '../../utils/token';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { baseQueryWithReauth } from './baseQuery';
 
 export const userApi = createApi({
   reducerPath: 'userApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${endpoint}`,
-    prepareHeaders: (headers) => {
-      const token = getAccessToken();
-      headers.set('Authorization', `Bearer ${token}`);
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: [
     'users',
     'posts',
@@ -278,6 +270,10 @@ export const userApi = createApi({
         }),
         invalidatesTags: ['resume'],
       }),
+      getChat: builder.query({
+        query: ({ senderId, receiverId, page }) =>
+          `messages/${senderId}/${receiverId}?page=${page}`,
+      }),
       getNewestMessage: builder.query({
         query: () => `newest_messages`,
       }),
@@ -333,6 +329,7 @@ export const {
   useUpdateShortcutMutation,
   useGetResumeQuery,
   usePostResumeMutation,
+  useLazyGetChatQuery,
   useGetNewestMessageQuery,
   useReadMessageMutation,
 } = userApi;

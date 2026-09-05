@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 
 [tool.ruff]
 line-length = 120
-target-version = "py312"
+target-version = "py310"  # khop voi requires-python; py312 se khien ruff viet lai `timezone.utc` -> `datetime.UTC` (vo hieu voi 3.10)
 exclude = ["venv", ".venv", "__pycache__"]
 
 [tool.ruff.lint]

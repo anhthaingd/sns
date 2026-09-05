@@ -6,6 +6,7 @@ from fastapi import Request, UploadFile
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from app.config.settings import UPLOAD_ROOT
+from app.errors import ApiError
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 ALLOWED_PDF_EXTENSIONS = {".pdf"}
@@ -36,7 +37,10 @@ def _target_dir(ext: str, field_name: str) -> str:
         return "public/certificates"
     if field_name == "file":
         return "public/uploads/files"
-    raise ValueError("Invalid file format.")
+    # ApiError chứ không phải ValueError: ValueError sẽ rơi vào chốt chặn 500
+    # và người dùng chỉ thấy "Đã có lỗi xảy ra" — không biết là do sai định dạng.
+    allowed = ", ".join(sorted(ALLOWED_IMAGE_EXTENSIONS | ALLOWED_PDF_EXTENSIONS))
+    raise ApiError(400, f"Định dạng file không được hỗ trợ. Chỉ nhận: {allowed}")
 
 
 async def save_upload_file(file: UploadFile, field_name: str = "images") -> dict:
@@ -48,9 +52,15 @@ async def save_upload_file(file: UploadFile, field_name: str = "images") -> dict
 
     filename = generate_unique_filename(file.filename)
 
+    # Kiểm tra kích thước TRƯỚC khi đọc: `await file.read()` nạp toàn bộ file
+    # vào RAM, nên kiểm tra sau khi đọc thì file 2GB đã kịp làm sập tiến trình.
+    # Starlette điền sẵn `size` từ Content-Length của phần multipart.
+    if file.size is not None and file.size > MAX_FILE_SIZE:
+        raise ApiError(413, f"File vượt quá {MAX_FILE_SIZE // (1024 * 1024)}MB.")
+
     content = await file.read()
     if len(content) > MAX_FILE_SIZE:
-        raise ValueError("File size exceeds 25MB limit.")
+        raise ApiError(413, f"File vượt quá {MAX_FILE_SIZE // (1024 * 1024)}MB.")
 
     (abs_dir / filename).write_bytes(content)
 

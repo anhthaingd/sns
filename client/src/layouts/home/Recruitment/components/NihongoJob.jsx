@@ -13,7 +13,7 @@ function NihongoJob() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/crawl/nihongo?curPage=${curPage}`,
+          `${import.meta.env.VITE_BACKEND_URL}/crawl/nihongo?curPage=${curPage}`,
           {
             method: 'GET',
           }

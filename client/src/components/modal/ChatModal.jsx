@@ -1,21 +1,34 @@
 import Modal from '@/modal';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { FaXmark, FaPaperPlane, FaVideo } from 'react-icons/fa6';
 import { ModalContext } from '../../context/ModalProvider';
-import { getAccessToken } from '../../services/utils/token';
 import { useNavigate } from 'react-router-dom';
 import { socket } from '../../context/SocketProvider';
+
+// Cuộn tới trong khoảng này tính từ đầu danh sách thì coi như "muốn xem tin cũ".
+const LOAD_MORE_SCROLL_THRESHOLD_PX = 24;
+import { useLazyGetChatQuery } from '../../services/redux/query/usersQuery';
 function ChatModal() {
   const { user, refetchMessages } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { state, setVisibleModal } = useContext(ModalContext);
   const [messages, setMessages] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isFocusCmt, setIsFocusCmt] = useState(false);
   const messageRef = useRef();
   const chatContainerRef = useRef();
+  // Sau khi chèn tin cũ lên đầu thì KHÔNG được nhảy xuống đáy, phải giữ nguyên
+  // chỗ người dùng đang đọc. Hai ref dưới điều khiển việc đó.
+  const shouldScrollToBottomRef = useRef(true);
+  const prevScrollHeightRef = useRef(0);
+  // Guard bằng ref chứ không bằng state: `onScroll` bắn liên tục và state cập
+  // nhật bất đồng bộ, nên chỉ dựa vào `isLoadingMore` sẽ tải trùng một trang.
+  const isLoadingMoreRef = useRef(false);
+  const [triggerGetChat] = useLazyGetChatQuery();
   const handleFocusComment = () => {
     if (messageRef.current) {
       messageRef.current.focus();
@@ -23,32 +36,59 @@ function ChatModal() {
     }
   };
 
-  const fetchMessagesData = async () => {
+  // Đi qua RTK Query (thay vì `fetch` thô) để dùng chung cơ chế tự gia hạn
+  // access token; trước đây token hết hạn giữa chừng là khung chat trắng xoá.
+  const loadMessages = useCallback(
+    async (targetPage, { prepend = false } = {}) => {
+      if (!user?._id || !selectedUser?._id) return;
+      try {
+        const data = await triggerGetChat({
+          senderId: user._id,
+          receiverId: selectedUser._id,
+          page: targetPage,
+        }).unwrap();
+        setTotalPage(data?.totalPage || 1);
+        setMessages((prev) =>
+          prepend ? [...(data?.messages || []), ...prev] : data?.messages || []
+        );
+      } catch (error) {
+        console.error('Error fetching messages', error);
+      }
+    },
+    [user?._id, selectedUser?._id, triggerGetChat]
+  );
+
+  // Cuộn tới gần đầu danh sách -> tải trang cũ hơn.
+  const handleScroll = useCallback(async () => {
+    const container = chatContainerRef.current;
+    if (!container || isLoadingMoreRef.current) return;
+    if (container.scrollTop > LOAD_MORE_SCROLL_THRESHOLD_PX || page >= totalPage)
+      return;
+
+    isLoadingMoreRef.current = true;
+    prevScrollHeightRef.current = container.scrollHeight;
+    shouldScrollToBottomRef.current = false;
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/messages/${user._id}/${
-          selectedUser._id
-        }?page=${page}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAccessToken()}`,
-          },
-        }
-      );
-      const data = await res.json();
-      setMessages(data?.messages);
-    } catch (error) {
-      console.error('Error fetching messages', error);
+      await loadMessages(nextPage, { prepend: true });
+      setPage(nextPage);
+    } finally {
+      isLoadingMoreRef.current = false;
+      setIsLoadingMore(false);
     }
-  };
+  }, [page, totalPage, loadMessages]);
 
   useEffect(() => {
     if (state.visibleChatModal) {
       setMessages([]);
       setSelectedUser(state.visibleChatModal);
       setPage(1);
+      setTotalPage(1);
 
       socket.on('receiveMessage', (message) => {
+        // Tin mới luôn nối xuống cuối -> cuộn xuống đáy.
+        shouldScrollToBottomRef.current = true;
         setMessages((prevMessages) => [...prevMessages, message]);
         if (message.refetch) {
           refetchMessages();
@@ -69,15 +109,24 @@ function ChatModal() {
   useEffect(() => {
     if (state.visibleChatModal && selectedUser) {
       setMessages([]);
-      fetchMessagesData();
+      setPage(1);
+      isLoadingMoreRef.current = false;
+      shouldScrollToBottomRef.current = true;
+      loadMessages(1);
     }
-  }, [state.visibleChatModal, selectedUser]);
+  }, [state.visibleChatModal, selectedUser, loadMessages]);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+    const container = chatContainerRef.current;
+    if (!container) return;
+    if (shouldScrollToBottomRef.current) {
+      container.scrollTop = container.scrollHeight;
+      return;
     }
+    // Vừa chèn tin cũ lên đầu: bù đúng phần chiều cao mới thêm vào để nội dung
+    // người dùng đang nhìn không bị nhảy.
+    container.scrollTop = container.scrollHeight - prevScrollHeightRef.current;
+    shouldScrollToBottomRef.current = true;
   }, [messages]);
 
   const sendMessage = () => {
@@ -153,8 +202,12 @@ function ChatModal() {
         </div>
         <div
           ref={chatContainerRef}
+          onScroll={handleScroll}
           className='px-2 py-4 w-full h-full overflow-y-auto flex flex-col gap-4'
         >
+          {isLoadingMore && (
+            <p className='text-center text-xs opacity-60'>Đang tải tin cũ...</p>
+          )}
           {messages?.map((m) => {
             const isSender = m?.sender?._id === user?._id;
             return (

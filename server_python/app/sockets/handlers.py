@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from bson import ObjectId
@@ -5,6 +6,8 @@ from bson import ObjectId
 from app.models.chat import Chat
 from app.models.newest_message import NewestMessage
 from app.models.user import User
+
+logger = logging.getLogger("fuurin.socket")
 
 
 def register_handlers(sio):
@@ -140,4 +143,4 @@ def register_handlers(sio):
     @sio.on("disconnect")
     async def handle_disconnect(sid):
         await User.find_one(User.socketId == sid).update({"$set": {"socketId": None}})
-        print("Client disconnected")
+        logger.info("Client disconnected: %s", sid)

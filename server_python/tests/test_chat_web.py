@@ -115,3 +115,47 @@ async def test_read_message_of_other_conversation_is_rejected(client, user, othe
     )
     r = await client.put(f"/api/newest_messages/{fake.inserted_id}", headers=user.headers)
     assert r.status_code == 404
+
+
+async def test_get_chat_is_paginated_and_ordered_oldest_first(client, user, other_user, db):
+    """Phân trang + thứ tự hiển thị của lịch sử chat.
+
+    Hai lỗi được sửa cùng lúc ở đây:
+    1. `page` trước đây bị bỏ qua -> mở khung chat là tải TOÀN BỘ lịch sử.
+    2. Backend sort mới-nhất-trước còn client render từ trên xuống -> lịch sử
+       hiển thị ngược, trong khi tin mới qua socket lại nối xuống dưới.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    from bson import ObjectId
+
+    base = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=1)
+    await db.chats.insert_many(
+        [
+            {
+                "sender": ObjectId(user.id),
+                "receiver": ObjectId(other_user.id),
+                "content": f"msg-{i:03d}",
+                "timestamp": base + timedelta(seconds=i),
+            }
+            for i in range(45)
+        ]
+    )
+
+    r = await client.get(f"/api/messages/{user.id}/{other_user.id}", params={"page": 1}, headers=user.headers)
+    assert r.status_code == 200, r.text
+    body = r.json()
+
+    contents = [m["content"] for m in body["messages"]]
+    assert len(contents) == 20, f"trang 1 phải có đúng 20 tin, nhận {len(contents)}"
+    assert body["totalPage"] == 3, body["totalPage"]
+    # Trang 1 = 20 tin GẦN NHẤT, sắp xếp cũ -> mới để client render thẳng từ trên xuống.
+    assert contents == sorted(contents), f"sai thứ tự: {contents[:3]} ... {contents[-3:]}"
+    assert contents[-1] == "msg-044", contents[-1]
+    assert contents[0] == "msg-025", contents[0]
+
+    r = await client.get(f"/api/messages/{user.id}/{other_user.id}", params={"page": 2}, headers=user.headers)
+    older = [m["content"] for m in r.json()["messages"]]
+    assert older == sorted(older)
+    assert older[-1] == "msg-024", older[-1]
+    assert set(older).isdisjoint(contents), "trang 2 trùng dữ liệu với trang 1"

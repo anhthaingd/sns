@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import urlsplit
 
 from beanie import init_beanie
@@ -32,6 +33,8 @@ DOCUMENT_MODELS = [
     Resume,
 ]
 
+logger = logging.getLogger("fuurin.database")
+
 DEFAULT_DB_NAME = "social_app"
 
 _client: AsyncMongoClient | None = None
@@ -50,7 +53,7 @@ async def connect_db():
         database=_client[_database_name(DATABASE_URL)],
         document_models=DOCUMENT_MODELS,
     )
-    print("MongoDB connected!")
+    logger.info("MongoDB connected!")
 
 
 async def close_db():

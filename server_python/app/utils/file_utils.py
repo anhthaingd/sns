@@ -1,6 +1,10 @@
+import logging
+
 import aiofiles.os
 
 from app.config.settings import BASE_DIR
+
+logger = logging.getLogger("fuurin.files")
 
 
 async def delete_file(file_path: str):
@@ -14,12 +18,12 @@ async def delete_file(file_path: str):
 
         # Không cho xoá ra ngoài thư mục public/.
         if not target.is_relative_to((BASE_DIR / "public").resolve()):
-            print(f"Refused to delete outside public/: {file_path}")
+            logger.warning("Từ chối xoá file ngoài public/: %s", file_path)
             return
 
         await aiofiles.os.remove(target)
-        print(f"File deleted: {target}")
+        logger.info("Đã xoá file: %s", target)
     except FileNotFoundError:
-        print(f"File does not exist: {file_path}")
-    except Exception as e:
-        print(f"Error deleting file: {e}")
+        logger.info("File không tồn tại, bỏ qua: %s", file_path)
+    except OSError:
+        logger.exception("Lỗi khi xoá file %s", file_path)

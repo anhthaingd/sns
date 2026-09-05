@@ -1,3 +1,6 @@
+import pytest
+
+
 async def test_user_details(client, user, other_user):
     r = await client.get(f"/api/users/{other_user.id}")
     assert r.status_code == 200, r.text
@@ -112,3 +115,28 @@ async def test_resume_roundtrip(client, user):
     resume = r.json()["resume"]
     assert resume["name"] == "Nguyen Van A"
     assert resume["skills"] == ["Python", "MongoDB"]
+
+
+@pytest.mark.parametrize("keyword", ["[", "(a+)+$", "*", "\\", "a{100000}", ".*"])
+async def test_search_with_regex_metacharacters_does_not_crash(client, user, admin, keyword):
+    """Ô tìm kiếm nhận văn bản thuần, không phải regex.
+
+    Trước đây từ khoá đi thẳng vào `$regex`: gõ một dấu `[` là Mongo ném
+    "Regular expression is invalid" -> API trả 500. Chuỗi kiểu `(a+)+$` còn có
+    thể làm máy chủ quay regex rất lâu (ReDoS).
+    """
+    for path, headers in [
+        ("/api/users", user.headers),
+        ("/api/channels", None),
+        ("/api/posts", user.headers),
+        ("/api/get_users_by_admin", admin.headers),
+    ]:
+        r = await client.get(path, params={"search": keyword, "page": 1}, headers=headers)
+        assert r.status_code == 200, f"{path} với từ khoá {keyword!r} trả {r.status_code}: {r.text}"
+
+
+async def test_search_treats_keyword_as_literal_text(client, user, other_user):
+    """`.*` phải tìm đúng chuỗi ".*", không phải khớp tất cả."""
+    r = await client.get("/api/users", params={"search": ".*", "page": 1}, headers=user.headers)
+    assert r.status_code == 200, r.text
+    assert r.json()["users"] == [], "regex không được escape: '.*' đang khớp mọi user"

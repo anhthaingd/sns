@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, Form, Query
-from fastapi.responses import JSONResponse
 
 from app.controllers.channels import (
     create_channel,
@@ -13,49 +12,49 @@ from app.controllers.channels import (
 )
 from app.middleware.auth import get_current_user
 from app.middleware.upload import save_uploaded_files
+from app.schemas.requests import RemoveUserFromChannelRequest
+from app.schemas.responses import (
+    ERROR_RESPONSES,
+    ChannelDetailsResponse,
+    ChannelListResponse,
+    MessageResponse,
+    UserChannelsResponse,
+)
 
-router = APIRouter()
+router = APIRouter(tags=["channels"], responses=ERROR_RESPONSES)
 
 
-@router.get("/api/channels")
-async def route_get_all_channels(
-    page: int | None = Query(1),
-    search: str | None = Query(None),
-):
-    result = await get_all_channels(page or 1, search)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+@router.get("/api/channels", response_model=ChannelListResponse)
+async def route_get_all_channels(page: int | None = Query(1, ge=1), search: str | None = Query(None)):
+    return await get_all_channels(page or 1, search)
 
 
-@router.post("/api/channels")
+@router.post("/api/channels", status_code=201, response_model=MessageResponse)
 async def route_create_channel(
     name: str = Form(...),
     intro: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
-    result = await create_channel(decoded, name, intro, files)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await create_channel(decoded, name, intro, files)
 
 
-@router.get("/api/channels/get_by_user")
+@router.get("/api/channels/get_by_user", response_model=UserChannelsResponse)
 async def route_get_channels_by_user(decoded=Depends(get_current_user)):
-    result = await get_channels_by_user(decoded)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await get_channels_by_user(decoded)
 
 
-@router.get("/api/channels/{channel_id}")
+@router.get("/api/channels/{channel_id}", response_model=ChannelDetailsResponse)
 async def route_get_channel_details(channel_id: str, decoded=Depends(get_current_user)):
-    result = await get_channel_details(decoded, channel_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await get_channel_details(decoded, channel_id)
 
 
-@router.post("/api/channels/{channel_id}")
+@router.post("/api/channels/{channel_id}", response_model=MessageResponse)
 async def route_join_channel(channel_id: str, decoded=Depends(get_current_user)):
-    result = await join_channel(decoded, channel_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await join_channel(decoded, channel_id)
 
 
-@router.put("/api/channels/{channel_id}")
+@router.put("/api/channels/{channel_id}", response_model=MessageResponse)
 async def route_update_channel(
     channel_id: str,
     name: str | None = Form(None),
@@ -64,17 +63,18 @@ async def route_update_channel(
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
-    result = await update_channel(decoded, channel_id, name, intro, oldBackground, files)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await update_channel(decoded, channel_id, name, intro, oldBackground, files)
 
 
-@router.delete("/api/channels/{channel_id}")
+@router.delete("/api/channels/{channel_id}", response_model=MessageResponse)
 async def route_delete_channel(channel_id: str, decoded=Depends(get_current_user)):
-    result = await delete_channel(decoded, channel_id)
-    return JSONResponse(status_code=result["status"], content=result["body"])
+    return await delete_channel(decoded, channel_id)
 
 
-@router.delete("/api/channels/{channel_id}/delete_user")
-async def route_remove_user_from_channel(channel_id: str, body: dict, decoded=Depends(get_current_user)):
-    result = await remove_user_from_channel(decoded, channel_id, body.get("userId", ""))
-    return JSONResponse(status_code=result["status"], content=result["body"])
+@router.delete("/api/channels/{channel_id}/delete_user", response_model=MessageResponse)
+async def route_remove_user_from_channel(
+    channel_id: str,
+    body: RemoveUserFromChannelRequest,
+    decoded=Depends(get_current_user),
+):
+    return await remove_user_from_channel(decoded, channel_id, body.userId)
