@@ -1,6 +1,7 @@
 # Fuurin — Mạng xã hội tuyển dụng
 
 [![CI](https://github.com/anhthaingd/sns/actions/workflows/ci.yml/badge.svg)](https://github.com/anhthaingd/sns/actions/workflows/ci.yml)
+[![Crawl health](https://github.com/anhthaingd/sns/actions/workflows/crawl-health.yml/badge.svg)](https://github.com/anhthaingd/sns/actions/workflows/crawl-health.yml)
 
 Ứng dụng full-stack kết hợp mạng xã hội + nhắn tin/gọi video thời gian thực + sàn tổng hợp việc làm tại Nhật Bản.
 
@@ -215,9 +216,13 @@ docker compose up -d client
 - **lint** — `ruff check` + `ruff format --check`
 - **test** — dựng stack bằng Docker rồi chạy test API và E2E; fail thì upload ảnh chụp màn hình + log backend
 
-Test crawl **không** chạy trong CI vì phụ thuộc trang web bên ngoài (LinkedIn hay chặn tạm thời
-khi bị gọi liên tục). Muốn chạy thì vào tab Actions → *CI* → **Run workflow** và bật
-*Chay ca test crawl*.
+Test crawl nằm ở workflow **riêng** (`crawl-health.yml`), chạy tự động 03:00 UTC thứ Hai hàng tuần.
+Tách riêng vì nó gọi ra trang thật — LinkedIn hay chặn tạm thời khi bị gọi liên tục, và nếu để
+chung với CI thì một lần bị chặn sẽ làm badge CI đỏ trong khi code không sao. Badge *Crawl health*
+đỏ nghĩa là **selector có thể đã mục rữa**, không phải code hỏng.
+
+Ngoài ra CI có bước **smoke test browser** chạy mọi lần: nó gọi đúng hàm crawl dùng thật với một
+trang `data:` (không cần mạng), để bảo vệ quyết định chỉ tải `chromium-headless-shell` trong image.
 
 ---
 

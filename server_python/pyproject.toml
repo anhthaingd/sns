@@ -1,3 +1,10 @@
+[project]
+name = "fuurin-server"
+version = "1.0.0"
+# Code dung cu phap union PEP 604 (`str | None`) duoc danh gia luc runtime
+# boi Pydantic, nen bat buoc >= 3.10. Docker ghim python:3.12-slim.
+requires-python = ">=3.10"
+
 [tool.ruff]
 line-length = 120
 target-version = "py312"
@@ -12,5 +19,6 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Test dung fixture qua ten bien -> ruff hay bao nham
-"tests/*" = ["F811"]
+# Pattern phai khop duoc du ruff duoc goi tu goc repo hay tu server_python/,
+# nen dung "**/" thay vi "tests/*" (cai nay resolve thanh <cwd>/tests/* -> khong khop).
+"**/tests/*" = ["F811"]

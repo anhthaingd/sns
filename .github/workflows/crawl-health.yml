@@ -1,0 +1,47 @@
+# Tach rieng khoi ci.yml co chu dich.
+#
+# Test crawl goi ra DaiJob/GaijinPot/Nihongo/LinkedIn that. LinkedIn chan tam
+# thoi khi bi goi lien tuc (da quan sat duoc: fail 1 lan, pass 2 lan chay lai).
+# Neu de chung workflow voi CI thi mot lan bi chan se lam badge CI trong README
+# do quach, trong khi code hoan toan binh thuong -> badge mat y nghia.
+#
+# Workflow rieng nay co badge rieng: do = "selector co the da muc rua", khong
+# phai "code hong".
+
+name: Crawl health
+
+on:
+  schedule:
+    - cron: "0 3 * * 1" # 03:00 UTC thu Hai hang tuan
+  workflow_dispatch:
+
+jobs:
+  crawl:
+    name: Kiem tra 4 nguon tuyen dung
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Khoi dong stack
+        run: docker compose up -d --build mongo server
+
+      - name: Cho backend healthy
+        run: |
+          for i in $(seq 1 90); do
+            health=$(docker inspect -f '{{.State.Health.Status}}' fuurin-server 2>/dev/null || echo starting)
+            [ "$health" = "healthy" ] && echo "backend healthy sau ${i}s" && exit 0
+            sleep 1
+          done
+          echo "::error::Backend khong healthy sau 90s"
+          docker compose logs server
+          exit 1
+
+      - name: Test crawl (goi ra internet)
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm \
+            -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py -v
+
+      - name: Don dep
+        if: always()
+        run: docker compose down -v

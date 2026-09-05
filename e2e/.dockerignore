@@ -1,0 +1,4 @@
+# Anh chup man hinh cua cac lan chay test - khong can trong build context
+artifacts/
+__pycache__/
+.pytest_cache/

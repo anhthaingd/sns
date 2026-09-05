@@ -5,11 +5,6 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
-    inputs:
-      run_crawl_tests:
-        description: "Chay ca test crawl (goi ra internet, co the flaky)"
-        type: boolean
-        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -30,10 +25,10 @@ jobs:
         run: pip install ruff==0.15.1
 
       - name: ruff check
-        run: ruff check server_python/app server_python/tests e2e --config server_python/pyproject.toml
+        run: ruff check server_python/app server_python/scripts server_python/tests e2e --config server_python/pyproject.toml
 
       - name: ruff format --check
-        run: ruff format --check server_python/app server_python/tests e2e --config server_python/pyproject.toml
+        run: ruff format --check server_python/app server_python/scripts server_python/tests e2e --config server_python/pyproject.toml
 
   test:
     name: Test (API + E2E)
@@ -59,14 +54,13 @@ jobs:
           docker compose logs server
           exit 1
 
+      # Chay trong image production (image test khong tai binary browser).
+      # Bao ve quyet dinh chi tai chromium-headless-shell o Dockerfile.
+      - name: Smoke test browser trong image
+        run: docker compose exec -T server python -m scripts.browser_smoke
+
       - name: Test API
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
-
-      - name: Test crawl (chi khi chay tay)
-        if: github.event_name == 'workflow_dispatch' && inputs.run_crawl_tests
-        run: |
-          docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm \
-            -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py
 
       - name: Test E2E (Playwright)
         run: docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
