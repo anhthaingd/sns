@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from app.middleware.auth import get_current_user
 from app.controllers.shortcuts import get_shortcuts, update_shortcut
+from app.middleware.auth import get_current_user
 
 router = APIRouter()
 

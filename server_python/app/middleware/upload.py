@@ -1,7 +1,6 @@
 import os
 import secrets
 import time
-from typing import Optional, List
 
 from fastapi import Request, UploadFile
 from starlette.datastructures import UploadFile as StarletteUploadFile
@@ -25,7 +24,7 @@ def get_file_extension(filename: str) -> str:
 def generate_unique_filename(original_name: str) -> str:
     # Chỉ giữ tên file, bỏ mọi thành phần thư mục để chặn path traversal (../../etc/passwd).
     safe_name = os.path.basename(original_name or "file")
-    unique_suffix = f"{int(time.time() * 1000)}-{secrets.randbelow(10 ** 9)}"
+    unique_suffix = f"{int(time.time() * 1000)}-{secrets.randbelow(10**9)}"
     return f"{unique_suffix}-{safe_name}"
 
 
@@ -61,9 +60,9 @@ async def save_upload_file(file: UploadFile, field_name: str = "images") -> dict
 
 
 async def save_upload_files(
-    images: Optional[List[UploadFile]] = None,
-    avatar: Optional[List[UploadFile]] = None,
-    certificates: Optional[List[UploadFile]] = None,
+    images: list[UploadFile] | None = None,
+    avatar: list[UploadFile] | None = None,
+    certificates: list[UploadFile] | None = None,
 ) -> dict:
     result = {"images": [], "avatar": [], "certificates": []}
 

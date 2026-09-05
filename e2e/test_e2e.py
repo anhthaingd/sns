@@ -1,12 +1,11 @@
 import uuid
 
 import httpx
-import pytest
 import socketio
 
 from .conftest import (
-    APP_URL,
     API_URL,
+    APP_URL,
     login_via_ui,
     promote_to_admin,
     register_via_ui,
@@ -142,9 +141,7 @@ async def test_client_connects_to_socketio_and_receives_new_message(page, db):
     await page.wait_for_timeout(4000)
 
     receiver = await db.users.find_one({"email": receiver_email})
-    assert receiver.get("socketCallId"), (
-        "backend không lưu socket id của client -> handler joinCall/Socket.io hỏng"
-    )
+    assert receiver.get("socketCallId"), "backend không lưu socket id của client -> handler joinCall/Socket.io hỏng"
 
     async with httpx.AsyncClient(base_url=API_URL, timeout=30) as api:
         r = await api.post(

@@ -1,27 +1,26 @@
-from typing import Optional, List
 from beanie import Document, PydanticObjectId
 
 
 class Resume(Document):
-    user: Optional[PydanticObjectId] = None
-    name: Optional[str] = None
-    avatar: Optional[dict] = None
-    position: Optional[str] = None
-    birthday: Optional[str] = None
-    email: Optional[str] = None
-    address: Optional[str] = None
-    phone: Optional[str] = None
-    github: Optional[str] = None
-    objective: Optional[str] = None
-    educationName: Optional[str] = None
-    educationMajor: Optional[str] = None
-    educationCompletion: Optional[str] = None
-    educationGPA: Optional[str] = None
-    experiences: List[dict] = []
-    skills: List[str] = []
-    languages: List[str] = []
-    projects: List[dict] = []
-    certificates: List[dict] = []
+    user: PydanticObjectId | None = None
+    name: str | None = None
+    avatar: dict | None = None
+    position: str | None = None
+    birthday: str | None = None
+    email: str | None = None
+    address: str | None = None
+    phone: str | None = None
+    github: str | None = None
+    objective: str | None = None
+    educationName: str | None = None
+    educationMajor: str | None = None
+    educationCompletion: str | None = None
+    educationGPA: str | None = None
+    experiences: list[dict] = []
+    skills: list[str] = []
+    languages: list[str] = []
+    projects: list[dict] = []
+    certificates: list[dict] = []
 
     class Settings:
         name = "resumes"

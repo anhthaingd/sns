@@ -1,17 +1,17 @@
 import json
 import math
+
 from bson import ObjectId
 from unidecode import unidecode
 
 from app.models.channel import Channel
-from app.models.post import Post
-from app.models.shortcut import Shortcut
 from app.models.notification import Notification
-from app.models.user import User
+from app.models.post import Post
 from app.models.role import Role
+from app.models.shortcut import Shortcut
+from app.models.user import User
 from app.utils.file_utils import delete_file
 from app.utils.serialization import serialize_doc
-
 
 
 async def _populate_members(channel):
@@ -85,7 +85,10 @@ async def create_channel(decoded_user: dict, name: str, intro: str = None, files
         role_data = decoded_user.get("role")
         role_value = role_data.get("value", 0) if isinstance(role_data, dict) else 0
         if role_value != 1:
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"}}
+            return {
+                "status": 403,
+                "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"},
+            }
 
         existed = await Channel.find_one(Channel.name == name)
         images = files.get("images", []) if files else []
@@ -110,7 +113,10 @@ async def join_channel(decoded_user: dict, channel_id: str):
         role_data = decoded_user.get("role")
         role_value = role_data.get("value", 0) if isinstance(role_data, dict) else 0
         if role_value == 1:
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Admin không thể tự ý rời khỏi nhóm!"}}
+            return {
+                "status": 403,
+                "body": {"error": True, "success": False, "message": "Admin không thể tự ý rời khỏi nhóm!"},
+            }
 
         user_id = ObjectId(decoded_user["_id"])
         channel = await Channel.get(ObjectId(channel_id))
@@ -138,21 +144,32 @@ async def remove_user_from_channel(decoded_user: dict, channel_id: str, user_id_
         role_data = decoded_user.get("role")
         role_value = role_data.get("value", 0) if isinstance(role_data, dict) else 0
         if role_value != 1:
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"}}
+            return {
+                "status": 403,
+                "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"},
+            }
 
         if user_id_to_remove == decoded_user["_id"]:
-            return {"status": 409, "body": {"error": True, "success": False, "message": "Bạn không thể xóa chính mình ra khỏi channel!"}}
+            return {
+                "status": 409,
+                "body": {"error": True, "success": False, "message": "Bạn không thể xóa chính mình ra khỏi channel!"},
+            }
 
         target_user = await User.get(ObjectId(user_id_to_remove))
         if target_user and target_user.role:
             target_role = await Role.get(target_user.role)
             if target_role and target_role.value == 1:
-                return {"status": 403, "body": {"error": True, "success": False, "message": "Bạn không thể xóa admin khác ra khỏi nhóm!"}}
+                return {
+                    "status": 403,
+                    "body": {"error": True, "success": False, "message": "Bạn không thể xóa admin khác ra khỏi nhóm!"},
+                }
 
         target_oid = ObjectId(user_id_to_remove)
         channel = await Channel.find_one(Channel.id == ObjectId(channel_id))
         await Channel.find_one(Channel.id == ObjectId(channel_id)).update({"$pull": {"members": target_oid}})
-        await Shortcut.find_one({"user": target_oid, "channel": ObjectId(channel_id)}).update({"$set": {"isJoin": False}})
+        await Shortcut.find_one({"user": target_oid, "channel": ObjectId(channel_id)}).update(
+            {"$set": {"isJoin": False}}
+        )
 
         if channel:
             await Notification(
@@ -162,17 +179,34 @@ async def remove_user_from_channel(decoded_user: dict, channel_id: str, user_id_
                 url=None,
             ).insert()
 
-        return {"status": 200, "body": {"error": False, "success": True, "message": f"Đã xóa người dùng id:{user_id_to_remove} ra khỏi channel!"}}
+        return {
+            "status": 200,
+            "body": {
+                "error": False,
+                "success": True,
+                "message": f"Đã xóa người dùng id:{user_id_to_remove} ra khỏi channel!",
+            },
+        }
     except Exception as e:
         return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
 
 
-async def update_channel(decoded_user: dict, channel_id: str, name: str = None, intro: str = None, old_background: str = None, files: dict = None):
+async def update_channel(
+    decoded_user: dict,
+    channel_id: str,
+    name: str = None,
+    intro: str = None,
+    old_background: str = None,
+    files: dict = None,
+):
     try:
         role_data = decoded_user.get("role")
         role_value = role_data.get("value", 0) if isinstance(role_data, dict) else 0
         if role_value != 1:
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"}}
+            return {
+                "status": 403,
+                "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"},
+            }
 
         parse_old_image = json.loads(old_background) if old_background else None
         update_data = {"name": name, "intro": intro}
@@ -194,7 +228,10 @@ async def delete_channel(decoded_user: dict, channel_id: str):
         role_data = decoded_user.get("role")
         role_value = role_data.get("value", 0) if isinstance(role_data, dict) else 0
         if role_value != 1:
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"}}
+            return {
+                "status": 403,
+                "body": {"error": True, "success": False, "message": "Chức năng này chỉ dành cho admin!"},
+            }
 
         channel = await Channel.get(ObjectId(channel_id))
         if channel:

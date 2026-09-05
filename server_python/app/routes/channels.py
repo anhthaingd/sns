@@ -1,27 +1,26 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, Query, Form
+from fastapi import APIRouter, Depends, Form, Query
 from fastapi.responses import JSONResponse
 
+from app.controllers.channels import (
+    create_channel,
+    delete_channel,
+    get_all_channels,
+    get_channel_details,
+    get_channels_by_user,
+    join_channel,
+    remove_user_from_channel,
+    update_channel,
+)
 from app.middleware.auth import get_current_user
 from app.middleware.upload import save_uploaded_files
-from app.controllers.channels import (
-    get_all_channels,
-    get_channels_by_user,
-    get_channel_details,
-    create_channel,
-    join_channel,
-    update_channel,
-    delete_channel,
-    remove_user_from_channel,
-)
 
 router = APIRouter()
 
 
 @router.get("/api/channels")
 async def route_get_all_channels(
-    page: Optional[int] = Query(1),
-    search: Optional[str] = Query(None),
+    page: int | None = Query(1),
+    search: str | None = Query(None),
 ):
     result = await get_all_channels(page or 1, search)
     return JSONResponse(status_code=result["status"], content=result["body"])
@@ -30,7 +29,7 @@ async def route_get_all_channels(
 @router.post("/api/channels")
 async def route_create_channel(
     name: str = Form(...),
-    intro: Optional[str] = Form(None),
+    intro: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
@@ -59,9 +58,9 @@ async def route_join_channel(channel_id: str, decoded=Depends(get_current_user))
 @router.put("/api/channels/{channel_id}")
 async def route_update_channel(
     channel_id: str,
-    name: Optional[str] = Form(None),
-    intro: Optional[str] = Form(None),
-    oldBackground: Optional[str] = Form(None),
+    name: str | None = Form(None),
+    intro: str | None = Form(None),
+    oldBackground: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):

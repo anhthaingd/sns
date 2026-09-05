@@ -1,10 +1,8 @@
-from typing import Optional
 from beanie import Document
-from pydantic import Field
 
 
 class Role(Document):
-    name: Optional[str] = None
+    name: str | None = None
     value: int = 0
 
     class Settings:

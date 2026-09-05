@@ -1,26 +1,25 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, Query, Form, Header
+from fastapi import APIRouter, Depends, Form, Header, Query
 from fastapi.responses import JSONResponse
 
+from app.controllers.users import (
+    following_user,
+    get_followers,
+    get_following,
+    get_resume,
+    get_user_by_token,
+    get_user_details,
+    get_users_by_admin,
+    login_user,
+    logout_user,
+    post_resume,
+    register_user,
+    remove_followers,
+    remove_following,
+    search_users,
+    update_user,
+)
 from app.middleware.auth import get_current_user
 from app.middleware.upload import save_uploaded_files
-from app.controllers.users import (
-    get_user_by_token,
-    login_user,
-    register_user,
-    logout_user,
-    get_user_details,
-    update_user,
-    following_user,
-    search_users,
-    get_users_by_admin,
-    get_following,
-    get_followers,
-    remove_following,
-    remove_followers,
-    get_resume,
-    post_resume,
-)
 
 router = APIRouter()
 
@@ -50,7 +49,7 @@ async def route_register(body: dict):
 
 
 @router.post("/api/users/logout")
-async def route_logout(authorization: Optional[str] = Header(default=None)):
+async def route_logout(authorization: str | None = Header(default=None)):
     result = await logout_user(authorization or "")
     return JSONResponse(status_code=result["status"], content=result["body"])
 
@@ -64,14 +63,14 @@ async def route_get_user_details(user_id: str):
 @router.put("/api/users/{user_id}")
 async def route_update_user(
     user_id: str,
-    username: Optional[str] = Form(None),
-    oldPassword: Optional[str] = Form(None),
-    newPassword: Optional[str] = Form(None),
-    address: Optional[str] = Form(None),
-    intro: Optional[str] = Form(None),
-    oldAvatar: Optional[str] = Form(None),
-    oldCoverBg: Optional[str] = Form(None),
-    update_images: Optional[str] = Form(None),
+    username: str | None = Form(None),
+    oldPassword: str | None = Form(None),
+    newPassword: str | None = Form(None),
+    address: str | None = Form(None),
+    intro: str | None = Form(None),
+    oldAvatar: str | None = Form(None),
+    oldCoverBg: str | None = Form(None),
+    update_images: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
@@ -99,8 +98,8 @@ async def route_following_user(user_id: str, decoded=Depends(get_current_user)):
 
 @router.get("/api/users")
 async def route_search_users(
-    search: Optional[str] = Query(None),
-    page: Optional[int] = Query(None),
+    search: str | None = Query(None),
+    page: int | None = Query(None),
     decoded=Depends(get_current_user),
 ):
     result = await search_users(decoded, search, page or 1)
@@ -109,8 +108,8 @@ async def route_search_users(
 
 @router.get("/api/get_users_by_admin")
 async def route_get_users_by_admin(
-    page: Optional[int] = Query(1),
-    search: Optional[str] = Query(None),
+    page: int | None = Query(1),
+    search: str | None = Query(None),
     decoded=Depends(get_current_user),
 ):
     result = await get_users_by_admin(decoded, page or 1, search)
@@ -119,7 +118,7 @@ async def route_get_users_by_admin(
 
 @router.get("/api/get_following")
 async def route_get_following(
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_following(decoded, page or 1)
@@ -128,7 +127,7 @@ async def route_get_following(
 
 @router.get("/api/get_followers")
 async def route_get_followers(
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_followers(decoded, page or 1)
@@ -155,26 +154,26 @@ async def route_get_resume(decoded=Depends(get_current_user)):
 
 @router.post("/api/resume")
 async def route_post_resume(
-    name: Optional[str] = Form(None),
-    position: Optional[str] = Form(None),
-    oldAvatar: Optional[str] = Form(None),
-    birthday: Optional[str] = Form(None),
-    email: Optional[str] = Form(None),
-    address: Optional[str] = Form(None),
-    phone: Optional[str] = Form(None),
-    github: Optional[str] = Form(None),
-    objective: Optional[str] = Form(None),
-    educationName: Optional[str] = Form(None),
-    educationMajor: Optional[str] = Form(None),
-    educationCompletion: Optional[str] = Form(None),
-    educationGPA: Optional[str] = Form(None),
-    certificatesName: Optional[str] = Form(None),
-    oldCertificates: Optional[str] = Form(None),
-    editCertificates: Optional[str] = Form(None),
-    experiences: Optional[str] = Form(None),
-    skills: Optional[str] = Form(None),
-    languages: Optional[str] = Form(None),
-    projects: Optional[str] = Form(None),
+    name: str | None = Form(None),
+    position: str | None = Form(None),
+    oldAvatar: str | None = Form(None),
+    birthday: str | None = Form(None),
+    email: str | None = Form(None),
+    address: str | None = Form(None),
+    phone: str | None = Form(None),
+    github: str | None = Form(None),
+    objective: str | None = Form(None),
+    educationName: str | None = Form(None),
+    educationMajor: str | None = Form(None),
+    educationCompletion: str | None = Form(None),
+    educationGPA: str | None = Form(None),
+    certificatesName: str | None = Form(None),
+    oldCertificates: str | None = Form(None),
+    editCertificates: str | None = Form(None),
+    experiences: str | None = Form(None),
+    skills: str | None = Form(None),
+    languages: str | None = Form(None),
+    projects: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):

@@ -1,12 +1,10 @@
-from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright
 
 
 async def _get_page_content_and_css(url: str):
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            args=["--no-sandbox", "--disable-setuid-sandbox"]
-        )
+        browser = await p.chromium.launch(args=["--no-sandbox", "--disable-setuid-sandbox"])
         page = await browser.new_page()
         await page.goto(url, wait_until="domcontentloaded", timeout=60000)
 

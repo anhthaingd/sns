@@ -72,9 +72,7 @@ async def test_update_profile(client, user):
 
 async def test_update_other_user_profile_is_rejected(client, user, other_user):
     """Không được sửa hồ sơ của người khác."""
-    r = await client.put(
-        f"/api/users/{other_user.id}", headers=user.headers, data={"username": "hacked"}
-    )
+    r = await client.put(f"/api/users/{other_user.id}", headers=user.headers, data={"username": "hacked"})
     assert r.status_code in (403, 404), f"cho phép sửa user khác! status={r.status_code}"
     r = await client.get(f"/api/users/{other_user.id}")
     assert r.json()["user"]["username"] != "hacked"

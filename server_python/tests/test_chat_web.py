@@ -1,7 +1,6 @@
 import os
 import uuid
 
-import pytest
 import socketio
 
 
@@ -13,9 +12,7 @@ async def test_website_public(client):
 
 async def test_update_website_requires_admin(client, user, db):
     web = await db.webs.find_one({})
-    r = await client.put(
-        f"/api/website/{web['_id']}", headers=user.headers, data={"website_name": "hacked"}
-    )
+    r = await client.put(f"/api/website/{web['_id']}", headers=user.headers, data={"website_name": "hacked"})
     assert r.status_code == 403
 
 

@@ -60,9 +60,7 @@ async def test_get_channels_by_user(client, user, channel):
 
 
 async def test_update_channel_requires_admin(client, user, channel):
-    r = await client.put(
-        f"/api/channels/{channel['_id']}", headers=user.headers, data={"name": "hacked"}
-    )
+    r = await client.put(f"/api/channels/{channel['_id']}", headers=user.headers, data={"name": "hacked"})
     assert r.status_code == 403
 
 

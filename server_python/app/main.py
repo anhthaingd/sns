@@ -5,16 +5,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.config.database import connect_db, close_db
-from app.config.settings import PORT, CORS_ORIGINS, UPLOAD_ROOT
-from app.routes.users import router as users_router
+from app.config.database import close_db, connect_db
+from app.config.settings import CORS_ORIGINS, PORT, UPLOAD_ROOT
 from app.routes.channels import router as channels_router
-from app.routes.posts import router as posts_router
-from app.routes.notifications import router as notifications_router
 from app.routes.chat import router as chat_router
-from app.routes.shortcuts import router as shortcuts_router
-from app.routes.web import router as web_router
 from app.routes.crawl import router as crawl_router
+from app.routes.notifications import router as notifications_router
+from app.routes.posts import router as posts_router
+from app.routes.shortcuts import router as shortcuts_router
+from app.routes.users import router as users_router
+from app.routes.web import router as web_router
 from app.sockets.handlers import register_handlers
 
 sio = socketio.AsyncServer(

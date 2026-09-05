@@ -1,7 +1,7 @@
 from bson import ObjectId
 
-from app.models.shortcut import Shortcut
 from app.models.channel import Channel
+from app.models.shortcut import Shortcut
 
 
 async def get_shortcuts(decoded_user: dict):

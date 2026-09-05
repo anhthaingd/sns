@@ -15,9 +15,7 @@ async def joined(client, user, channel):
 
 
 async def _create_post(client, actor, channel_id, content="hello world"):
-    r = await client.post(
-        f"/api/posts/{channel_id}", headers=actor.headers, data={"content": content}
-    )
+    r = await client.post(f"/api/posts/{channel_id}", headers=actor.headers, data={"content": content})
     assert r.status_code == 201, r.text
     r = await client.get(f"/api/posts/{channel_id}", headers=actor.headers)
     assert r.status_code == 200, r.text
@@ -57,9 +55,7 @@ async def test_create_post_with_image(client, user, joined):
 
 async def test_post_details(client, user, joined):
     post = await _create_post(client, user, joined["_id"])
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers)
     assert r.status_code == 200, r.text
     assert r.json()["post"]["_id"] == post["_id"]
 
@@ -73,13 +69,9 @@ async def test_get_by_users(client, user, joined):
 
 async def test_update_post(client, user, joined):
     post = await _create_post(client, user, joined["_id"])
-    r = await client.put(
-        f"/api/posts/{joined['_id']}/{post['_id']}", headers=user.headers, data={"content": "edited"}
-    )
+    r = await client.put(f"/api/posts/{joined['_id']}/{post['_id']}", headers=user.headers, data={"content": "edited"})
     assert r.status_code == 200, r.text
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers)
     assert r.json()["post"]["content"] == "edited"
 
 
@@ -96,27 +88,19 @@ async def test_cannot_update_other_users_post(client, user, other_user, joined):
 
 async def test_like_and_unlike(client, user, joined):
     post = await _create_post(client, user, joined["_id"])
-    r = await client.post(
-        f"/api/posts/{joined['_id']}/{post['_id']}/like_post", headers=user.headers
-    )
+    r = await client.post(f"/api/posts/{joined['_id']}/{post['_id']}/like_post", headers=user.headers)
     assert r.status_code == 200, r.text
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers)
     assert user.id in [u["_id"] for u in r.json()["post"]["liked"]]
 
     await client.post(f"/api/posts/{joined['_id']}/{post['_id']}/like_post", headers=user.headers)
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers)
     assert r.json()["post"]["liked"] == []
 
 
 async def test_bookmark(client, user, joined):
     post = await _create_post(client, user, joined["_id"])
-    r = await client.post(
-        f"/api/posts/{joined['_id']}/{post['_id']}/book_mark", headers=user.headers
-    )
+    r = await client.post(f"/api/posts/{joined['_id']}/{post['_id']}/book_mark", headers=user.headers)
     assert r.status_code == 200, r.text
     r = await client.get("/api/posts/get_book_marked", headers=user.headers)
     assert post["_id"] in [p["_id"] for p in r.json()["posts"]]
@@ -131,9 +115,7 @@ async def test_comment_flow(client, user, joined):
     )
     assert r.status_code == 200, r.text
 
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers)
     comments = r.json()["post"]["comments"]
     assert len(comments) == 1 and comments[0]["content"] == "nice post"
     comment_id = comments[0]["_id"]
@@ -145,9 +127,7 @@ async def test_comment_flow(client, user, joined):
         json={"commentId": comment_id},
     )
     assert r.status_code == 200, r.text
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers)
     assert r.json()["post"]["comments"] == []
 
 
@@ -164,9 +144,7 @@ async def test_empty_comment_rejected(client, user, joined):
 async def test_notification_on_like(client, user, other_user, joined):
     post = await _create_post(client, user, joined["_id"])
     await client.post(f"/api/channels/{joined['_id']}", headers=other_user.headers)
-    await client.post(
-        f"/api/posts/{joined['_id']}/{post['_id']}/like_post", headers=other_user.headers
-    )
+    await client.post(f"/api/posts/{joined['_id']}/{post['_id']}/like_post", headers=other_user.headers)
 
     r = await client.get("/api/notifications", headers=user.headers)
     assert r.status_code == 200, r.text
@@ -185,9 +163,7 @@ async def test_delete_own_post(client, user, joined):
     post = await _create_post(client, user, joined["_id"])
     r = await client.delete(f"/api/posts/{joined['_id']}/{post['_id']}", headers=user.headers)
     assert r.status_code == 200, r.text
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{post['_id']}", headers=user.headers)
     assert r.status_code == 404
 
 
@@ -197,14 +173,10 @@ async def test_cannot_delete_other_users_post(client, user, other_user, joined):
     await client.post(f"/api/channels/{joined['_id']}", headers=other_user.headers)
     await _create_post(client, other_user, joined["_id"], "attacker own post")
 
-    r = await client.delete(
-        f"/api/posts/{joined['_id']}/{victim_post['_id']}", headers=other_user.headers
-    )
+    r = await client.delete(f"/api/posts/{joined['_id']}/{victim_post['_id']}", headers=other_user.headers)
     assert r.status_code == 403, f"user khác xoá được bài! status={r.status_code}"
 
-    r = await client.get(
-        f"/api/posts/get_post_details_in_channel/{victim_post['_id']}", headers=user.headers
-    )
+    r = await client.get(f"/api/posts/get_post_details_in_channel/{victim_post['_id']}", headers=user.headers)
     assert r.status_code == 200, "bài viết đã bị xoá bởi người không có quyền"
 
 
@@ -217,14 +189,10 @@ async def test_admin_post_endpoints(client, admin, user, joined):
     r = await client.get("/api/posts/get_by_admin", headers=admin.headers)
     assert r.status_code == 200, r.text
 
-    r = await client.delete(
-        f"/api/delete_post_by_admin/{joined['_id']}/{post['_id']}", headers=user.headers
-    )
+    r = await client.delete(f"/api/delete_post_by_admin/{joined['_id']}/{post['_id']}", headers=user.headers)
     assert r.status_code == 403
 
-    r = await client.delete(
-        f"/api/delete_post_by_admin/{joined['_id']}/{post['_id']}", headers=admin.headers
-    )
+    r = await client.delete(f"/api/delete_post_by_admin/{joined['_id']}/{post['_id']}", headers=admin.headers)
     assert r.status_code == 200, r.text
 
 

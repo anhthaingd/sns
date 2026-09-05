@@ -1,12 +1,11 @@
-from typing import Optional
 from beanie import Document, PydanticObjectId
 from pydantic import Field
 from pymongo import ASCENDING, IndexModel
 
 
 class Shortcut(Document):
-    channel: Optional[PydanticObjectId] = None
-    user: Optional[PydanticObjectId] = None
+    channel: PydanticObjectId | None = None
+    user: PydanticObjectId | None = None
     shortcut_count: int = Field(default=0, alias="count")
     isJoin: bool = False
 

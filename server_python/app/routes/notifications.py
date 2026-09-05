@@ -1,16 +1,15 @@
-from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 
-from app.middleware.auth import get_current_user
 from app.controllers.notifications import get_notifications, read_notification
+from app.middleware.auth import get_current_user
 
 router = APIRouter()
 
 
 @router.get("/api/notifications")
 async def route_get_notifications(
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_notifications(decoded, page or 1)

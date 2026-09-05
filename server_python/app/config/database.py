@@ -1,26 +1,35 @@
 from urllib.parse import urlsplit
 
-from pymongo import AsyncMongoClient
 from beanie import init_beanie
+from pymongo import AsyncMongoClient
 
 from app.config.settings import DATABASE_URL
-from app.models.user import User
-from app.models.post import Post
 from app.models.channel import Channel
 from app.models.chat import Chat
-from app.models.newest_message import NewestMessage
-from app.models.notification import Notification
 from app.models.follower import Follower
 from app.models.following import Following
+from app.models.newest_message import NewestMessage
+from app.models.notification import Notification
+from app.models.post import Post
+from app.models.resume import Resume
 from app.models.role import Role
 from app.models.shortcut import Shortcut
+from app.models.user import User
 from app.models.web import Web
-from app.models.resume import Resume
 
 DOCUMENT_MODELS = [
-    User, Post, Channel, Chat, NewestMessage,
-    Notification, Follower, Following, Role,
-    Shortcut, Web, Resume,
+    User,
+    Post,
+    Channel,
+    Chat,
+    NewestMessage,
+    Notification,
+    Follower,
+    Following,
+    Role,
+    Shortcut,
+    Web,
+    Resume,
 ]
 
 DEFAULT_DB_NAME = "social_app"

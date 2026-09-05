@@ -1,9 +1,10 @@
 from datetime import datetime
+
 from bson import ObjectId
 
-from app.models.user import User
 from app.models.chat import Chat
 from app.models.newest_message import NewestMessage
+from app.models.user import User
 
 
 def register_handlers(sio):
@@ -11,9 +12,7 @@ def register_handlers(sio):
     @sio.on("joinCall")
     async def handle_join_call(sid, user):
         if user and user.get("_id"):
-            await User.find_one(User.id == ObjectId(user["_id"])).update(
-                {"$set": {"socketCallId": sid}}
-            )
+            await User.find_one(User.id == ObjectId(user["_id"])).update({"$set": {"socketCallId": sid}})
 
     @sio.on("callUser")
     async def handle_call_user(sid, data):
@@ -56,29 +55,29 @@ def register_handlers(sio):
     @sio.on("joinChat")
     async def handle_join_chat(sid, user):
         if user and user.get("_id"):
-            await User.find_one(User.id == ObjectId(user["_id"])).update(
-                {"$set": {"socketId": sid}}
-            )
+            await User.find_one(User.id == ObjectId(user["_id"])).update({"$set": {"socketId": sid}})
 
     @sio.on("sendMessage")
     async def handle_send_message(sid, data):
         sender = data.get("sender", {})
         receiver = data.get("receiver", {})
         content = data.get("content", "")
-        last_sent = data.get("lastSent", {})
-
+        # `lastSent` client gui len bi bo qua co chu dich: nguoi gui cuoi cung
+        # luon la `sender`, khong tin gia tri client tu khai bao.
         sender_id = ObjectId(sender["_id"])
         receiver_id = ObjectId(receiver["_id"])
 
         new_message = Chat(sender=sender_id, receiver=receiver_id, content=content)
         await new_message.insert()
 
-        existed_message = await NewestMessage.find_one({
-            "$or": [
-                {"sender.user": sender_id, "receiver.user": receiver_id},
-                {"sender.user": receiver_id, "receiver.user": sender_id},
-            ]
-        })
+        existed_message = await NewestMessage.find_one(
+            {
+                "$or": [
+                    {"sender.user": sender_id, "receiver.user": receiver_id},
+                    {"sender.user": receiver_id, "receiver.user": sender_id},
+                ]
+            }
+        )
 
         if not existed_message:
             newest = NewestMessage(
@@ -90,31 +89,43 @@ def register_handlers(sio):
             await newest.insert()
         else:
             if existed_message.sender and str(existed_message.sender.get("user")) == str(sender_id):
-                await NewestMessage.find_one({
-                    "sender.user": sender_id,
-                    "receiver.user": receiver_id,
-                }).update({"$set": {
-                    "sender.user": sender_id,
-                    "sender.isRead": True,
-                    "receiver.user": receiver_id,
-                    "receiver.isRead": False,
-                    "lastSent": sender_id,
-                    "content": content,
-                    "updated_at": datetime.utcnow(),
-                }})
+                await NewestMessage.find_one(
+                    {
+                        "sender.user": sender_id,
+                        "receiver.user": receiver_id,
+                    }
+                ).update(
+                    {
+                        "$set": {
+                            "sender.user": sender_id,
+                            "sender.isRead": True,
+                            "receiver.user": receiver_id,
+                            "receiver.isRead": False,
+                            "lastSent": sender_id,
+                            "content": content,
+                            "updated_at": datetime.utcnow(),
+                        }
+                    }
+                )
             if existed_message.receiver and str(existed_message.receiver.get("user")) == str(sender_id):
-                await NewestMessage.find_one({
-                    "sender.user": receiver_id,
-                    "receiver.user": sender_id,
-                }).update({"$set": {
-                    "sender.user": receiver_id,
-                    "sender.isRead": False,
-                    "receiver.user": sender_id,
-                    "receiver.isRead": True,
-                    "lastSent": sender_id,
-                    "content": content,
-                    "updated_at": datetime.utcnow(),
-                }})
+                await NewestMessage.find_one(
+                    {
+                        "sender.user": receiver_id,
+                        "receiver.user": sender_id,
+                    }
+                ).update(
+                    {
+                        "$set": {
+                            "sender.user": receiver_id,
+                            "sender.isRead": False,
+                            "receiver.user": sender_id,
+                            "receiver.isRead": True,
+                            "lastSent": sender_id,
+                            "content": content,
+                            "updated_at": datetime.utcnow(),
+                        }
+                    }
+                )
 
         await sio.emit("receiveMessage", {**data, "refetch": True}, to=sid)
 
@@ -128,7 +139,5 @@ def register_handlers(sio):
 
     @sio.on("disconnect")
     async def handle_disconnect(sid):
-        await User.find_one(User.socketId == sid).update(
-            {"$set": {"socketId": None}}
-        )
+        await User.find_one(User.socketId == sid).update({"$set": {"socketId": None}})
         print("Client disconnected")

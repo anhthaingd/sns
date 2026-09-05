@@ -1,4 +1,5 @@
 import math
+
 from bson import ObjectId
 
 from app.models.notification import Notification
@@ -10,7 +11,13 @@ async def get_notifications(decoded_user: dict, page: int = 1):
         user_id = ObjectId(decoded_user["_id"])
         total_notifications = await Notification.find(Notification.user == user_id).count()
         total_not_read = await Notification.find({"user": user_id, "isRead": False}).count()
-        notifications = await Notification.find(Notification.user == user_id).sort("-created_at").skip((page - 1) * 10).limit(10).to_list()
+        notifications = (
+            await Notification.find(Notification.user == user_id)
+            .sort("-created_at")
+            .skip((page - 1) * 10)
+            .limit(10)
+            .to_list()
+        )
 
         notif_list = []
         for n in notifications:
@@ -25,7 +32,12 @@ async def get_notifications(decoded_user: dict, page: int = 1):
             if n.seeder:
                 seeder = await User.get(n.seeder)
                 if seeder:
-                    d["seeder"] = {"_id": str(seeder.id), "username": seeder.username, "email": seeder.email, "avatar": seeder.avatar}
+                    d["seeder"] = {
+                        "_id": str(seeder.id),
+                        "username": seeder.username,
+                        "email": seeder.email,
+                        "avatar": seeder.avatar,
+                    }
             notif_list.append(d)
 
         return {
@@ -45,7 +57,9 @@ async def get_notifications(decoded_user: dict, page: int = 1):
 async def read_notification(decoded_user: dict, notification_id: str):
     try:
         user_id = ObjectId(decoded_user["_id"])
-        await Notification.find_one({"_id": ObjectId(notification_id), "user": user_id}).update({"$set": {"isRead": True}})
+        await Notification.find_one({"_id": ObjectId(notification_id), "user": user_id}).update(
+            {"$set": {"isRead": True}}
+        )
         return {"status": 200, "body": {"error": False, "success": True}}
     except Exception as e:
         return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}

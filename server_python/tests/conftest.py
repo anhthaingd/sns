@@ -4,12 +4,12 @@ Integration test cho API Fuurin: gọi thẳng vào server đang chạy.
 Chạy:
     BASE_URL=http://server:3000 MONGO_URL=mongodb://mongo:27017/fuurin pytest
 """
+
 import os
 import uuid
 
-import pytest
-import pytest_asyncio
 import httpx
+import pytest_asyncio
 from pymongo import AsyncMongoClient
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:3000")

@@ -1,5 +1,5 @@
-from typing import Optional, List
 from datetime import datetime
+
 from beanie import Document, PydanticObjectId
 from pydantic import Field
 from pymongo import ASCENDING, DESCENDING, IndexModel
@@ -10,15 +10,15 @@ class Comment(dict):
 
 
 class Post(Document):
-    user: Optional[PydanticObjectId] = None
-    content: Optional[str] = None
-    images: Optional[dict] = None
+    user: PydanticObjectId | None = None
+    content: str | None = None
+    images: dict | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    liked: List[PydanticObjectId] = Field(default_factory=list)
-    book_marked: List[PydanticObjectId] = Field(default_factory=list)
-    comments: List[dict] = Field(default_factory=list)
-    channel: Optional[PydanticObjectId] = None
+    liked: list[PydanticObjectId] = Field(default_factory=list)
+    book_marked: list[PydanticObjectId] = Field(default_factory=list)
+    comments: list[dict] = Field(default_factory=list)
+    channel: PydanticObjectId | None = None
 
     class Settings:
         name = "posts"

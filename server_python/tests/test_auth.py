@@ -1,4 +1,3 @@
-import pytest
 from .conftest import unique_email
 
 
@@ -52,7 +51,8 @@ async def test_get_by_token(client, user):
 
 async def test_access_token_must_not_leak_password_hash(client, user):
     """JWT payload đọc được bởi bất kỳ ai -> không được chứa hash mật khẩu."""
-    import base64, json
+    import base64
+    import json
 
     payload = user.token.split(".")[1]
     payload += "=" * (-len(payload) % 4)
@@ -73,9 +73,7 @@ async def test_concurrent_register_creates_only_one_account(client, db):
 
     email = unique_email("race")
     body = {"email": email, "password": "Passw0rd!", "username": "race"}
-    results = await asyncio.gather(
-        *[client.post("/api/users/register", json=body) for _ in range(5)]
-    )
+    results = await asyncio.gather(*[client.post("/api/users/register", json=body) for _ in range(5)])
 
     assert sum(1 for r in results if r.status_code == 201) == 1, [r.status_code for r in results]
     assert await db.users.count_documents({"email": email}) == 1

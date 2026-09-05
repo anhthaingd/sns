@@ -1,8 +1,8 @@
 """E2E chạy Playwright trên frontend React thật, gọi backend FastAPI thật."""
+
 import os
 import uuid
 
-import pytest
 import pytest_asyncio
 from playwright.async_api import async_playwright
 from pymongo import AsyncMongoClient

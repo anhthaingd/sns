@@ -1,22 +1,22 @@
 import json
 import math
+
 import bcrypt as _bcrypt
 from bson import ObjectId
 from pymongo.errors import DuplicateKeyError
 from unidecode import unidecode
 
-from app.models.user import User
+from app.models.channel import Channel
 from app.models.follower import Follower
 from app.models.following import Following
-from app.models.role import Role
 from app.models.post import Post
-from app.models.channel import Channel
 from app.models.resume import Resume
-from app.utils.token import sign_token
+from app.models.role import Role
+from app.models.user import User
 from app.utils.blacklist import blacklist
 from app.utils.file_utils import delete_file
 from app.utils.serialization import serialize_doc
-
+from app.utils.token import sign_token
 
 
 async def _populate_role(user_doc):
@@ -77,7 +77,9 @@ async def get_followers(decoded_user: dict, page: int = 1):
         end = start + 20
         follower_ids = follower_doc.followers[start:end] if follower_doc.followers else []
         users = await User.find({"_id": {"$in": follower_ids}}).to_list()
-        followers_list = [{"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in users]
+        followers_list = [
+            {"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in users
+        ]
         return {
             "status": 200,
             "body": {
@@ -103,7 +105,9 @@ async def get_following(decoded_user: dict, page: int = 1):
         end = start + 20
         following_ids = following_doc.following[start:end] if following_doc.following else []
         users = await User.find({"_id": {"$in": following_ids}}).to_list()
-        following_list = [{"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in users]
+        following_list = [
+            {"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in users
+        ]
         return {
             "status": 200,
             "body": {
@@ -121,7 +125,10 @@ async def get_following(decoded_user: dict, page: int = 1):
 async def register_user(email: str, password: str, username: str = None, address: str = None, intro: str = None):
     try:
         if not email or not password:
-            return {"status": 400, "body": {"error": True, "success": False, "message": "Yêu cầu cần có email và password!"}}
+            return {
+                "status": 400,
+                "body": {"error": True, "success": False, "message": "Yêu cầu cần có email và password!"},
+            }
         duplicated = await User.find_one(User.email == email)
         if duplicated:
             return {"status": 409, "body": {"error": False, "success": True, "message": "Địa chỉ email đã tồn tại!"}}
@@ -230,7 +237,10 @@ async def update_user(
         from datetime import datetime
 
         if str(decoded_user.get("_id")) != str(user_id):
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Bạn không thể sửa thông tin của người khác!"}}
+            return {
+                "status": 403,
+                "body": {"error": True, "success": False, "message": "Bạn không thể sửa thông tin của người khác!"},
+            }
 
         parse_old_avatar = json.loads(old_avatar) if old_avatar else None
         parse_old_cover_bg = json.loads(old_cover_bg) if old_cover_bg else None
@@ -244,10 +254,15 @@ async def update_user(
 
         if new_password and new_password != old_password:
             current = await User.get(ObjectId(user_id))
-            if not current or not old_password or not _bcrypt.checkpw(
-                old_password.encode("utf-8"), (current.password or "").encode("utf-8")
+            if (
+                not current
+                or not old_password
+                or not _bcrypt.checkpw(old_password.encode("utf-8"), (current.password or "").encode("utf-8"))
             ):
-                return {"status": 403, "body": {"error": True, "success": False, "message": "Mật khẩu cũ không chính xác!"}}
+                return {
+                    "status": 403,
+                    "body": {"error": True, "success": False, "message": "Mật khẩu cũ không chính xác!"},
+                }
             update_data["password"] = _bcrypt.hashpw(new_password.encode("utf-8"), _bcrypt.gensalt(10)).decode("utf-8")
 
         images = files.get("images", []) if files else []
@@ -277,7 +292,10 @@ async def following_user(decoded_user: dict, target_id: str):
     try:
         user_id = decoded_user["_id"]
         if user_id == target_id:
-            return {"status": 409, "body": {"error": True, "success": False, "message": "Bạn không thể tự follow bản thân!"}}
+            return {
+                "status": 409,
+                "body": {"error": True, "success": False, "message": "Bạn không thể tự follow bản thân!"},
+            }
 
         following_doc = await Following.find_one(Following.user == ObjectId(user_id))
         target_oid = ObjectId(target_id)
@@ -285,7 +303,10 @@ async def following_user(decoded_user: dict, target_id: str):
         if following_doc and target_oid in following_doc.following:
             await Following.find_one(Following.user == ObjectId(user_id)).update({"$pull": {"following": target_oid}})
             await Follower.find_one(Follower.user == target_oid).update({"$pull": {"followers": ObjectId(user_id)}})
-            return {"status": 200, "body": {"error": False, "success": True, "message": "Hủy follow tài khoản thành công!"}}
+            return {
+                "status": 200,
+                "body": {"error": False, "success": True, "message": "Hủy follow tài khoản thành công!"},
+            }
         else:
             await Following.find_one(Following.user == ObjectId(user_id)).update({"$push": {"following": target_oid}})
             await Follower.find_one(Follower.user == target_oid).update({"$push": {"followers": ObjectId(user_id)}})
@@ -300,7 +321,10 @@ async def remove_following(decoded_user: dict, target_id: str):
         target_oid = ObjectId(target_id)
         await Following.find_one(Following.user == ObjectId(user_id)).update({"$pull": {"following": target_oid}})
         await Follower.find_one(Follower.user == target_oid).update({"$pull": {"followers": ObjectId(user_id)}})
-        return {"status": 200, "body": {"error": False, "success": True, "message": "Hủy theo dõi người dùng thành công!"}}
+        return {
+            "status": 200,
+            "body": {"error": False, "success": True, "message": "Hủy theo dõi người dùng thành công!"},
+        }
     except Exception as e:
         return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
 
@@ -311,7 +335,14 @@ async def remove_followers(decoded_user: dict, target_id: str):
         target_oid = ObjectId(target_id)
         await Following.find_one(Following.user == target_oid).update({"$pull": {"following": ObjectId(user_id)}})
         await Follower.find_one(Follower.user == ObjectId(user_id)).update({"$pull": {"followers": target_oid}})
-        return {"status": 200, "body": {"error": False, "success": True, "message": "Gỡ thành công người dùng ra khỏi danh sách theo dõi!"}}
+        return {
+            "status": 200,
+            "body": {
+                "error": False,
+                "success": True,
+                "message": "Gỡ thành công người dùng ra khỏi danh sách theo dõi!",
+            },
+        }
     except Exception as e:
         return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
 
@@ -319,7 +350,10 @@ async def remove_followers(decoded_user: dict, target_id: str):
 async def search_users(decoded_user: dict, search: str = None, page: int = 1):
     try:
         if not search or not page:
-            return {"status": 200, "body": {"error": True, "success": False, "users": [], "totalPage": 1, "totalUsers": 0}}
+            return {
+                "status": 200,
+                "body": {"error": True, "success": False, "users": [], "totalPage": 1, "totalUsers": 0},
+            }
 
         user_id = ObjectId(decoded_user["_id"])
         regex = {"$regex": search, "$options": "i"}
@@ -329,10 +363,7 @@ async def search_users(decoded_user: dict, search: str = None, page: int = 1):
         }
         total_users = await User.find(query).count()
         users = await User.find(query).skip((page - 1) * 10).limit(10).to_list()
-        users_list = [
-            {"_id": str(u.id), "avatar": u.avatar, "username": u.username, "email": u.email}
-            for u in users
-        ]
+        users_list = [{"_id": str(u.id), "avatar": u.avatar, "username": u.username, "email": u.email} for u in users]
         return {
             "status": 200,
             "body": {
@@ -415,8 +446,16 @@ def _parse_json(json_string):
 
 
 def _filter_different_elements(arr1, arr2):
-    different = [obj1 for obj1 in arr1 if not any(obj2.get("name") == obj1.get("name") and obj2.get("value") == obj1.get("value") for obj2 in arr2)]
-    different += [obj2 for obj2 in arr2 if not any(obj1.get("name") == obj2.get("name") and obj1.get("value") == obj2.get("value") for obj1 in arr1)]
+    different = [
+        obj1
+        for obj1 in arr1
+        if not any(obj2.get("name") == obj1.get("name") and obj2.get("value") == obj1.get("value") for obj2 in arr2)
+    ]
+    different += [
+        obj2
+        for obj2 in arr2
+        if not any(obj1.get("name") == obj2.get("name") and obj1.get("value") == obj2.get("value") for obj1 in arr1)
+    ]
     return different
 
 
@@ -486,7 +525,10 @@ async def post_resume(
 
             cert_files = files.get("certificates", []) if files else []
             if cert_files and parse_certificate_name:
-                new_certs = [{"name": parse_certificate_name[i] if i < len(parse_certificate_name) else "", "url": cf["path"]} for i, cf in enumerate(cert_files)]
+                new_certs = [
+                    {"name": parse_certificate_name[i] if i < len(parse_certificate_name) else "", "url": cf["path"]}
+                    for i, cf in enumerate(cert_files)
+                ]
                 resume_data["certificates"] = parse_edit_certificates + new_certs
             else:
                 resume_data["certificates"] = parse_edit_certificates

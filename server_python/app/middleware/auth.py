@@ -1,5 +1,6 @@
 import jwt
 from fastapi import Header, HTTPException
+
 from app.config.settings import ACCESS_TOKEN_SECRET
 from app.utils.blacklist import blacklist
 
@@ -25,8 +26,8 @@ async def get_current_user(authorization: str = Header(default=None)):
     try:
         decoded = jwt.decode(token, ACCESS_TOKEN_SECRET, algorithms=["HS256"])
         return decoded
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as err:
         raise HTTPException(
             status_code=403,
             detail={"error": True, "success": False, "message": "Token không chính xác!"},
-        )
+        ) from err

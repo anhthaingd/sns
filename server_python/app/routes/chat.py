@@ -1,9 +1,8 @@
-from typing import Optional
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 
-from app.middleware.auth import get_current_user
 from app.controllers.chat import get_chat, get_newest_message, read_message
+from app.middleware.auth import get_current_user
 
 router = APIRouter()
 
@@ -12,7 +11,7 @@ router = APIRouter()
 async def route_get_chat(
     sender_id: str,
     receiver_id: str,
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_chat(sender_id, receiver_id, page or 1)

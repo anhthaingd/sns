@@ -1,16 +1,16 @@
 import json
 import math
 from datetime import datetime
+
 from bson import ObjectId
 
-from app.models.post import Post
 from app.models.channel import Channel
-from app.models.user import User
 from app.models.notification import Notification
+from app.models.post import Post
 from app.models.role import Role
+from app.models.user import User
 from app.utils.file_utils import delete_file
 from app.utils.serialization import serialize_doc, to_jsonable
-
 
 
 async def _populate_post(post):
@@ -25,10 +25,14 @@ async def _populate_post(post):
             d["channel"] = {"_id": str(ch.id), "name": ch.name}
     if post.liked:
         liked_users = await User.find({"_id": {"$in": post.liked}}).to_list()
-        d["liked"] = [{"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in liked_users]
+        d["liked"] = [
+            {"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in liked_users
+        ]
     if post.book_marked:
         bm_users = await User.find({"_id": {"$in": post.book_marked}}).to_list()
-        d["book_marked"] = [{"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in bm_users]
+        d["book_marked"] = [
+            {"_id": str(u.id), "email": u.email, "username": u.username, "avatar": u.avatar} for u in bm_users
+        ]
     if post.comments:
         populated_comments = []
         for c in post.comments:
@@ -39,7 +43,12 @@ async def _populate_post(post):
             if user_id:
                 cu = await User.get(ObjectId(str(user_id)))
                 if cu:
-                    comment_copy["user"] = {"_id": str(cu.id), "email": cu.email, "username": cu.username, "avatar": cu.avatar}
+                    comment_copy["user"] = {
+                        "_id": str(cu.id),
+                        "email": cu.email,
+                        "username": cu.username,
+                        "avatar": cu.avatar,
+                    }
             populated_comments.append(comment_copy)
         d["comments"] = populated_comments
     return d
@@ -68,7 +77,9 @@ async def get_all_posts(decoded_user: dict, page: int = 1, search: str = None):
 
         if search:
             regex = {"$regex": search, "$options": "i"}
-            search_users = await User.find({"_id": {"$ne": user_id}, "$or": [{"username": regex}, {"email": regex}]}).to_list()
+            search_users = await User.find(
+                {"_id": {"$ne": user_id}, "$or": [{"username": regex}, {"email": regex}]}
+            ).to_list()
             search_channel = await Channel.find_one({"name": regex})
             query["$or"] = [
                 {"user": {"$in": [u.id for u in search_users]}},
@@ -197,7 +208,10 @@ async def get_post_details(post_id: str):
 async def create_post(decoded_user: dict, channel_id: str, content: str = None, files: dict = None):
     try:
         if not content or not channel_id:
-            return {"status": 400, "body": {"error": True, "success": False, "message": "Yêu cầu bài viết phải có nội dung và channelId!"}}
+            return {
+                "status": 400,
+                "body": {"error": True, "success": False, "message": "Yêu cầu bài viết phải có nội dung và channelId!"},
+            }
 
         post_data = {
             "user": ObjectId(decoded_user["_id"]),
@@ -216,13 +230,24 @@ async def create_post(decoded_user: dict, channel_id: str, content: str = None, 
         return {"status": 500, "body": {"error": True, "success": False, "message": str(e)}}
 
 
-async def updated_post(decoded_user: dict, channel_id: str, post_id: str, content: str = None, old_images: str = None, files: dict = None):
+async def updated_post(
+    decoded_user: dict, channel_id: str, post_id: str, content: str = None, old_images: str = None, files: dict = None
+):
     try:
         parse_old_images = json.loads(old_images) if old_images else None
 
-        correct_post = await Post.find_one({"_id": ObjectId(post_id), "channel": ObjectId(channel_id), "user": ObjectId(decoded_user["_id"])})
+        correct_post = await Post.find_one(
+            {"_id": ObjectId(post_id), "channel": ObjectId(channel_id), "user": ObjectId(decoded_user["_id"])}
+        )
         if not correct_post:
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Bạn không thể sửa bài viết của người khác hoặc bài viết trong channel đã bị xóa!"}}
+            return {
+                "status": 403,
+                "body": {
+                    "error": True,
+                    "success": False,
+                    "message": "Bạn không thể sửa bài viết của người khác hoặc bài viết trong channel đã bị xóa!",
+                },
+            }
 
         update_data = {"content": content, "updated_at": datetime.utcnow()}
 
@@ -243,11 +268,17 @@ async def like_post(decoded_user: dict, channel_id: str, post_id: str):
         user_id = ObjectId(decoded_user["_id"])
         post = await Post.find_one({"_id": ObjectId(post_id), "channel": ObjectId(channel_id)})
         if not post:
-            return {"status": 404, "body": {"error": True, "success": False, "message": f"Không tìm thấy bài viết {post_id}!"}}
+            return {
+                "status": 404,
+                "body": {"error": True, "success": False, "message": f"Không tìm thấy bài viết {post_id}!"},
+            }
 
         if user_id in post.liked:
             await Post.find_one(Post.id == ObjectId(post_id)).update({"$pull": {"liked": user_id}})
-            return {"status": 200, "body": {"error": False, "success": True, "message": "Hủy thích bài viết thành công!"}}
+            return {
+                "status": 200,
+                "body": {"error": False, "success": True, "message": "Hủy thích bài viết thành công!"},
+            }
 
         if str(post.user) != decoded_user["_id"]:
             await Notification(
@@ -268,7 +299,10 @@ async def book_mark_post(decoded_user: dict, channel_id: str, post_id: str):
         user_id = ObjectId(decoded_user["_id"])
         post = await Post.find_one({"_id": ObjectId(post_id), "channel": ObjectId(channel_id)})
         if not post:
-            return {"status": 404, "body": {"error": True, "success": False, "message": f"Không tìm thấy bài viết {post_id}!"}}
+            return {
+                "status": 404,
+                "body": {"error": True, "success": False, "message": f"Không tìm thấy bài viết {post_id}!"},
+            }
 
         if user_id in post.book_marked:
             await Post.find_one(Post.id == ObjectId(post_id)).update({"$pull": {"book_marked": user_id}})
@@ -310,7 +344,10 @@ async def get_book_mark(decoded_user: dict, page: int = 1):
 async def post_comment_post(decoded_user: dict, channel_id: str, post_id: str, content: str):
     try:
         if not content:
-            return {"status": 400, "body": {"error": True, "success": False, "message": "Không thể đăng bình luận trống!"}}
+            return {
+                "status": 400,
+                "body": {"error": True, "success": False, "message": "Không thể đăng bình luận trống!"},
+            }
 
         user_id = ObjectId(decoded_user["_id"])
         comment = {"_id": ObjectId(), "user": user_id, "content": content, "created_at": datetime.utcnow()}
@@ -319,7 +356,9 @@ async def post_comment_post(decoded_user: dict, channel_id: str, post_id: str, c
         if not post:
             return {"status": 404, "body": {"error": True, "success": False, "message": "Không tìm thấy bài viết!"}}
 
-        await Post.find_one({"_id": ObjectId(post_id), "channel": ObjectId(channel_id)}).update({"$push": {"comments": comment}})
+        await Post.find_one({"_id": ObjectId(post_id), "channel": ObjectId(channel_id)}).update(
+            {"$push": {"comments": comment}}
+        )
 
         if str(post.user) != decoded_user["_id"]:
             await Notification(
@@ -352,7 +391,10 @@ async def delete_post(decoded_user: dict, channel_id: str, post_id: str):
         if not post:
             return {"status": 404, "body": {"error": True, "success": False, "message": "Không tìm thấy bài viết!"}}
         if post.user != user_id:
-            return {"status": 403, "body": {"error": True, "success": False, "message": "Bạn không thể xóa bài viết của người khác"}}
+            return {
+                "status": 403,
+                "body": {"error": True, "success": False, "message": "Bạn không thể xóa bài viết của người khác"},
+            }
 
         await post.delete()
         if post.images:

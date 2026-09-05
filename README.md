@@ -1,5 +1,7 @@
 # Fuurin — Mạng xã hội tuyển dụng
 
+[![CI](https://github.com/anhthaingd/sns/actions/workflows/ci.yml/badge.svg)](https://github.com/anhthaingd/sns/actions/workflows/ci.yml)
+
 Ứng dụng full-stack kết hợp mạng xã hội + nhắn tin/gọi video thời gian thực + sàn tổng hợp việc làm tại Nhật Bản.
 
 **Công nghệ:**
@@ -205,6 +207,17 @@ docker compose up -d client
 > Vì vậy sau khi test xong cần `docker compose up -d client` để quay lại `http://localhost:3000`.
 
 Ảnh chụp màn hình của mỗi test E2E được lưu ở `e2e/artifacts/`.
+
+### CI
+
+`.github/workflows/ci.yml` chạy tự động khi push/PR vào `main`:
+
+- **lint** — `ruff check` + `ruff format --check`
+- **test** — dựng stack bằng Docker rồi chạy test API và E2E; fail thì upload ảnh chụp màn hình + log backend
+
+Test crawl **không** chạy trong CI vì phụ thuộc trang web bên ngoài (LinkedIn hay chặn tạm thời
+khi bị gọi liên tục). Muốn chạy thì vào tab Actions → *CI* → **Run workflow** và bật
+*Chay ca test crawl*.
 
 ---
 

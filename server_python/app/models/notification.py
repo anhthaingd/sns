@@ -1,15 +1,15 @@
-from typing import Optional
 from datetime import datetime
+
 from beanie import Document, PydanticObjectId
 from pydantic import Field
 from pymongo import ASCENDING, DESCENDING, IndexModel
 
 
 class Notification(Document):
-    user: Optional[PydanticObjectId] = None
-    seeder: Optional[PydanticObjectId] = None
-    notification: Optional[str] = None
-    url: Optional[str] = None
+    user: PydanticObjectId | None = None
+    seeder: PydanticObjectId | None = None
+    notification: str | None = None
+    url: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     isRead: bool = False
 

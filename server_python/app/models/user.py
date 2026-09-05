@@ -1,8 +1,8 @@
-from typing import Optional
 from datetime import datetime
+
 from beanie import Document, PydanticObjectId
 from pydantic import Field
-from pymongo import ASCENDING, DESCENDING, IndexModel
+from pymongo import ASCENDING, IndexModel
 
 
 class ImageField(dict):
@@ -10,18 +10,18 @@ class ImageField(dict):
 
 
 class User(Document):
-    username: Optional[str] = None
-    email: Optional[str] = None
-    password: Optional[str] = None
-    address: Optional[str] = None
-    intro: Optional[str] = None
-    cover_bg: Optional[dict] = Field(default_factory=lambda: {"name": "", "url": ""})
-    avatar: Optional[dict] = Field(default_factory=lambda: {"name": "avatar_trang.jpg", "url": "public/avatar-trang.jpg"})
+    username: str | None = None
+    email: str | None = None
+    password: str | None = None
+    address: str | None = None
+    intro: str | None = None
+    cover_bg: dict | None = Field(default_factory=lambda: {"name": "", "url": ""})
+    avatar: dict | None = Field(default_factory=lambda: {"name": "avatar_trang.jpg", "url": "public/avatar-trang.jpg"})
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    role: Optional[PydanticObjectId] = None
-    socketId: Optional[str] = None
-    socketCallId: Optional[str] = None
+    role: PydanticObjectId | None = None
+    socketId: str | None = None
+    socketCallId: str | None = None
 
     class Settings:
         name = "users"

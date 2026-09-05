@@ -1,4 +1,5 @@
 import math
+
 from bson import ObjectId
 
 from app.models.chat import Chat
@@ -54,19 +55,27 @@ async def get_chat(sender_id: str, receiver_id: str, page: int = 1):
 async def get_newest_message(decoded_user: dict):
     try:
         user_id = ObjectId(decoded_user["_id"])
-        total_unread = await NewestMessage.find({
-            "$or": [
-                {"sender.user": user_id, "sender.isRead": False},
-                {"receiver.user": user_id, "receiver.isRead": False},
-            ]
-        }).count()
+        total_unread = await NewestMessage.find(
+            {
+                "$or": [
+                    {"sender.user": user_id, "sender.isRead": False},
+                    {"receiver.user": user_id, "receiver.isRead": False},
+                ]
+            }
+        ).count()
 
-        messages = await NewestMessage.find({
-            "$or": [
-                {"sender.user": user_id},
-                {"receiver.user": user_id},
-            ]
-        }).sort("-updated_at").to_list()
+        messages = (
+            await NewestMessage.find(
+                {
+                    "$or": [
+                        {"sender.user": user_id},
+                        {"receiver.user": user_id},
+                    ]
+                }
+            )
+            .sort("-updated_at")
+            .to_list()
+        )
 
         messages_list = []
         for m in messages:
@@ -79,13 +88,29 @@ async def get_newest_message(decoded_user: dict):
             if m.sender:
                 sender_user = await User.get(m.sender.get("user")) if m.sender.get("user") else None
                 d["sender"] = {
-                    "user": {"_id": str(sender_user.id), "username": sender_user.username, "email": sender_user.email, "avatar": sender_user.avatar, "cover_bg": sender_user.cover_bg} if sender_user else None,
+                    "user": {
+                        "_id": str(sender_user.id),
+                        "username": sender_user.username,
+                        "email": sender_user.email,
+                        "avatar": sender_user.avatar,
+                        "cover_bg": sender_user.cover_bg,
+                    }
+                    if sender_user
+                    else None,
                     "isRead": m.sender.get("isRead", False),
                 }
             if m.receiver:
                 receiver_user = await User.get(m.receiver.get("user")) if m.receiver.get("user") else None
                 d["receiver"] = {
-                    "user": {"_id": str(receiver_user.id), "username": receiver_user.username, "email": receiver_user.email, "avatar": receiver_user.avatar, "cover_bg": receiver_user.cover_bg} if receiver_user else None,
+                    "user": {
+                        "_id": str(receiver_user.id),
+                        "username": receiver_user.username,
+                        "email": receiver_user.email,
+                        "avatar": receiver_user.avatar,
+                        "cover_bg": receiver_user.cover_bg,
+                    }
+                    if receiver_user
+                    else None,
                     "isRead": m.receiver.get("isRead", False),
                 }
             messages_list.append(d)
@@ -106,22 +131,28 @@ async def get_newest_message(decoded_user: dict):
 async def read_message(decoded_user: dict, message_id: str):
     try:
         user_id = ObjectId(decoded_user["_id"])
-        msg = await NewestMessage.find_one({
-            "_id": ObjectId(message_id),
-            "$or": [
-                {"sender.user": user_id},
-                {"receiver.user": user_id},
-            ],
-        })
+        msg = await NewestMessage.find_one(
+            {
+                "_id": ObjectId(message_id),
+                "$or": [
+                    {"sender.user": user_id},
+                    {"receiver.user": user_id},
+                ],
+            }
+        )
         if not msg:
             return {"status": 404, "body": {"error": True, "success": False, "message": "Message not found"}}
 
         if msg.sender and msg.sender.get("user") == user_id:
-            await NewestMessage.find_one(NewestMessage.id == ObjectId(message_id)).update({"$set": {"sender.isRead": True}})
+            await NewestMessage.find_one(NewestMessage.id == ObjectId(message_id)).update(
+                {"$set": {"sender.isRead": True}}
+            )
             return {"status": 200, "body": {"error": False, "success": True}}
 
         if msg.receiver and msg.receiver.get("user") == user_id:
-            await NewestMessage.find_one(NewestMessage.id == ObjectId(message_id)).update({"$set": {"receiver.isRead": True}})
+            await NewestMessage.find_one(NewestMessage.id == ObjectId(message_id)).update(
+                {"$set": {"receiver.isRead": True}}
+            )
             return {"status": 200, "body": {"error": False, "success": True}}
 
         return {"status": 200, "body": {"error": False, "success": True}}

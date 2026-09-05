@@ -1,34 +1,33 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, Query, Form
+from fastapi import APIRouter, Depends, Form, Query
 from fastapi.responses import JSONResponse
 
-from app.middleware.auth import get_current_user
-from app.middleware.upload import save_uploaded_files
 from app.controllers.posts import (
-    get_all_posts,
-    get_posts_by_admin,
-    get_posts_by_user,
-    get_post_from_another_user,
-    get_posts_in_channel,
-    get_post_details,
-    create_post,
-    updated_post,
-    like_post,
     book_mark_post,
-    get_book_mark,
-    post_comment_post,
+    create_post,
     delete_comment_post,
     delete_post,
     delete_post_by_admin,
+    get_all_posts,
+    get_book_mark,
+    get_post_details,
+    get_post_from_another_user,
+    get_posts_by_admin,
+    get_posts_by_user,
+    get_posts_in_channel,
+    like_post,
+    post_comment_post,
+    updated_post,
 )
+from app.middleware.auth import get_current_user
+from app.middleware.upload import save_uploaded_files
 
 router = APIRouter()
 
 
 @router.get("/api/posts")
 async def route_get_all_posts(
-    page: Optional[int] = Query(1),
-    search: Optional[str] = Query(None),
+    page: int | None = Query(1),
+    search: str | None = Query(None),
     decoded=Depends(get_current_user),
 ):
     result = await get_all_posts(decoded, page or 1, search)
@@ -37,7 +36,7 @@ async def route_get_all_posts(
 
 @router.get("/api/posts/get_by_users")
 async def route_get_posts_by_user(
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_posts_by_user(decoded, page or 1)
@@ -46,8 +45,8 @@ async def route_get_posts_by_user(
 
 @router.get("/api/posts/get_by_admin")
 async def route_get_posts_by_admin(
-    page: Optional[int] = Query(1),
-    channel: Optional[str] = Query(None),
+    page: int | None = Query(1),
+    channel: str | None = Query(None),
     decoded=Depends(get_current_user),
 ):
     result = await get_posts_by_admin(decoded, page or 1, channel)
@@ -57,7 +56,7 @@ async def route_get_posts_by_admin(
 @router.get("/api/posts/get_from_another_users/{target_user_id}")
 async def route_get_post_from_another_user(
     target_user_id: str,
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_post_from_another_user(decoded, target_user_id, page or 1)
@@ -66,7 +65,7 @@ async def route_get_post_from_another_user(
 
 @router.get("/api/posts/get_book_marked")
 async def route_get_book_mark(
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_book_mark(decoded, page or 1)
@@ -82,7 +81,7 @@ async def route_get_post_details(post_id: str, decoded=Depends(get_current_user)
 @router.get("/api/posts/{channel_id}")
 async def route_get_posts_in_channel(
     channel_id: str,
-    page: Optional[int] = Query(1),
+    page: int | None = Query(1),
     decoded=Depends(get_current_user),
 ):
     result = await get_posts_in_channel(channel_id, page or 1)
@@ -92,7 +91,7 @@ async def route_get_posts_in_channel(
 @router.post("/api/posts/{channel_id}")
 async def route_create_post(
     channel_id: str,
-    content: Optional[str] = Form(None),
+    content: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
@@ -104,8 +103,8 @@ async def route_create_post(
 async def route_updated_post(
     channel_id: str,
     post_id: str,
-    content: Optional[str] = Form(None),
-    oldImages: Optional[str] = Form(None),
+    content: str | None = Form(None),
+    oldImages: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
