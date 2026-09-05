@@ -1,0 +1,6 @@
+# Pin chinh xac de build lap lai duoc.
+# CO Y khong dung sentence-transformers: no keo theo PyTorch (~1.5GB).
+# fastembed chay model qua ONNX Runtime, nho hon nhieu voi cung mot model.
+fastembed==0.7.4
+fastapi==0.141.1
+uvicorn[standard]==0.42.0

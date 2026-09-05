@@ -192,6 +192,11 @@ async def route_post_resume(
     skills: str | None = Form(None),
     languages: str | None = Form(None),
     projects: str | None = Form(None),
+    japaneseLevel: str | None = Form(None),
+    englishLevel: str | None = Form(None),
+    yearsOfExperience: str | None = Form(None),
+    desiredSalaryMin: str | None = Form(None),
+    desiredLocations: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
 ):
@@ -217,5 +222,10 @@ async def route_post_resume(
         skills=skills,
         languages=languages,
         projects=projects,
+        japanese_level=japaneseLevel,
+        english_level=englishLevel,
+        years_of_experience=yearsOfExperience,
+        desired_salary_min=desiredSalaryMin,
+        desired_locations=desiredLocations,
         files=files,
     )

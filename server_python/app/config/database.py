@@ -7,8 +7,10 @@ from pymongo import AsyncMongoClient
 from app.config.settings import DATABASE_URL
 from app.models.channel import Channel
 from app.models.chat import Chat
+from app.models.company import Company
 from app.models.follower import Follower
 from app.models.following import Following
+from app.models.job import Job
 from app.models.newest_message import NewestMessage
 from app.models.notification import Notification
 from app.models.post import Post
@@ -31,6 +33,8 @@ DOCUMENT_MODELS = [
     Shortcut,
     Web,
     Resume,
+    Company,
+    Job,
 ]
 
 logger = logging.getLogger("fuurin.database")

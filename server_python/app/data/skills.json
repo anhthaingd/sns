@@ -1,0 +1,1092 @@
+{
+ "_comment": "Tu dien ky nang de trich tu mo ta cong viec va CV. alias Latin khop theo ranh gioi tu (khong phan biet hoa thuong); alias chua ky tu CJK khop kieu chuoi con vi tieng Nhat khong co dau cach. case_sensitive_aliases danh cho tu qua ngan/qua pho thong (vd 'Go', 'Spark') de tranh khop nham voi dong tu thong thuong.",
+ "skills": [
+  {
+   "canonical": "Python",
+   "category": "language",
+   "aliases": [
+    "python",
+    "パイソン"
+   ]
+  },
+  {
+   "canonical": "JavaScript",
+   "category": "language",
+   "aliases": [
+    "javascript",
+    "ジャバスクリプト"
+   ],
+   "case_sensitive_aliases": [
+    "JS"
+   ]
+  },
+  {
+   "canonical": "TypeScript",
+   "category": "language",
+   "aliases": [
+    "typescript",
+    "タイプスクリプト"
+   ],
+   "case_sensitive_aliases": [
+    "TS"
+   ]
+  },
+  {
+   "canonical": "Java",
+   "category": "language",
+   "aliases": [
+    "java",
+    "ジャバ"
+   ]
+  },
+  {
+   "canonical": "Go",
+   "category": "language",
+   "aliases": [
+    "golang",
+    "go言語"
+   ],
+   "case_sensitive_aliases": [
+    "Go"
+   ]
+  },
+  {
+   "canonical": "C++",
+   "category": "language",
+   "aliases": [
+    "c++",
+    "cpp"
+   ]
+  },
+  {
+   "canonical": "C#",
+   "category": "language",
+   "aliases": [
+    "c#",
+    "csharp",
+    "c sharp"
+   ]
+  },
+  {
+   "canonical": "PHP",
+   "category": "language",
+   "aliases": [
+    "php"
+   ]
+  },
+  {
+   "canonical": "Ruby",
+   "category": "language",
+   "aliases": [
+    "ruby",
+    "ルビー"
+   ]
+  },
+  {
+   "canonical": "Rust",
+   "category": "language",
+   "aliases": [],
+   "case_sensitive_aliases": [
+    "Rust"
+   ]
+  },
+  {
+   "canonical": "Kotlin",
+   "category": "language",
+   "aliases": [
+    "kotlin"
+   ]
+  },
+  {
+   "canonical": "Swift",
+   "category": "language",
+   "aliases": [],
+   "case_sensitive_aliases": [
+    "Swift"
+   ]
+  },
+  {
+   "canonical": "Scala",
+   "category": "language",
+   "aliases": [
+    "scala"
+   ]
+  },
+  {
+   "canonical": "Perl",
+   "category": "language",
+   "aliases": [
+    "perl"
+   ]
+  },
+  {
+   "canonical": "Elixir",
+   "category": "language",
+   "aliases": [
+    "elixir"
+   ]
+  },
+  {
+   "canonical": "Dart",
+   "category": "language",
+   "aliases": [],
+   "case_sensitive_aliases": [
+    "Dart"
+   ]
+  },
+  {
+   "canonical": "Objective-C",
+   "category": "language",
+   "aliases": [
+    "objective-c",
+    "objectivec"
+   ]
+  },
+  {
+   "canonical": "Shell",
+   "category": "language",
+   "aliases": [
+    "bash",
+    "shell script",
+    "zsh",
+    "シェルスクリプト"
+   ]
+  },
+  {
+   "canonical": "SQL",
+   "category": "language",
+   "aliases": [
+    "sql"
+   ]
+  },
+  {
+   "canonical": "HTML",
+   "category": "language",
+   "aliases": [
+    "html",
+    "html5"
+   ]
+  },
+  {
+   "canonical": "CSS",
+   "category": "language",
+   "aliases": [
+    "css",
+    "css3"
+   ]
+  },
+  {
+   "canonical": "Sass",
+   "category": "language",
+   "aliases": [
+    "sass",
+    "scss"
+   ]
+  },
+  {
+   "canonical": "React",
+   "category": "frontend",
+   "aliases": [
+    "react",
+    "reactjs",
+    "react.js",
+    "リアクト"
+   ]
+  },
+  {
+   "canonical": "Next.js",
+   "category": "frontend",
+   "aliases": [
+    "next.js",
+    "nextjs"
+   ]
+  },
+  {
+   "canonical": "Vue.js",
+   "category": "frontend",
+   "aliases": [
+    "vue",
+    "vuejs",
+    "vue.js"
+   ]
+  },
+  {
+   "canonical": "Nuxt.js",
+   "category": "frontend",
+   "aliases": [
+    "nuxt",
+    "nuxtjs",
+    "nuxt.js"
+   ]
+  },
+  {
+   "canonical": "Angular",
+   "category": "frontend",
+   "aliases": [
+    "angular",
+    "angularjs"
+   ]
+  },
+  {
+   "canonical": "Svelte",
+   "category": "frontend",
+   "aliases": [
+    "svelte",
+    "sveltekit"
+   ]
+  },
+  {
+   "canonical": "jQuery",
+   "category": "frontend",
+   "aliases": [
+    "jquery"
+   ]
+  },
+  {
+   "canonical": "Redux",
+   "category": "frontend",
+   "aliases": [
+    "redux"
+   ]
+  },
+  {
+   "canonical": "Tailwind CSS",
+   "category": "frontend",
+   "aliases": [
+    "tailwind",
+    "tailwindcss"
+   ]
+  },
+  {
+   "canonical": "Bootstrap",
+   "category": "frontend",
+   "aliases": [
+    "bootstrap"
+   ]
+  },
+  {
+   "canonical": "Webpack",
+   "category": "frontend",
+   "aliases": [
+    "webpack"
+   ]
+  },
+  {
+   "canonical": "Vite",
+   "category": "frontend",
+   "aliases": [],
+   "case_sensitive_aliases": [
+    "Vite"
+   ]
+  },
+  {
+   "canonical": "Storybook",
+   "category": "frontend",
+   "aliases": [
+    "storybook"
+   ]
+  },
+  {
+   "canonical": "WebRTC",
+   "category": "frontend",
+   "aliases": [
+    "webrtc"
+   ]
+  },
+  {
+   "canonical": "WebSocket",
+   "category": "frontend",
+   "aliases": [
+    "websocket",
+    "socket.io",
+    "socketio"
+   ]
+  },
+  {
+   "canonical": "Node.js",
+   "category": "backend",
+   "aliases": [
+    "node.js",
+    "nodejs"
+   ]
+  },
+  {
+   "canonical": "Express",
+   "category": "backend",
+   "aliases": [
+    "express.js",
+    "expressjs"
+   ],
+   "case_sensitive_aliases": [
+    "Express"
+   ]
+  },
+  {
+   "canonical": "NestJS",
+   "category": "backend",
+   "aliases": [
+    "nestjs",
+    "nest.js"
+   ]
+  },
+  {
+   "canonical": "Django",
+   "category": "backend",
+   "aliases": [
+    "django"
+   ]
+  },
+  {
+   "canonical": "Flask",
+   "category": "backend",
+   "aliases": [
+    "flask"
+   ]
+  },
+  {
+   "canonical": "FastAPI",
+   "category": "backend",
+   "aliases": [
+    "fastapi"
+   ]
+  },
+  {
+   "canonical": "Spring Boot",
+   "category": "backend",
+   "aliases": [
+    "spring boot",
+    "springboot",
+    "spring"
+   ]
+  },
+  {
+   "canonical": "Laravel",
+   "category": "backend",
+   "aliases": [
+    "laravel"
+   ]
+  },
+  {
+   "canonical": "Ruby on Rails",
+   "category": "backend",
+   "aliases": [
+    "ruby on rails"
+   ],
+   "case_sensitive_aliases": [
+    "Rails"
+   ]
+  },
+  {
+   "canonical": "ASP.NET",
+   "category": "backend",
+   "aliases": [
+    ".net",
+    "asp.net",
+    "dotnet"
+   ]
+  },
+  {
+   "canonical": "GraphQL",
+   "category": "backend",
+   "aliases": [
+    "graphql"
+   ]
+  },
+  {
+   "canonical": "gRPC",
+   "category": "backend",
+   "aliases": [
+    "grpc"
+   ]
+  },
+  {
+   "canonical": "REST API",
+   "category": "backend",
+   "aliases": [
+    "rest api",
+    "restful"
+   ]
+  },
+  {
+   "canonical": "Microservices",
+   "category": "backend",
+   "aliases": [
+    "microservice",
+    "microservices",
+    "マイクロサービス"
+   ]
+  },
+  {
+   "canonical": "Android",
+   "category": "mobile",
+   "aliases": [
+    "android",
+    "アンドロイド"
+   ]
+  },
+  {
+   "canonical": "iOS",
+   "category": "mobile",
+   "aliases": [
+    "ios"
+   ]
+  },
+  {
+   "canonical": "React Native",
+   "category": "mobile",
+   "aliases": [
+    "react native"
+   ]
+  },
+  {
+   "canonical": "Flutter",
+   "category": "mobile",
+   "aliases": [
+    "flutter"
+   ]
+  },
+  {
+   "canonical": "Unity",
+   "category": "mobile",
+   "aliases": [
+    "ユニティ"
+   ],
+   "case_sensitive_aliases": [
+    "Unity"
+   ]
+  },
+  {
+   "canonical": "MySQL",
+   "category": "database",
+   "aliases": [
+    "mysql"
+   ]
+  },
+  {
+   "canonical": "PostgreSQL",
+   "category": "database",
+   "aliases": [
+    "postgresql",
+    "postgres"
+   ]
+  },
+  {
+   "canonical": "MongoDB",
+   "category": "database",
+   "aliases": [
+    "mongodb",
+    "mongo"
+   ]
+  },
+  {
+   "canonical": "Redis",
+   "category": "database",
+   "aliases": [
+    "redis"
+   ]
+  },
+  {
+   "canonical": "Elasticsearch",
+   "category": "database",
+   "aliases": [
+    "elasticsearch",
+    "elastic search",
+    "opensearch"
+   ]
+  },
+  {
+   "canonical": "Oracle",
+   "category": "database",
+   "aliases": [
+    "oracle",
+    "オラクル"
+   ]
+  },
+  {
+   "canonical": "SQL Server",
+   "category": "database",
+   "aliases": [
+    "sql server",
+    "sqlserver",
+    "mssql"
+   ]
+  },
+  {
+   "canonical": "SQLite",
+   "category": "database",
+   "aliases": [
+    "sqlite"
+   ]
+  },
+  {
+   "canonical": "DynamoDB",
+   "category": "database",
+   "aliases": [
+    "dynamodb"
+   ]
+  },
+  {
+   "canonical": "Cassandra",
+   "category": "database",
+   "aliases": [
+    "cassandra"
+   ]
+  },
+  {
+   "canonical": "BigQuery",
+   "category": "database",
+   "aliases": [
+    "bigquery"
+   ]
+  },
+  {
+   "canonical": "Snowflake",
+   "category": "database",
+   "aliases": [
+    "snowflake"
+   ]
+  },
+  {
+   "canonical": "AWS",
+   "category": "cloud",
+   "aliases": [
+    "aws",
+    "amazon web services"
+   ]
+  },
+  {
+   "canonical": "Google Cloud",
+   "category": "cloud",
+   "aliases": [
+    "gcp",
+    "google cloud"
+   ]
+  },
+  {
+   "canonical": "Azure",
+   "category": "cloud",
+   "aliases": [
+    "azure"
+   ]
+  },
+  {
+   "canonical": "Docker",
+   "category": "devops",
+   "aliases": [
+    "docker",
+    "ドッカー"
+   ]
+  },
+  {
+   "canonical": "Kubernetes",
+   "category": "devops",
+   "aliases": [
+    "kubernetes",
+    "k8s",
+    "クバネティス"
+   ]
+  },
+  {
+   "canonical": "Terraform",
+   "category": "devops",
+   "aliases": [
+    "terraform"
+   ]
+  },
+  {
+   "canonical": "Ansible",
+   "category": "devops",
+   "aliases": [
+    "ansible"
+   ]
+  },
+  {
+   "canonical": "Jenkins",
+   "category": "devops",
+   "aliases": [
+    "jenkins"
+   ]
+  },
+  {
+   "canonical": "GitHub Actions",
+   "category": "devops",
+   "aliases": [
+    "github actions"
+   ]
+  },
+  {
+   "canonical": "GitLab CI",
+   "category": "devops",
+   "aliases": [
+    "gitlab ci",
+    "gitlab-ci"
+   ]
+  },
+  {
+   "canonical": "CircleCI",
+   "category": "devops",
+   "aliases": [
+    "circleci"
+   ]
+  },
+  {
+   "canonical": "CI/CD",
+   "category": "devops",
+   "aliases": [
+    "ci/cd",
+    "cicd",
+    "continuous integration"
+   ]
+  },
+  {
+   "canonical": "Linux",
+   "category": "devops",
+   "aliases": [
+    "linux",
+    "ubuntu",
+    "centos",
+    "debian",
+    "redhat"
+   ]
+  },
+  {
+   "canonical": "Nginx",
+   "category": "devops",
+   "aliases": [
+    "nginx"
+   ]
+  },
+  {
+   "canonical": "Apache",
+   "category": "devops",
+   "aliases": [
+    "apache http",
+    "httpd"
+   ]
+  },
+  {
+   "canonical": "Prometheus",
+   "category": "devops",
+   "aliases": [
+    "prometheus"
+   ]
+  },
+  {
+   "canonical": "Grafana",
+   "category": "devops",
+   "aliases": [
+    "grafana"
+   ]
+  },
+  {
+   "canonical": "Datadog",
+   "category": "devops",
+   "aliases": [
+    "datadog"
+   ]
+  },
+  {
+   "canonical": "Serverless",
+   "category": "devops",
+   "aliases": [
+    "serverless",
+    "lambda",
+    "cloud functions"
+   ]
+  },
+  {
+   "canonical": "Networking",
+   "category": "devops",
+   "aliases": [
+    "tcp/ip",
+    "networking",
+    "ネットワーク",
+    "lan/wan"
+   ]
+  },
+  {
+   "canonical": "Machine Learning",
+   "category": "data",
+   "aliases": [
+    "machine learning",
+    "機械学習"
+   ],
+   "case_sensitive_aliases": [
+    "ML"
+   ]
+  },
+  {
+   "canonical": "Deep Learning",
+   "category": "data",
+   "aliases": [
+    "deep learning",
+    "深層学習"
+   ]
+  },
+  {
+   "canonical": "TensorFlow",
+   "category": "data",
+   "aliases": [
+    "tensorflow"
+   ]
+  },
+  {
+   "canonical": "PyTorch",
+   "category": "data",
+   "aliases": [
+    "pytorch"
+   ]
+  },
+  {
+   "canonical": "scikit-learn",
+   "category": "data",
+   "aliases": [
+    "scikit-learn",
+    "sklearn"
+   ]
+  },
+  {
+   "canonical": "Pandas",
+   "category": "data",
+   "aliases": [
+    "pandas"
+   ]
+  },
+  {
+   "canonical": "NumPy",
+   "category": "data",
+   "aliases": [
+    "numpy"
+   ]
+  },
+  {
+   "canonical": "Spark",
+   "category": "data",
+   "aliases": [
+    "apache spark",
+    "pyspark"
+   ],
+   "case_sensitive_aliases": [
+    "Spark"
+   ]
+  },
+  {
+   "canonical": "Hadoop",
+   "category": "data",
+   "aliases": [
+    "hadoop"
+   ]
+  },
+  {
+   "canonical": "Kafka",
+   "category": "data",
+   "aliases": [
+    "kafka"
+   ]
+  },
+  {
+   "canonical": "Airflow",
+   "category": "data",
+   "aliases": [
+    "airflow"
+   ]
+  },
+  {
+   "canonical": "Tableau",
+   "category": "data",
+   "aliases": [
+    "tableau"
+   ]
+  },
+  {
+   "canonical": "Power BI",
+   "category": "data",
+   "aliases": [
+    "power bi",
+    "powerbi"
+   ]
+  },
+  {
+   "canonical": "Data Analysis",
+   "category": "data",
+   "aliases": [
+    "data analysis",
+    "データ分析"
+   ]
+  },
+  {
+   "canonical": "NLP",
+   "category": "data",
+   "aliases": [
+    "nlp",
+    "natural language processing",
+    "自然言語処理"
+   ]
+  },
+  {
+   "canonical": "Computer Vision",
+   "category": "data",
+   "aliases": [
+    "computer vision",
+    "画像認識"
+   ]
+  },
+  {
+   "canonical": "LLM",
+   "category": "data",
+   "aliases": [
+    "llm",
+    "large language model",
+    "生成ai",
+    "generative ai"
+   ]
+  },
+  {
+   "canonical": "Testing",
+   "category": "testing",
+   "aliases": [
+    "unit test",
+    "unit testing",
+    "テスト自動化",
+    "test automation"
+   ]
+  },
+  {
+   "canonical": "Jest",
+   "category": "testing",
+   "aliases": [
+    "jest"
+   ]
+  },
+  {
+   "canonical": "Pytest",
+   "category": "testing",
+   "aliases": [
+    "pytest"
+   ]
+  },
+  {
+   "canonical": "Selenium",
+   "category": "testing",
+   "aliases": [
+    "selenium"
+   ]
+  },
+  {
+   "canonical": "Cypress",
+   "category": "testing",
+   "aliases": [
+    "cypress"
+   ]
+  },
+  {
+   "canonical": "Playwright",
+   "category": "testing",
+   "aliases": [
+    "playwright"
+   ]
+  },
+  {
+   "canonical": "QA",
+   "category": "testing",
+   "aliases": [
+    "qa engineer",
+    "quality assurance",
+    "品質保証"
+   ]
+  },
+  {
+   "canonical": "Git",
+   "category": "tools",
+   "aliases": [
+    "git",
+    "github",
+    "gitlab",
+    "bitbucket"
+   ]
+  },
+  {
+   "canonical": "Jira",
+   "category": "tools",
+   "aliases": [
+    "jira"
+   ]
+  },
+  {
+   "canonical": "Confluence",
+   "category": "tools",
+   "aliases": [
+    "confluence"
+   ]
+  },
+  {
+   "canonical": "Agile",
+   "category": "process",
+   "aliases": [
+    "agile",
+    "アジャイル"
+   ]
+  },
+  {
+   "canonical": "Scrum",
+   "category": "process",
+   "aliases": [
+    "scrum",
+    "スクラム"
+   ]
+  },
+  {
+   "canonical": "Figma",
+   "category": "design",
+   "aliases": [
+    "figma"
+   ]
+  },
+  {
+   "canonical": "Adobe XD",
+   "category": "design",
+   "aliases": [
+    "adobe xd"
+   ]
+  },
+  {
+   "canonical": "Photoshop",
+   "category": "design",
+   "aliases": [
+    "photoshop"
+   ]
+  },
+  {
+   "canonical": "Illustrator",
+   "category": "design",
+   "aliases": [
+    "illustrator"
+   ]
+  },
+  {
+   "canonical": "UI/UX",
+   "category": "design",
+   "aliases": [
+    "ui/ux",
+    "uiux",
+    "ux design",
+    "ui design"
+   ]
+  },
+  {
+   "canonical": "Security",
+   "category": "security",
+   "aliases": [
+    "security",
+    "セキュリティ",
+    "cybersecurity"
+   ]
+  },
+  {
+   "canonical": "Penetration Testing",
+   "category": "security",
+   "aliases": [
+    "penetration testing",
+    "pentest"
+   ]
+  },
+  {
+   "canonical": "OAuth",
+   "category": "security",
+   "aliases": [
+    "oauth",
+    "oidc"
+   ]
+  },
+  {
+   "canonical": "Project Management",
+   "category": "business",
+   "aliases": [
+    "project management",
+    "プロジェクト管理",
+    "pmp"
+   ]
+  },
+  {
+   "canonical": "Sales",
+   "category": "business",
+   "aliases": [
+    "sales",
+    "営業"
+   ]
+  },
+  {
+   "canonical": "Marketing",
+   "category": "business",
+   "aliases": [
+    "marketing",
+    "マーケティング"
+   ]
+  },
+  {
+   "canonical": "Customer Support",
+   "category": "business",
+   "aliases": [
+    "customer support",
+    "customer service",
+    "カスタマーサポート"
+   ]
+  },
+  {
+   "canonical": "Recruiting",
+   "category": "business",
+   "aliases": [
+    "recruiting",
+    "recruiter",
+    "talent acquisition",
+    "採用担当",
+    "リクルーター",
+    "人事"
+   ]
+  },
+  {
+   "canonical": "Accounting",
+   "category": "business",
+   "aliases": [
+    "accounting",
+    "経理"
+   ]
+  },
+  {
+   "canonical": "Teaching",
+   "category": "business",
+   "aliases": [
+    "teaching",
+    "teacher",
+    "instructor",
+    "講師"
+   ]
+  },
+  {
+   "canonical": "Translation",
+   "category": "business",
+   "aliases": [
+    "translation",
+    "翻訳",
+    "interpreter",
+    "通訳"
+   ]
+  },
+  {
+   "canonical": "Logistics",
+   "category": "business",
+   "aliases": [
+    "logistics",
+    "物流"
+   ]
+  },
+  {
+   "canonical": "Hospitality",
+   "category": "business",
+   "aliases": [
+    "hospitality",
+    "接客"
+   ]
+  }
+ ]
+}

@@ -18,3 +18,8 @@ aiofiles==25.1.0
 redis[hiredis]==6.4.0
 # Cho `EmailStr` trong app/schemas/requests.py.
 email-validator==2.3.0
+# Goi service embedder + dung trong test.
+httpx==0.28.1
+# Tinh cosine cho ~700 vector: nhanh hon vong lap Python vai chuc lan,
+# va du nho de khong can them vector database.
+numpy==2.3.5  # ban 2.5.x moi ra, giu ban da kiem chung

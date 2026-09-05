@@ -1,4 +1,5 @@
 import json
+import logging
 import math
 
 import bcrypt as _bcrypt
@@ -21,6 +22,8 @@ from app.models.resume import Resume
 from app.models.role import Role
 from app.models.user import User
 from app.services import rate_limit
+from app.services.embedding import embed_texts, get_model_name
+from app.services.resume_profile import apply_profile, resume_text, text_hash
 from app.services.token_store import is_revoked, revoke
 from app.utils.cookies import clear_refresh_cookie, set_refresh_cookie
 from app.utils.file_utils import delete_file
@@ -37,6 +40,8 @@ from app.utils.token import (
     decode_refresh_token,
     seconds_until_expiry,
 )
+
+logger = logging.getLogger("fuurin.users")
 
 PAGE_SIZE = 10
 FOLLOW_PAGE_SIZE = 20
@@ -470,6 +475,40 @@ async def get_users_by_admin(decoded_user: dict, page: int = 1, search: str = No
 # ---------------------------------------------------------------------------
 
 
+def _clean_form_value(raw: str | None) -> str | None:
+    """Form multipart gửi chuỗi rỗng và "null" cho ô không điền."""
+    if raw is None:
+        return None
+    value = raw.strip()
+    return None if value in ("", "null", "undefined") else value
+
+
+async def _refresh_match_profile(resume: Resume) -> None:
+    """Sinh hồ sơ so khớp và vector cho CV vừa lưu.
+
+    Không có bước này thì CV mới lưu sẽ không có trình độ tiếng Nhật, không có
+    kỹ năng chuẩn hoá và không có vector — tức là chức năng gợi ý công ty coi
+    như không thấy hồ sơ đó.
+
+    Lỗi ở đây KHÔNG được làm hỏng việc lưu CV: người dùng đã bấm lưu và dữ liệu
+    của họ đã nằm trong DB, cùng lắm là chạy `scripts.backfill_resumes` bù sau.
+    """
+    try:
+        apply_profile(resume)
+        text = resume_text(resume)
+        # Chỉ tính lại vector khi nội dung thật sự đổi — mỗi lần gọi tốn một
+        # vòng mạng sang service embedder.
+        if text and resume.embedding_source_hash != text_hash(text):
+            vectors = await embed_texts([text])
+            if vectors:
+                resume.embedding = vectors[0]
+                resume.embedding_model = get_model_name()
+                resume.embedding_source_hash = text_hash(text)
+        await resume.save()
+    except Exception:
+        logger.exception("Không cập nhật được hồ sơ so khớp cho CV %s", resume.id)
+
+
 def _filter_different_elements(arr1, arr2):
     different = [
         obj1
@@ -511,6 +550,11 @@ async def post_resume(
     skills: str = None,
     languages: str = None,
     projects: str = None,
+    japanese_level: str = None,
+    english_level: str = None,
+    years_of_experience: str = None,
+    desired_salary_min: str = None,
+    desired_locations: str = None,
     files: dict = None,
 ):
     user_id = to_object_id(decoded_user["_id"], "user_id")
@@ -539,9 +583,27 @@ async def post_resume(
         "projects": _parse_json(projects) or [],
     }
 
+    # Người dùng tự khai thì tin theo; bỏ trống thì suy từ nội dung CV ở dưới.
+    for field, raw in (
+        ("japanese_level", japanese_level),
+        ("english_level", english_level),
+        ("years_of_experience", years_of_experience),
+        ("desired_salary_min", desired_salary_min),
+    ):
+        value = _clean_form_value(raw)
+        if value is None:
+            continue
+        resume_data[field] = int(value) if field in ("years_of_experience", "desired_salary_min") else value
+
+    locations = _parse_json(desired_locations)
+    if isinstance(locations, list):
+        resume_data["desired_locations"] = [str(x) for x in locations if x]
+
     existed_resume = await Resume.find_one(Resume.user == user_id)
     if not existed_resume:
-        await Resume(**resume_data).insert()
+        resume = Resume(**resume_data)
+        await resume.insert()
+        await _refresh_match_profile(resume)
         return ok(message="Lưu CV thành công!")
 
     if parse_old_certificates:
@@ -565,4 +627,8 @@ async def post_resume(
         resume_data["certificates"] = parse_edit_certificates
 
     await Resume.find_one(Resume.user == user_id).update({"$set": resume_data})
+
+    updated = await Resume.find_one(Resume.user == user_id)
+    if updated is not None:
+        await _refresh_match_profile(updated)
     return ok(message="Lưu CV thành công!")

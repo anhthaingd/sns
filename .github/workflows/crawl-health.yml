@@ -40,7 +40,7 @@ jobs:
       - name: Test crawl (goi ra internet)
         run: |
           docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm \
-            -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py -v
+            -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl_live.py -v
 
       - name: Don dep
         if: always()

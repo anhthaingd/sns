@@ -24,7 +24,10 @@ async def _token(page):
 async def test_login_page_loads_website_config_from_api(page):
     """Trang login render tên website lấy từ GET /api/website -> backend + CORS hoạt động."""
     await page.goto(f"{APP_URL}/login", wait_until="domcontentloaded")
-    await page.wait_for_selector("text=Login")
+    # Chờ ĐÚNG thứ đang kiểm. Bản cũ chờ chữ "Login" — vốn nằm sẵn trong JSX
+    # tĩnh nên xuất hiện TRƯỚC khi GET /api/website trả về, khiến test chập chờn
+    # mỗi khi lần tải đầu chậm hơn thường lệ.
+    await page.wait_for_selector("text=Fuurin", timeout=20000)
     assert "Fuurin" in await page.content(), "không lấy được cấu hình website từ backend"
 
 
@@ -211,3 +214,87 @@ async def test_refresh_token_is_never_exposed_to_javascript(page):
     refresh = next((c for c in await page.context.cookies() if c["name"] == "refresh_token"), None)
     if refresh is not None:
         assert refresh["httpOnly"] is True, "refresh token phải httpOnly"
+
+
+async def test_recruitment_page_shows_structured_jobs_with_filters(page):
+    """Trang việc làm giờ đọc từ DB đã ETL, không còn nhúng HTML crawl trực tiếp."""
+    email = unique_email("jobs")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+
+    await page.goto(f"{APP_URL}/recruitment", wait_until="domcontentloaded")
+    await page.get_by_placeholder("Tìm theo chức danh, công ty, mô tả...").wait_for(timeout=30000)
+
+    body = await page.inner_text("body")
+    assert "tin tổng hợp từ" in body, f"không thấy số liệu tổng hợp. body={body[:300]}"
+
+    # Bộ lọc phải được nạp từ dữ liệu thật, không viết cứng.
+    options = await page.locator("select[aria-label='Lọc theo địa điểm'] option").all_inner_texts()
+    assert len(options) > 1, f"bộ lọc địa điểm trống: {options}"
+
+    # Chọn hai bộ lọc liên tiếp rồi bỏ một cái: kiểm rằng bộ lọc còn lại KHÔNG
+    # bị mất. Bản đầu dùng hook `useQueryString` nên mỗi thao tác phải gọi hai
+    # lần (đặt bộ lọc + đưa về trang 1) mà cả hai lần đọc cùng một query cũ ->
+    # lần sau ghi đè lần trước; còn `deleteQueryString()` thì xoá sạch mọi tham số.
+    await page.locator("select[aria-label='Lọc theo tiếng Nhật']").select_option("business")
+    await page.wait_for_timeout(1500)
+    assert "japanese=business" in page.url, page.url
+
+    await page.locator("select[aria-label='Lọc theo địa điểm']").select_option("Tokyo")
+    await page.wait_for_timeout(1500)
+    assert "japanese=business" in page.url and "prefecture=Tokyo" in page.url, page.url
+    assert "page=1" in page.url, f"đổi bộ lọc phải quay về trang 1: {page.url}"
+
+    await page.locator("select[aria-label='Lọc theo địa điểm']").select_option("")
+    await page.wait_for_timeout(1500)
+    assert "prefecture=" not in page.url, page.url
+    assert "japanese=business" in page.url, f"bỏ một bộ lọc đã xoá mất bộ lọc khác: {page.url}"
+
+
+async def test_match_page_requires_a_resume_then_shows_companies(page, db):
+    """Chức năng 1 đi hết một vòng qua giao diện thật: chưa có CV -> tạo CV -> có gợi ý."""
+    email = unique_email("match")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+
+    # Chưa có CV: phải chỉ đường sang trang tạo CV chứ không hiện lỗi cụt lủn.
+    await page.goto(f"{APP_URL}/match", wait_until="domcontentloaded")
+    await page.get_by_role("link", name="Tạo CV ngay").wait_for(timeout=30000)
+
+    # Tạo CV tối thiểu ngay qua API của ứng dụng (form CV rất dài, không phải
+    # thứ đang kiểm ở test này).
+    token = await page.evaluate("() => window.localStorage.getItem('social_app_token')")
+    result = await page.evaluate(
+        """async (args) => {
+            const body = new FormData();
+            body.append('position', 'Backend Engineer');
+            body.append('skills', JSON.stringify(['Python', 'Docker', 'AWS']));
+            body.append('languages', JSON.stringify(['Japanese N2', 'English business level']));
+            body.append('japaneseLevel', 'business');
+            body.append('yearsOfExperience', '5');
+            const res = await fetch(args.api + '/api/resume', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + args.token },
+                body,
+            });
+            return res.status;
+        }""",
+        {"api": API_URL, "token": token},
+    )
+    assert result == 200, f"không tạo được CV: {result}"
+
+    await page.goto(f"{APP_URL}/match", wait_until="domcontentloaded")
+    await page.get_by_text("Công ty phù hợp với bạn").wait_for(timeout=30000)
+    await page.wait_for_timeout(2000)
+
+    body = await page.inner_text("body")
+    assert "Xếp hạng" in body
+    gap_link = page.get_by_role("link", name="Tôi còn thiếu gì để vào công ty này →").first
+    assert await gap_link.count() > 0, f"không có công ty nào được gợi ý. body={body[:400]}"
+
+    # Chức năng 2: mở phân tích thiếu sót của công ty đầu bảng.
+    await gap_link.click()
+    await page.wait_for_timeout(2500)
+    gap_body = await page.inner_text("body")
+    assert "Bạn còn thiếu gì để vào" in gap_body, f"body={gap_body[:400]}"
+    assert "Các vị trí đang tuyển" in gap_body

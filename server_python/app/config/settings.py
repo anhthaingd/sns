@@ -76,6 +76,13 @@ TRUST_PROXY_HEADERS = _bool_env("TRUST_PROXY_HEADERS", False)
 # Cờ tắt toàn bộ giới hạn (chỉ dùng khi thật sự cần, ví dụ chạy tải thử).
 RATE_LIMIT_ENABLED = _bool_env("RATE_LIMIT_ENABLED", True)
 
+# --- Xếp hạng theo ngữ nghĩa -----------------------------------------------
+# Service tính vector chạy riêng (xem thư mục embedder/). Để trống thì phần xếp
+# hạng theo ngữ nghĩa tự tắt và hệ thống chấm điểm thuần bằng luật — vẫn dùng
+# được, chỉ kém tinh tế hơn.
+EMBEDDER_URL = os.getenv("EMBEDDER_URL", "")
+EMBEDDER_TIMEOUT_SECONDS = _int_env("EMBEDDER_TIMEOUT_SECONDS", 30)
+
 # --- Crawl ----------------------------------------------------------------
 # Trang tuyển dụng cập nhật theo ngày; 10 phút là đủ mới mà vẫn cứu được người
 # dùng khi nguồn chặn tạm thời (LinkedIn hay chặn khi bị gọi liên tục).

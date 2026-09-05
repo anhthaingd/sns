@@ -60,6 +60,11 @@ function ResumeLayout() {
     educationMajor: '',
     educationCompletion: '',
     educationGPA: '',
+    japaneseLevel: '',
+    englishLevel: '',
+    yearsOfExperience: '',
+    desiredSalaryMin: '',
+    desiredLocations: '',
     certificatesName: [],
     certificates: [],
     oldCertificates: [],
@@ -87,6 +92,11 @@ function ResumeLayout() {
           educationName: resume.educationName,
           educationMajor: resume.educationMajor,
           educationCompletion: resume.educationCompletion,
+          japaneseLevel: resume.japanese_level || '',
+          englishLevel: resume.english_level || '',
+          yearsOfExperience: resume.years_of_experience ?? '',
+          desiredSalaryMin: resume.desired_salary_min ?? '',
+          desiredLocations: (resume.desired_locations || []).join(', '),
           educationGPA: resume.educationGPA,
           certificatesName: [],
           certificates: [],
@@ -160,6 +170,20 @@ function ResumeLayout() {
     formData.append('languages', JSON.stringify(form.languages));
     formData.append('projects', JSON.stringify(form.projects));
     formData.append('experiences', JSON.stringify(form.experiences));
+    // Muc tieu nghe nghiep: de trong thi backend tu suy tu noi dung CV.
+    formData.append('japaneseLevel', form.japaneseLevel);
+    formData.append('englishLevel', form.englishLevel);
+    formData.append('yearsOfExperience', form.yearsOfExperience);
+    formData.append('desiredSalaryMin', form.desiredSalaryMin);
+    formData.append(
+      'desiredLocations',
+      JSON.stringify(
+        form.desiredLocations
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean)
+      )
+    );
     if (form.oldAvatar) {
       formData.append('oldAvatar', JSON.stringify(form.oldAvatar));
     }
@@ -501,6 +525,106 @@ function ResumeLayout() {
                   setForm({ ...form, educationGPA: e.target.value })
                 }
               />
+            </div>
+          </div>
+          <div className='flex flex-col gap-4'>
+            <h2 className='text-xl font-bold'>Mục tiêu nghề nghiệp</h2>
+            <p className='text-sm opacity-70'>
+              Dùng cho chức năng gợi ý công ty phù hợp. Để trống thì hệ thống tự
+              suy ra từ phần Languages, Experiences và Certificates của bạn.
+            </p>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='flex flex-col gap-2'>
+                <label className='font-medium' htmlFor='japaneseLevel'>
+                  Trình độ tiếng Nhật
+                </label>
+                <select
+                  id='japaneseLevel'
+                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  value={form?.japaneseLevel}
+                  onChange={(e) =>
+                    setForm({ ...form, japaneseLevel: e.target.value })
+                  }
+                >
+                  <option value=''>Để hệ thống tự suy ra</option>
+                  <option value='none'>Không biết tiếng Nhật</option>
+                  <option value='basic'>Cơ bản (N4-N5)</option>
+                  <option value='conversational'>Giao tiếp (N3)</option>
+                  <option value='business'>Nghiệp vụ (N2)</option>
+                  <option value='fluent'>Thành thạo (N1)</option>
+                  <option value='native'>Bản ngữ</option>
+                </select>
+              </div>
+              <div className='flex flex-col gap-2'>
+                <label className='font-medium' htmlFor='englishLevel'>
+                  Trình độ tiếng Anh
+                </label>
+                <select
+                  id='englishLevel'
+                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  value={form?.englishLevel}
+                  onChange={(e) =>
+                    setForm({ ...form, englishLevel: e.target.value })
+                  }
+                >
+                  <option value=''>Để hệ thống tự suy ra</option>
+                  <option value='none'>Không dùng được tiếng Anh</option>
+                  <option value='basic'>Cơ bản</option>
+                  <option value='conversational'>Giao tiếp</option>
+                  <option value='business'>Nghiệp vụ</option>
+                  <option value='fluent'>Thành thạo</option>
+                  <option value='native'>Bản ngữ</option>
+                </select>
+              </div>
+              <div className='flex flex-col gap-2'>
+                <label className='font-medium' htmlFor='yearsOfExperience'>
+                  Số năm kinh nghiệm
+                </label>
+                <input
+                  id='yearsOfExperience'
+                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  type='number'
+                  min='0'
+                  max='50'
+                  placeholder='Ví dụ: 3'
+                  value={form?.yearsOfExperience}
+                  onChange={(e) =>
+                    setForm({ ...form, yearsOfExperience: e.target.value })
+                  }
+                />
+              </div>
+              <div className='flex flex-col gap-2'>
+                <label className='font-medium' htmlFor='desiredSalaryMin'>
+                  Lương mong muốn tối thiểu (yên/năm)
+                </label>
+                <input
+                  id='desiredSalaryMin'
+                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  type='number'
+                  min='0'
+                  step='500000'
+                  placeholder='Ví dụ: 5000000 (500 man)'
+                  value={form?.desiredSalaryMin}
+                  onChange={(e) =>
+                    setForm({ ...form, desiredSalaryMin: e.target.value })
+                  }
+                />
+              </div>
+              <div className='flex flex-col gap-2 md:col-span-2'>
+                <label className='font-medium' htmlFor='desiredLocations'>
+                  Khu vực mong muốn
+                </label>
+                <input
+                  id='desiredLocations'
+                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  type='text'
+                  placeholder='Tokyo, Osaka, Fukuoka (phân tách bằng dấu phẩy)'
+                  value={form?.desiredLocations}
+                  onChange={(e) =>
+                    setForm({ ...form, desiredLocations: e.target.value })
+                  }
+                />
+              </div>
             </div>
           </div>
           <div className='flex flex-col gap-4'>

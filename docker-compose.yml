@@ -34,6 +34,20 @@ services:
       timeout: 3s
       retries: 5
 
+  embedder:
+    build: ./embedder
+    container_name: fuurin-embedder
+    restart: unless-stopped
+    # KHONG mo cong ra host: chi backend trong mang docker goi toi.
+    # Model + ONNX Runtime nam o day chu khong o image `server`, nho vay image
+    # backend giu nguyen ~1.06GB.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,json,sys; r=json.load(urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3)); sys.exit(0 if r['status']=='ok' else 1)"]
+      interval: 15s
+      timeout: 5s
+      start_period: 90s
+      retries: 6
+
   server:
     build: ./server_python
     container_name: fuurin-server
@@ -43,6 +57,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      embedder:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
@@ -51,6 +67,9 @@ services:
       # Redis giu blacklist token va bo dem rate limit -> dang xuat co hieu
       # luc that su, song sot qua restart backend.
       REDIS_URL: redis://redis:6379/0
+      # De trong thi phan xep hang theo ngu nghia tu tat, he thong chuyen
+      # sang cham diem thuan luat chu khong bao loi.
+      EMBEDDER_URL: http://embedder:8001
       # Chay duoc ngay voi secret mac dinh cho dev.
       # Muon dung secret rieng (production): tao file .env o thu muc goc de ghi de.
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_change_in_production}

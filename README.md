@@ -9,9 +9,10 @@
 - **client** — React + Vite + Redux Toolkit + Socket.io + WebRTC (simple-peer)
 - **server_python** — Python + FastAPI + MongoDB (Beanie/pymongo) + Socket.io + Playwright  ← **backend đang dùng**
 - **server** — Node.js + Express (bản cũ, giữ lại để tham chiếu, không còn được compose build)
-- **hạ tầng** — Docker Compose (MongoDB + Redis + backend + frontend)
+- **embedder** — service riêng tính vector ngữ nghĩa (fastembed/ONNX, chạy CPU, **không tốn phí API**)
+- **hạ tầng** — Docker Compose (MongoDB + Redis + embedder + backend + frontend)
 
-**Tính năng chính:** đăng ký/đăng nhập (JWT access token 15 phút + refresh token trong cookie httpOnly),  đăng bài, kênh/nhóm, follow, thông báo, nhắn tin & gọi video 1-1, tạo CV, tổng hợp tin tuyển dụng (crawl), trang quản trị.
+**Tính năng chính:** đăng ký/đăng nhập (JWT access token 15 phút + refresh token trong cookie httpOnly),  đăng bài, kênh/nhóm, follow, thông báo, nhắn tin & gọi video 1-1, tạo CV, **tổng hợp tin tuyển dụng có tìm kiếm & lọc**, **gợi ý công ty phù hợp với CV**, **phân tích CV còn thiếu gì để vào một công ty**, trang quản trị.
 
 ---
 
@@ -42,6 +43,7 @@ docker compose up -d --build
 Lệnh này tự động:
 - Khởi động **MongoDB** và **nạp sẵn** dữ liệu roles + cấu hình website
 - Khởi động **Redis** (giữ danh sách token đã thu hồi + bộ đếm chống dò mật khẩu)
+- Build & chạy **embedder** (tải sẵn model 220MB vào image nên chạy được cả khi không có mạng)
 - Build & chạy **backend FastAPI** (kèm sẵn Chromium của Playwright cho chức năng crawl)
 - Build & chạy **frontend**
 
@@ -57,6 +59,54 @@ Lệnh này tự động:
 | Health check | http://localhost:3000/health |
 | MongoDB | mongodb://localhost:27017/fuurin |
 | Redis | redis://localhost:6379 (không mở ra ngoài) |
+| Embedder | http://embedder:8001 (chỉ trong mạng docker) |
+
+### Bước 4 — Nạp dữ liệu việc làm
+
+Lần đầu chạy, kho việc làm còn trống. Có hai cách:
+
+```bash
+# A. NHANH, KHÔNG CẦN MẠNG — nạp 100 tin từ HTML đã lưu sẵn trong repo.
+#    Dùng đúng parser mà hệ thống dùng thật, chỉ khác nguồn là file thay vì web.
+docker compose run --rm server python -m scripts.seed_jobs_from_fixtures
+
+# B. DỮ LIỆU MỚI — crawl thật từ 4 trang nguồn (cần internet, vài phút).
+#    --detail nạp thêm trang chi tiết để lấy yêu cầu tiếng Nhật, kỹ năng, số năm
+#    kinh nghiệm; không có nó thì ~79% tin thiếu các trường này.
+docker compose run --rm server python -m scripts.run_etl --pages 5 --detail 120
+```
+
+### Bước 5 — Tạo tài khoản demo (khuyến nghị)
+
+Chức năng gợi ý công ty chỉ chạy khi tài khoản đã có CV. Lệnh dưới tạo sẵn một
+tài khoản kèm CV đầy đủ mọi mục, đăng nhập được ngay:
+
+```bash
+docker compose run --rm server python -m scripts.seed_demo_user --contrast
+```
+
+| | |
+|---|---|
+| Email | `demo@fuurin.local` |
+| Mật khẩu | `Demo@12345` |
+| Hồ sơ | Backend Engineer · 4 năm KN · tiếng Nhật N3 · 15 kỹ năng |
+
+CV này **cố ý chưa hoàn hảo** (N3 chứ không phải N2, không biết Kubernetes/Go)
+để chức năng "còn thiếu gì để vào công ty A" có nội dung thật để hiển thị —
+CV hoàn hảo thì trang đó trống trơn. Chạy xong, script in ra sẵn đường dẫn của
+một tin **đã đủ điều kiện** và một tin **còn rào cản** để mở lên xem.
+
+`--contrast` tạo thêm `demo-nojp@fuurin.local` — cùng kỹ năng, cùng kinh nghiệm,
+**chỉ khác là không biết tiếng Nhật**. Mở hai tài khoản cạnh nhau sẽ thấy danh
+sách gợi ý khác hẳn (đo được: top 10 chỉ trùng 2 tin). Xoá cả hai bằng
+`--clean`.
+
+Muốn có thêm nhiều CV đa dạng để thử:
+
+```bash
+docker compose run --rm server python -m scripts.seed_resumes --count 100
+docker compose run --rm server python -m scripts.seed_resumes --clean   # xoá đi
+```
 
 Xong! Chuyển sang [mục 4 — Hướng dẫn sử dụng](#4-hướng-dẫn-sử-dụng-lần-đầu).
 
@@ -113,6 +163,9 @@ npm run dev               # chay tai http://localhost:5173
 ### 4.1. Tạo tài khoản
 Mở http://localhost:5173 → **Đăng ký** một tài khoản. Đăng nhập để dùng đăng bài, follow, nhắn tin...
 
+> Muốn xem ngay chức năng gợi ý công ty mà không phải tự nhập CV: dùng tài khoản
+> `demo@fuurin.local` / `Demo@12345` tạo ở [Bước 5](#bước-5--tạo-tài-khoản-demo-khuyến-nghị).
+
 ### 4.2. Tạo tài khoản Admin
 Dự án **không có sẵn** admin — mọi tài khoản đăng ký đều là `user` thường. Để có quyền admin (quản lý user/bài viết, tùy biến website, **tạo channel**), nâng quyền một tài khoản trong DB:
 
@@ -134,8 +187,31 @@ Chỉ **admin** mới tạo được. Vào **Admin → Management → tab Channe
 - Trình duyệt sẽ xin quyền **camera + micro** → bấm **Allow** (chạy ở localhost nên hợp lệ).
 - Gọi video dùng WebRTC + STUN công cộng của Google — **không cần API key trả phí**.
 
-### 4.5. Xem tin tuyển dụng (crawl)
-Vào trang **Recruitment** — hệ thống tự tổng hợp tin từ DaiJob, GaijinPot, Nihongo Engineer, LinkedIn JP.
+### 4.5. Tìm việc làm
+Vào trang **Recruitment** — tin từ DaiJob, GaijinPot, Nihongo Engineer và LinkedIn JP đã được
+chuẩn hoá về cùng một dạng: tìm theo từ khoá, lọc theo **trình độ tiếng Nhật**, mức lương,
+địa điểm, việc remote.
+
+### 4.6. Gợi ý công ty phù hợp với CV
+Điền CV ở trang **Resume** (nhớ mục **Mục tiêu nghề nghiệp**: trình độ tiếng Nhật, số năm kinh
+nghiệm, lương và địa điểm mong muốn — để trống thì hệ thống tự suy từ phần Languages,
+Experiences và Certificates), rồi vào **Công ty phù hợp**.
+
+Điểm phù hợp gồm hai phần, hiện tách bạch để bạn kiểm chứng được:
+
+| Thành phần | Cách tính |
+|---|---|
+| **Độ liên quan ngành nghề** (55%) | So sánh vector ngữ nghĩa giữa CV và tin tuyển dụng |
+| **Mức đáp ứng yêu cầu** (45%) | Đối chiếu bằng luật: tiếng Nhật, tiếng Anh, số năm kinh nghiệm, kỹ năng |
+
+> Vì sao phải có phần thứ hai: đo trên chính dữ liệu của dự án, hai CV chỉ khác nhau một dòng
+> "Japanese: none" / "Japanese: N1" có độ tương đồng vector **0.9871** — tức là chỉ dùng vector
+> thì hai người có trình độ tiếng Nhật hoàn toàn khác nhau sẽ nhận **cùng một danh sách gợi ý**.
+
+### 4.7. Xem mình còn thiếu gì
+Ở mỗi công ty bấm **"Tôi còn thiếu gì để vào công ty này"**. Kết quả chia ba nhóm: **bắt buộc
+phải bù** (ví dụ tiếng Nhật chưa đủ mức), **nên có thêm** (kỹ năng, lương, địa điểm), và
+**bạn đã đáp ứng**.
 
 ---
 
@@ -148,6 +224,7 @@ docker compose ps               # xem trang thai cac container
 docker compose logs -f          # xem log tat ca service
 docker compose logs -f server   # xem log rieng backend
 docker compose restart server   # khoi dong lai backend
+docker compose logs -f embedder # xem log service tinh vector
 docker compose down             # dung tat ca (GIU LAI du lieu DB)
 docker compose down -v          # dung + XOA SACH du lieu DB
 ```
@@ -176,6 +253,9 @@ cp .env.example .env
 | `LOGIN_FAIL_LIMIT_PER_EMAIL` | `10` | Số lần đăng nhập SAI cho một email trong 15 phút |
 | `LOGIN_FAIL_LIMIT_PER_IP` | `30` | Số lần đăng nhập SAI từ một IP trong 15 phút |
 | `REGISTER_RATE_LIMIT_MAX` | `60` | Số lần đăng ký / giờ / IP |
+| `EMBEDDER_URL` | `http://embedder:8001` | Service tính vector. **Để trống thì hệ thống tự chuyển sang chấm điểm thuần luật**, không báo lỗi |
+| `CRAWL_CACHE_TTL_SECONDS` | `600` | Hạn cache kết quả crawl |
+| `CRAWL_MAX_CONCURRENT_PAGES` | `2` | Số trang mở đồng thời khi crawl |
 | `TRUST_PROXY_HEADERS` | `false` | Chỉ bật khi thật sự có reverse proxy. Bật mà không có proxy thì ai cũng giả được `X-Forwarded-For` để qua mặt giới hạn theo IP |
 | `CLIENT_URL` | `http://localhost:5173` | Danh sách origin được phép gọi API, phân tách bằng dấu phẩy |
 
@@ -205,6 +285,9 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 | Crawl trả về rỗng | Trang nguồn có thể đã đổi giao diện (cần cập nhật selector), hoặc mạng chậm/timeout. |
 | Đăng nhập báo *"Bạn thao tác quá nhiều lần"* (429) | Đã sai mật khẩu quá 10 lần cho cùng một email. Chờ 15 phút, hoặc `docker exec fuurin-redis redis-cli FLUSHDB` khi đang dev. |
 | Đăng nhập báo *"Email hoặc mật khẩu không đúng!"* dù email chưa đăng ký | Cố ý: một thông báo duy nhất cho mọi trường hợp để không lộ email nào đã tồn tại. |
+| Trang Recruitment trống | Chưa nạp dữ liệu việc làm. Xem Bước 4 ở mục 2. |
+| Vào **Công ty phù hợp** báo *"Bạn cần tạo CV trước"* | Đúng như thiết kế — điền CV ở trang Resume rồi quay lại. |
+| Có dòng *"Đang xếp hạng bằng luật"* ở trang gợi ý | Service `embedder` chưa sẵn sàng hoặc CV chưa có vector. Kết quả vẫn dùng được. Chạy `docker compose ps` xem embedder đã healthy chưa, rồi `docker compose run --rm server python -m scripts.backfill_resumes`. |
 | Bị đăng xuất sau ~15 phút | Client phải gọi được `POST /api/users/refresh`. Kiểm tra `CLIENT_URL` có đúng origin đang dùng và xem lưu ý SameSite ở mục 6. |
 
 ---
@@ -214,14 +297,16 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 Test chạy trong Docker, không cần cài gì trên máy. Stack phải đang chạy (`docker compose up -d`).
 
 ```bash
-# Test API (81 test: auth/refresh token, rate limit, phan quyen, post, channel,
-# chat + phan trang, upload, socket, dem so query chong N+1, hop dong response)
+# Test API (~290 test: auth/refresh token, rate limit, phan quyen, post, channel,
+# chat + phan trang, upload, socket, ETL/parser (chay offline tren HTML da luu),
+# loi cham diem CV, API viec lam & goi y, dem so query chong N+1, hop dong response)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
 
-# Test crawl that (can internet, mo browser Playwright)
-docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py
+# Canh selector cua 4 trang nguon (can internet, mo browser Playwright).
+# Do o day = trang nguon doi giao dien, KHONG phai code hong.
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl_live.py
 
-# Test E2E qua giao dien that bang Playwright (9 test)
+# Test E2E qua giao dien that bang Playwright (11 test)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
 
 # Chay xong E2E, tra client ve cau hinh thuong de dung tu trinh duyet:
@@ -241,12 +326,16 @@ docker compose up -d client
 - **lint** — `ruff check` + `ruff format --check`
 - **test** — dựng stack bằng Docker rồi chạy test API và E2E; fail thì upload ảnh chụp màn hình + log backend
 
+Trong bước **test**, CI nạp dữ liệu việc làm từ HTML đã lưu ở `server_python/tests/fixtures/`
+(không cần mạng) trước khi chạy E2E — nếu không thì các test về trang việc làm và gợi ý
+công ty sẽ bị bỏ qua và CI không thật sự kiểm được hai chức năng đó.
+
 Test crawl nằm ở workflow **riêng** (`crawl-health.yml`), chạy tự động 03:00 UTC thứ Hai hàng tuần.
 Tách riêng vì nó gọi ra trang thật — LinkedIn hay chặn tạm thời khi bị gọi liên tục, và nếu để
 chung với CI thì một lần bị chặn sẽ làm badge CI đỏ trong khi code không sao. Badge *Crawl health*
 đỏ nghĩa là **selector có thể đã mục rữa**, không phải code hỏng.
 
-Ngoài ra CI có bước **smoke test browser** chạy mọi lần: nó gọi đúng hàm crawl dùng thật với một
+CI cũng có bước **smoke test browser** chạy mọi lần: nó gọi đúng hàm crawl dùng thật với một
 trang `data:` (không cần mạng), để bảo vệ quyết định chỉ tải `chromium-headless-shell` trong image.
 
 ---
@@ -256,7 +345,10 @@ trang `data:` (không cần mạng), để bảo vệ quyết định chỉ tả
 ```
 .
 ├── client/                   # Frontend React + Vite
-│   └── src/services/redux/query/baseQuery.js   # tu gia han access token khi 401
+│   └── src/
+│       ├── layouts/home/Recruitment/  # Tim viec lam (doc tu DB da ETL)
+│       ├── layouts/home/Match/        # Goi y cong ty + phan tich thieu sot
+│       └── services/redux/query/baseQuery.js  # tu gia han access token khi 401
 ├── server_python/            # Backend FastAPI (dang dung)
 │   ├── app/
 │   │   ├── config/           # settings, ket noi MongoDB, ket noi Redis
@@ -266,15 +358,23 @@ trang `data:` (không cần mạng), để bảo vệ quyết định chỉ tả
 │   │   ├── models/           # Beanie Document (schema MongoDB)
 │   │   ├── routes/           # Dinh nghia API + response_model
 │   │   ├── schemas/          # Pydantic cho request & response (sinh /docs)
-│   │   ├── services/         # browser dung chung (crawl), rate limit, blacklist token
+│   │   ├── services/         # browser dung chung, rate limit, blacklist token,
+│   │   │   ├── etl/          #   crawl -> parse -> chuan hoa (4 parser + tu dien ky nang)
+│   │   │   ├── matching.py   #   cham diem CV <-> tin tuyen dung, liet ke thieu sot
+│   │   │   ├── embedding.py  #   goi service embedder (suy giam em khi no chet)
+│   │   │   └── job_index.py  #   chi muc vector trong bo nho (numpy, khong can vector DB)
 │   │   ├── sockets/          # Socket.io handler (chat, video call)
 │   │   ├── utils/            # loaders (chong N+1), token, cookie, serialize, quyen
 │   │   └── main.py           # Khoi tao FastAPI + Socket.io
-│   ├── tests/                # Test API (pytest + httpx)
-│   ├── scripts/              # browser_smoke.py — kiem tra Chromium trong image
+│   ├── data/skills.json      # Tu dien ~135 ky nang + alias (thay cho LLM khi trich ky nang)
+│   ├── tests/                # Test API + test ETL chay offline
+│   │   └── fixtures/         #   HTML that da luu -> test parser khong can mang
+│   ├── scripts/              # run_etl, seed_jobs_from_fixtures, seed_resumes,
+│   │                         # seed_demo_user, backfill_resumes, browser_smoke
 │   ├── data/                 # Du lieu seed (roles, website)
 │   ├── public/               # File tinh + file upload
 │   └── Dockerfile
+├── embedder/                 # Service tinh vector ngu nghia (fastembed/ONNX)
 ├── server/                   # Backend Express cu (tham chieu)
 ├── e2e/                      # Test E2E Playwright
 ├── docker/mongo-init/        # Script tu seed DB

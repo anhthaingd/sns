@@ -12,13 +12,15 @@ from app.config.settings import CORS_ORIGINS, PORT, REDIS_URL, UPLOAD_ROOT
 from app.errors import CatchAllErrorMiddleware, register_error_handlers
 from app.routes.channels import router as channels_router
 from app.routes.chat import router as chat_router
-from app.routes.crawl import router as crawl_router
+from app.routes.jobs import router as jobs_router
+from app.routes.match import router as match_router
 from app.routes.notifications import router as notifications_router
 from app.routes.posts import router as posts_router
 from app.routes.shortcuts import router as shortcuts_router
 from app.routes.users import router as users_router
 from app.routes.web import router as web_router
 from app.services.browser import browser_service
+from app.services.embedding import close_embedder
 from app.sockets.handlers import register_handlers
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -48,6 +50,7 @@ async def lifespan(_: FastAPI):
     except Exception:
         logger.exception("Không khởi động sẵn được browser, sẽ thử lại khi có request crawl")
     yield
+    await close_embedder()
     await browser_service.stop()
     await close_redis()
     await close_db()
@@ -83,7 +86,8 @@ app.include_router(notifications_router)
 app.include_router(chat_router)
 app.include_router(shortcuts_router)
 app.include_router(web_router)
-app.include_router(crawl_router)
+app.include_router(jobs_router)
+app.include_router(match_router)
 
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 (UPLOAD_ROOT / "uploads").mkdir(exist_ok=True)

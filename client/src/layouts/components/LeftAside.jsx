@@ -70,6 +70,15 @@ function LeftAside() {
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
+          onClick={() => handleRedirect(`/match`)}
+        >
+          <span
+            dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}
+          ></span>
+          <p>Công ty phù hợp</p>
+        </button>
+        <button
+          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
           onClick={() => handleRedirect('/channels')}
         >
           <span dangerouslySetInnerHTML={{ __html: icons.channel_icon }}></span>

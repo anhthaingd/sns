@@ -10,6 +10,8 @@ Danh sách khoá dưới đây đối chiếu với chỗ client thật sự đ�
 
 import uuid
 
+import pytest
+
 ENVELOPE = {"error", "success"}
 
 
@@ -160,3 +162,96 @@ async def test_error_contract_always_has_message(client):
         assert_keys(body, {"error", "success", "message"}, f"{method} {path}")
         assert body["error"] is True and body["success"] is False, body
         assert isinstance(body["message"], str) and body["message"], body
+
+
+# ---------------------------------------------------------------------------
+# Việc làm, doanh nghiệp và gợi ý
+# ---------------------------------------------------------------------------
+
+
+async def test_job_contracts(client, user, has_jobs):
+
+    r = await client.get("/api/jobs", params={"page": 1}, headers=user.headers)
+    assert_keys(r.json(), ENVELOPE | {"jobs", "totalPage", "totalJobs", "curPage"}, "GET /api/jobs")
+
+    job = r.json()["jobs"][0]
+    assert_keys(
+        job,
+        {
+            "_id",
+            "source",
+            "url",
+            "title",
+            "company_name",
+            "location",
+            "prefecture",
+            "salary_min",
+            "salary_max",
+            "employment_type",
+            "remote",
+            "description",
+            "required_skills",
+            "required_japanese",
+            "required_english",
+            "min_years",
+        },
+        "job",
+    )
+    # Vector không bao giờ được ra API: 384 số thực mỗi bản ghi.
+    assert "embedding" not in job and "search_text" not in job
+
+    r = await client.get(f"/api/jobs/{job['_id']}", headers=user.headers)
+    assert_keys(r.json(), ENVELOPE | {"job"}, "GET /api/jobs/{id}")
+
+    r = await client.get("/api/jobs/filters", headers=user.headers)
+    assert_keys(r.json(), ENVELOPE | {"prefectures", "japaneseLevels", "skills"}, "GET /api/jobs/filters")
+
+
+async def test_company_contracts(client, user, has_jobs):
+
+    r = await client.get("/api/companies", params={"page": 1}, headers=user.headers)
+    assert_keys(
+        r.json(),
+        ENVELOPE | {"companies", "totalPage", "totalCompanies", "curPage"},
+        "GET /api/companies",
+    )
+    company = r.json()["companies"][0]
+    assert_keys(company, {"_id", "name", "logo_url", "description", "tech_stack", "job_count"}, "company")
+    assert "embedding" not in company
+
+    r = await client.get(f"/api/companies/{company['_id']}", headers=user.headers)
+    assert_keys(r.json(), ENVELOPE | {"company", "jobs"}, "GET /api/companies/{id}")
+
+
+async def test_match_contracts(client, user_with_resume, has_jobs):
+
+    r = await client.get("/api/match/companies", params={"page": 1}, headers=user_with_resume.headers)
+    body = r.json()
+    assert_keys(
+        body,
+        ENVELOPE | {"matches", "totalPage", "totalCompanies", "curPage", "semanticAvailable"},
+        "GET /api/match/companies",
+    )
+    match = body["matches"][0]
+    assert_keys(match, {"company", "bestJob", "match"}, "một mục gợi ý")
+    assert_keys(
+        match["match"],
+        {"score", "semantic", "requirementRatio", "semanticAvailable", "met", "gaps"},
+        "kết quả chấm điểm",
+    )
+
+    job_id = match["bestJob"]["_id"]
+    r = await client.get(f"/api/match/jobs/{job_id}/gap", headers=user_with_resume.headers)
+    assert_keys(r.json(), ENVELOPE | {"job", "company", "match", "qualified"}, "GET .../gap")
+
+
+async def test_gap_item_shape(client, user_with_resume, db, has_jobs):
+    """Client dựng giao diện theo đúng các khoá này — thiếu là hỏng màn hình."""
+    job = await db.jobs.find_one({"required_japanese": {"$in": ["fluent", "native"]}})
+    if job is None:
+        pytest.skip("không có tin nào đòi tiếng Nhật mức cao")
+
+    r = await client.get(f"/api/match/jobs/{job['_id']}/gap", headers=user_with_resume.headers)
+    for gap in r.json()["match"]["gaps"]:
+        assert_keys(gap, {"kind", "message", "required", "current", "blocking"}, "một mục thiếu sót")
+        assert isinstance(gap["blocking"], bool)

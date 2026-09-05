@@ -131,3 +131,35 @@ async def test_get_newest_messages_is_batched(client, inprocess_app, count_reads
     total = len(counter.commands)
     assert total >= 1, "listener không ghi được lệnh nào — phép đo không đáng tin"
     assert total <= 5, f"GET /api/newest_messages dùng {total} lệnh đọc"
+
+
+async def test_job_list_does_not_scale_with_page_size(client, inprocess_app, count_reads, user, has_jobs):
+    """`GET /api/jobs` phải nạp công ty theo lô, không phải `Company.get()` mỗi tin."""
+    with count_reads() as counter:
+        r = await inprocess_app.get("/api/jobs?page=1", headers=user.headers)
+    assert r.status_code == 200, r.text
+    assert r.json()["jobs"]
+
+    total = len(counter.commands)
+    assert total >= 2, "listener không ghi được lệnh nào — phép đo không đáng tin"
+    assert total <= 5, f"GET /api/jobs dùng {total} lệnh đọc — N+1 quay lại?"
+
+
+async def test_match_companies_scores_hundreds_of_jobs_with_few_queries(
+    client, inprocess_app, count_reads, user_with_resume, has_jobs
+):
+    """Chấm hàng trăm tin phải tốn rất ít truy vấn.
+
+    Độ tương đồng lấy từ chỉ mục vector trong bộ nhớ, phần chấm điểm là logic
+    thuần — nên số truy vấn KHÔNG được tăng theo số tin. Nếu chỗ này phình lên
+    thì nghĩa là ai đó đã đưa truy vấn vào vòng lặp chấm điểm.
+    """
+    with count_reads() as counter:
+        r = await inprocess_app.get("/api/match/companies?page=1", headers=user_with_resume.headers)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["matches"]
+
+    total = len(counter.commands)
+    assert total >= 2, "listener không ghi được lệnh nào — phép đo không đáng tin"
+    assert total <= 6, f"GET /api/match/companies dùng {total} lệnh đọc để chấm {body['totalCompanies']} công ty"

@@ -9,6 +9,7 @@ import os
 import uuid
 
 import httpx
+import pytest
 import pytest_asyncio
 from pymongo import AsyncMongoClient
 
@@ -110,3 +111,29 @@ async def channel(client, admin):
     assert r.status_code == 200, r.text
     created = next(c for c in r.json()["channels"] if c["name"] == name)
     return created
+
+
+@pytest_asyncio.fixture
+async def has_jobs(db):
+    """Bỏ qua khi DB chưa chạy ETL — test này nói về API, không phải về crawl."""
+    if await db.jobs.count_documents({"is_active": True}) == 0:
+        pytest.skip("chưa có dữ liệu việc làm, chạy `scripts.run_etl` trước")
+    return True
+
+
+@pytest_asyncio.fixture
+async def user_with_resume(client, user):
+    """User đã có CV — điều kiện để dùng chức năng gợi ý."""
+    r = await client.post(
+        "/api/resume",
+        headers=user.headers,
+        data={
+            "name": "Nguyen Van A",
+            "position": "Backend Engineer",
+            "skills": '["Python", "Docker", "AWS"]',
+            "languages": '["Japanese N2", "English business level"]',
+            "experiences": '[{"name":"ABC","startTime":"2021-04","endTime":"2025-03","position":"Backend Engineer","description":"Python FastAPI"}]',
+        },
+    )
+    assert r.status_code == 200, r.text
+    return user

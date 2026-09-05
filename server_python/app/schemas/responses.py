@@ -136,12 +136,81 @@ class ChatResponse(ApiEnvelope):
     curPage: int
 
 
-# --- Crawl -----------------------------------------------------------------
+# --- Việc làm & doanh nghiệp -----------------------------------------------
 
 
-class CrawlResponse(ApiEnvelope):
-    html: list[str]
-    css: str | None = None
+class JobListResponse(ApiEnvelope):
+    jobs: list[dict[str, Any]]
+    totalPage: int
+    totalJobs: int
+    curPage: int
+
+
+class JobDetailsResponse(ApiEnvelope):
+    job: dict[str, Any]
+
+
+class CompanyListResponse(ApiEnvelope):
+    companies: list[dict[str, Any]]
+    totalPage: int
+    totalCompanies: int
+    curPage: int
+
+
+class CompanyDetailsResponse(ApiEnvelope):
+    company: dict[str, Any]
+    jobs: list[dict[str, Any]]
+
+
+class JobFiltersResponse(ApiEnvelope):
+    prefectures: list[str]
+    japaneseLevels: list[str]
+    skills: list[dict[str, Any]]
+
+
+# --- Gợi ý & phân tích thiếu sót --------------------------------------------
+
+
+class CompanyMatchResponse(ApiEnvelope):
+    matches: list[dict[str, Any]]
+    totalPage: int
+    totalCompanies: int
+    curPage: int
+    # Nói rõ phần xếp hạng theo ngữ nghĩa có đang hoạt động hay không, để giao
+    # diện không tỏ ra thông minh hơn thực tế khi embedder tắt.
+    semanticAvailable: bool
+
+
+class JobMatchResponse(ApiEnvelope):
+    matches: list[dict[str, Any]]
+    totalPage: int
+    totalJobs: int
+    curPage: int
+    semanticAvailable: bool
+
+
+class GapResponse(ApiEnvelope):
+    job: dict[str, Any]
+    company: dict[str, Any] | None = None
+    match: dict[str, Any]
+    qualified: bool
+
+
+class CompanyGapResponse(ApiEnvelope):
+    company: dict[str, Any]
+    bestJob: dict[str, Any]
+    bestMatch: dict[str, Any]
+    positions: list[dict[str, Any]]
+    combinedGaps: list[dict[str, Any]]
+
+
+# --- Quản trị ---------------------------------------------------------------
+
+
+class EtlStatusResponse(ApiEnvelope):
+    status: dict[str, Any]
+    stats: dict[str, Any]
+    sources: list[str]
 
 
 # Hình dạng lỗi dùng chung — khai báo để /docs hiện đúng thứ client phải đọc.

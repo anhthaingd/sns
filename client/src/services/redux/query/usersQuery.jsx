@@ -16,6 +16,9 @@ export const userApi = createApi({
     'channels_details',
     'shortcuts',
     'resume',
+    'jobs',
+    'companies',
+    'matches',
   ],
   endpoints: (builder) => {
     return {
@@ -268,11 +271,48 @@ export const userApi = createApi({
           method: 'POST',
           body: body,
         }),
-        invalidatesTags: ['resume'],
+        // Sua CV thi ket qua goi y cong ty phai tinh lai.
+        invalidatesTags: ['resume', 'matches'],
       }),
       getChat: builder.query({
         query: ({ senderId, receiverId, page }) =>
           `messages/${senderId}/${receiverId}?page=${page}`,
+      }),
+      // --- Viec lam da duoc ETL chuan hoa (thay cho crawl truc tiep) ---
+      getJobs: builder.query({
+        query: (search) => `jobs?${search}`,
+        providesTags: ['jobs'],
+      }),
+      getJobFilters: builder.query({
+        query: () => 'jobs/filters',
+        providesTags: ['jobs'],
+      }),
+      getJobDetails: builder.query({
+        query: (id) => `jobs/${id}`,
+      }),
+      getCompanies: builder.query({
+        query: (search) => `companies?${search}`,
+        providesTags: ['companies'],
+      }),
+      getCompanyDetails: builder.query({
+        query: (id) => `companies/${id}`,
+      }),
+      // --- Goi y va phan tich thieu sot ---
+      getMatchedCompanies: builder.query({
+        query: (search) => `match/companies?${search}`,
+        providesTags: ['matches'],
+      }),
+      getMatchedJobs: builder.query({
+        query: (search) => `match/jobs?${search}`,
+        providesTags: ['matches'],
+      }),
+      getJobGap: builder.query({
+        query: (id) => `match/jobs/${id}/gap`,
+        providesTags: ['matches'],
+      }),
+      getCompanyGap: builder.query({
+        query: (id) => `match/companies/${id}/gap`,
+        providesTags: ['matches'],
       }),
       getNewestMessage: builder.query({
         query: () => `newest_messages`,
@@ -329,6 +369,15 @@ export const {
   useUpdateShortcutMutation,
   useGetResumeQuery,
   usePostResumeMutation,
+  useGetJobsQuery,
+  useGetJobFiltersQuery,
+  useGetJobDetailsQuery,
+  useGetCompaniesQuery,
+  useGetCompanyDetailsQuery,
+  useGetMatchedCompaniesQuery,
+  useGetMatchedJobsQuery,
+  useGetJobGapQuery,
+  useGetCompanyGapQuery,
   useLazyGetChatQuery,
   useGetNewestMessageQuery,
   useReadMessageMutation,

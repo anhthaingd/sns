@@ -9,6 +9,11 @@ const ResumeLayout = lazy(() =>
 const RecruitmentLayout = lazy(() =>
   import('../../layouts/home/Recruitment/RecruitmentLayout')
 );
+const MatchLayout = lazy(() => import('../../layouts/home/Match/MatchLayout'));
+const JobGapLayout = lazy(() => import('../../layouts/home/Match/JobGapLayout'));
+const CompanyGapLayout = lazy(() =>
+  import('../../layouts/home/Match/CompanyGapLayout')
+);
 const SearchLayout = lazy(() =>
   import('../../layouts/home/Search/SearchLayout')
 );
@@ -73,6 +78,35 @@ const routes = [
             <RecruitmentLayout />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: 'match',
+        children: [
+          {
+            index: true,
+            element: (
+              <ProtectedRoute>
+                <MatchLayout />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'jobs/:id',
+            element: (
+              <ProtectedRoute>
+                <JobGapLayout />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'companies/:id',
+            element: (
+              <ProtectedRoute>
+                <CompanyGapLayout />
+              </ProtectedRoute>
+            ),
+          },
+        ],
       },
       {
         path: 'search',
