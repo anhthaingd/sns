@@ -187,7 +187,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 Test chạy trong Docker, không cần cài gì trên máy. Stack phải đang chạy (`docker compose up -d`).
 
 ```bash
-# Test API (60 test: auth, phan quyen, post, channel, chat, upload, socket)
+# Test API (61 test: auth, phan quyen, post, channel, chat, upload, socket)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
 
 # Test crawl that (can internet, mo browser Playwright)
@@ -195,7 +195,14 @@ docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm -e RUN_
 
 # Test E2E qua giao dien that bang Playwright (8 test)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
+
+# Chay xong E2E, tra client ve cau hinh thuong de dung tu trinh duyet:
+docker compose up -d client
 ```
+
+> Lệnh E2E dựng lại container `client` để frontend gọi `http://server:3000` (trình duyệt
+> chạy bên trong docker network, `localhost` ở đó là chính container trình duyệt).
+> Vì vậy sau khi test xong cần `docker compose up -d client` để quay lại `http://localhost:3000`.
 
 Ảnh chụp màn hình của mỗi test E2E được lưu ở `e2e/artifacts/`.
 

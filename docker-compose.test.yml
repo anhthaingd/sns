@@ -6,6 +6,9 @@
 #   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
 #   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm \
 #       -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py
+#
+# Luu y: lenh e2e-tests dung lai container `client` de tro vao `server:3000`.
+# Chay xong, tra client ve cau hinh thuong bang:  docker compose up -d client
 
 services:
   api-tests:
@@ -20,6 +23,13 @@ services:
       - ./server_python:/app
     working_dir: /app
     command: ["python", "-m", "pytest"]
+
+  # E2E chay trinh duyet BEN TRONG docker network, nen frontend phai goi `server:3000`
+  # thay vi `localhost:3000` (localhost trong container trinh duyet la chinh container do).
+  # Service `client` duoc dung lai voi bien nay khi chay e2e-tests.
+  client:
+    environment:
+      VITE_BACKEND_URL: http://server:3000
 
   e2e-tests:
     build:
