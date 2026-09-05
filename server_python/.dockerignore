@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+Dockerfile
+.dockerignore
+.gitignore
+public/uploads/*
+public/certificates/*
+!public/uploads/.gitkeep
+!public/certificates/.gitkeep
+# Logo mac dinh duoc seed vao DB -> phai nam trong image, neu khong logo se 404
+!public/uploads/1716723927499-*.png

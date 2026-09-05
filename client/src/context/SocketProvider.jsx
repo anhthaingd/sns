@@ -10,7 +10,7 @@ import Peer from 'simple-peer';
 import { ModalContext } from './ModalProvider';
 export const SocketContext = createContext();
 
-export const socket = io('http://localhost:3000');
+export const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 export const SocketProvider = ({ children }) => {
   const [callAccepted, setCallAccepted] = useState(false);
@@ -27,11 +27,22 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (me) {
-      navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
-        .then((currentStream) => {
-          setStream(currentStream);
-        });
+      // navigator.mediaDevices chỉ tồn tại trong secure context (https/localhost),
+      // và user có thể từ chối quyền camera/mic. Trước đây lỗi ở đây làm crash cả app.
+      if (navigator.mediaDevices?.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true, audio: true })
+          .then((currentStream) => {
+            setStream(currentStream);
+          })
+          .catch((err) => {
+            console.warn('Khong truy cap duoc camera/mic:', err?.message);
+          });
+      } else {
+        console.warn(
+          'navigator.mediaDevices khong kha dung - can https hoac localhost. Goi video se bi tat.'
+        );
+      }
 
       socket.emit('joinCall', me);
 

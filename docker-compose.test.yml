@@ -1,0 +1,37 @@
+# Chạy test cho backend Python.
+# LUÔN merge với docker-compose.yml để test nằm cùng project & network với stack:
+#
+#   docker compose up -d
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm \
+#       -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py
+
+services:
+  api-tests:
+    build:
+      context: ./server_python
+      dockerfile: Dockerfile.test
+    depends_on: [server]
+    environment:
+      BASE_URL: http://server:3000
+      MONGO_URL: mongodb://mongo:27017/fuurin
+    volumes:
+      - ./server_python:/app
+    working_dir: /app
+    command: ["python", "-m", "pytest"]
+
+  e2e-tests:
+    build:
+      context: ./e2e
+    depends_on: [server, client]
+    environment:
+      APP_URL: http://client:5173
+      API_URL: http://server:3000
+      MONGO_URL: mongodb://mongo:27017/fuurin
+      ARTIFACTS_DIR: /artifacts
+    volumes:
+      - .:/work
+      - ./e2e/artifacts:/artifacts
+    working_dir: /work
+    command: ["python", "-m", "pytest", "e2e", "-c", "e2e/pytest.ini", "-p", "no:cacheprovider"]

@@ -1,10 +1,11 @@
 # Fuurin — Mạng xã hội tuyển dụng
 
-Ứng dụng full-stack (MERN) kết hợp mạng xã hội + nhắn tin/gọi video thời gian thực + sàn tổng hợp việc làm tại Nhật Bản.
+Ứng dụng full-stack kết hợp mạng xã hội + nhắn tin/gọi video thời gian thực + sàn tổng hợp việc làm tại Nhật Bản.
 
 **Công nghệ:**
 - **client** — React + Vite + Redux Toolkit + Socket.io + WebRTC (simple-peer)
-- **server** — Node.js + Express + MongoDB (Mongoose) + Socket.io + Puppeteer
+- **server_python** — Python + FastAPI + MongoDB (Beanie/pymongo) + Socket.io + Playwright  ← **backend đang dùng**
+- **server** — Node.js + Express (bản cũ, giữ lại để tham chiếu, không còn được compose build)
 - **hạ tầng** — Docker Compose (MongoDB + backend + frontend)
 
 **Tính năng chính:** đăng ký/đăng nhập (JWT), đăng bài, kênh/nhóm, follow, thông báo, nhắn tin & gọi video 1-1, tạo CV, tổng hợp tin tuyển dụng (crawl), trang quản trị.
@@ -15,8 +16,8 @@
 
 Chỉ cần **một trong hai**:
 
-- **Cách A (khuyên dùng): Docker** — cài [Docker Desktop](https://www.docker.com/products/docker-desktop/) hoặc [OrbStack](https://orbstack.dev/). Không cần cài Node hay MongoDB.
-- **Cách B: Thủ công** — cài [Node.js](https://nodejs.org/) 18+ và [MongoDB](https://www.mongodb.com/try/download/community) 6+.
+- **Cách A (khuyên dùng): Docker** — cài [Docker Desktop](https://www.docker.com/products/docker-desktop/) hoặc [OrbStack](https://orbstack.dev/). Không cần cài Python, Node hay MongoDB.
+- **Cách B: Thủ công** — cài [Python](https://www.python.org/downloads/) 3.12+, [Node.js](https://nodejs.org/) 18+ và [MongoDB](https://www.mongodb.com/try/download/community) 6+.
 
 ---
 
@@ -37,7 +38,7 @@ docker compose up -d --build
 
 Lệnh này tự động:
 - Khởi động **MongoDB** và **nạp sẵn** dữ liệu roles + cấu hình website
-- Build & chạy **backend** (kèm sẵn trình duyệt Chrome cho chức năng crawl)
+- Build & chạy **backend FastAPI** (kèm sẵn Chromium của Playwright cho chức năng crawl)
 - Build & chạy **frontend**
 
 > Lần đầu sẽ hơi lâu (vài phút) vì phải tải image và cài dependencies. Các lần sau rất nhanh.
@@ -48,6 +49,8 @@ Lệnh này tự động:
 |---|---|
 | **Ứng dụng (mở cái này)** | http://localhost:5173 |
 | Backend API | http://localhost:3000 |
+| API docs (Swagger) | http://localhost:3000/docs |
+| Health check | http://localhost:3000/health |
 | MongoDB | mongodb://localhost:27017/fuurin |
 
 Xong! Chuyển sang [mục 4 — Hướng dẫn sử dụng](#4-hướng-dẫn-sử-dụng-lần-đầu).
@@ -64,18 +67,22 @@ Xong! Chuyển sang [mục 4 — Hướng dẫn sử dụng](#4-hướng-dẫn-s
 Đảm bảo MongoDB đang chạy ở `mongodb://127.0.0.1:27017`. Sau đó nạp dữ liệu khởi tạo:
 
 ```bash
-mongoimport --db fuurin --collection roles --jsonArray --drop --file server/data/roles.json
-mongoimport --db fuurin --collection webs  --jsonArray --drop --file server/data/social_app.webs.json
+mongoimport --db fuurin --collection roles --jsonArray --drop --file server_python/data/roles.json
+mongoimport --db fuurin --collection webs  --jsonArray --drop --file server_python/data/social_app.webs.json
 ```
 
-### 3.2. Backend
+### 3.2. Backend (Python / FastAPI)
 
 ```bash
-cd server
-cp .env.example .env      # xem mục 6 de dien cac bien
-# Sua .env: dien DATABASE_URL=mongodb://127.0.0.1:27017/fuurin
-npm install
-npm run dev               # chay tai http://localhost:3000
+cd server_python
+cp .env.example .env          # xem muc 6 de dien cac bien
+# Sua .env: DATABASE_URL=mongodb://127.0.0.1:27017/fuurin
+
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+playwright install chromium   # trinh duyet cho chuc nang crawl
+
+uvicorn app.main:socket_app --reload --port 3000
 ```
 
 ### 3.3. Frontend
@@ -88,7 +95,7 @@ npm install
 npm run dev               # chay tai http://localhost:5173
 ```
 
-> **Lưu ý:** biến kết nối DB trong code tên là `DATABASE_URL` (không phải `DATABASE_NAME`). Client đọc backend qua `client/.env` (`VITE_BACKEND_URL`).
+> **Lưu ý:** biến kết nối DB tên là `DATABASE_URL`. Client đọc backend qua `client/.env` (`VITE_BACKEND_URL`).
 </details>
 
 ---
@@ -156,7 +163,7 @@ cp .env.example .env
 
 Tạo secret mạnh:
 ```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
 > File `.env` đã được `.gitignore` — **không bao giờ commit** secret lên git.
@@ -175,18 +182,48 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 
 ---
 
-## 8. Cấu trúc thư mục
+## 8. Chạy test
+
+Test chạy trong Docker, không cần cài gì trên máy. Stack phải đang chạy (`docker compose up -d`).
+
+```bash
+# Test API (60 test: auth, phan quyen, post, channel, chat, upload, socket)
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
+
+# Test crawl that (can internet, mo browser Playwright)
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm -e RUN_CRAWL_TESTS=1 api-tests python -m pytest tests/test_crawl.py
+
+# Test E2E qua giao dien that bang Playwright (8 test)
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
+```
+
+Ảnh chụp màn hình của mỗi test E2E được lưu ở `e2e/artifacts/`.
+
+---
+
+## 9. Cấu trúc thư mục
 
 ```
 .
-├── client/              # Frontend React + Vite
-├── server/              # Backend Express
-│   ├── controllers/     # Xu ly logic
-│   ├── models/          # Schema MongoDB
-│   ├── routes/          # Dinh nghia API
-│   ├── data/            # Du lieu seed (roles, website)
+├── client/                   # Frontend React + Vite
+├── server_python/            # Backend FastAPI (dang dung)
+│   ├── app/
+│   │   ├── config/           # settings, ket noi MongoDB
+│   │   ├── controllers/      # Xu ly logic nghiep vu
+│   │   ├── middleware/       # auth (JWT), upload file
+│   │   ├── models/           # Beanie Document (schema MongoDB)
+│   │   ├── routes/           # Dinh nghia API
+│   │   ├── sockets/          # Socket.io handler (chat, video call)
+│   │   ├── utils/            # token, serialize, xoa file
+│   │   └── main.py           # Khoi tao FastAPI + Socket.io
+│   ├── tests/                # Test API (pytest + httpx)
+│   ├── data/                 # Du lieu seed (roles, website)
+│   ├── public/               # File tinh + file upload
 │   └── Dockerfile
-├── docker/mongo-init/   # Script tu seed DB
-├── docker-compose.yml   # Chay toan bo du an
-└── .env.example         # Mau bien moi truong (tuy chon)
+├── server/                   # Backend Express cu (tham chieu)
+├── e2e/                      # Test E2E Playwright
+├── docker/mongo-init/        # Script tu seed DB
+├── docker-compose.yml        # Chay toan bo du an
+├── docker-compose.test.yml   # Chay test
+└── .env.example              # Mau bien moi truong (tuy chon)
 ```

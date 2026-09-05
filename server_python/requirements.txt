@@ -1,0 +1,15 @@
+# Pin chính xác để build lặp lại được (reproducible).
+# Nâng version phải chủ động + test lại, không để pip tự lấy bản mới nhất.
+fastapi==0.141.1
+uvicorn[standard]==0.42.0
+pymongo==4.18.0
+beanie==2.2.0
+python-socketio==5.16.4
+python-multipart==0.0.20
+PyJWT==2.13.0
+bcrypt==5.0.0
+python-dotenv==1.2.1
+playwright==1.62.0
+beautifulsoup4==4.15.0
+Unidecode==1.4.0
+aiofiles==25.1.0

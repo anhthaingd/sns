@@ -11,3 +11,18 @@ node_modules/
 # File upload nguoi dung tao luc chay (giu lai thu muc bang .gitkeep)
 server/public/uploads/*
 !server/public/uploads/.gitkeep
+
+# File upload cua backend Python
+server_python/public/uploads/*
+!server_python/public/uploads/.gitkeep
+# Logo mac dinh duoc seed vao DB -> phai co trong repo
+!server_python/public/uploads/1716723927499-*.png
+server_python/public/certificates/*
+!server_python/public/certificates/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.pytest_cache/

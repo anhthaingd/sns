@@ -1,6 +1,6 @@
 # Chạy toàn bộ dự án Fuurin chỉ với: docker compose up
 # - mongo:  database + tự seed roles/website lần đầu
-# - server: backend Express + Socket.io + Puppeteer (Chromium)
+# - server: backend FastAPI + Socket.io + Playwright (Chromium)
 # - client: frontend React (Vite dev server)
 
 services:
@@ -12,7 +12,7 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
-      - ./server/data:/seed:ro
+      - ./server_python/data:/seed:ro
       - ./docker/mongo-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
@@ -21,7 +21,7 @@ services:
       retries: 5
 
   server:
-    build: ./server
+    build: ./server_python
     container_name: fuurin-server
     restart: unless-stopped
     depends_on:
@@ -36,10 +36,12 @@ services:
       # Muon dung secret rieng (production): tao file .env o thu muc goc de ghi de.
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_change_in_production}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-dev_refresh_secret_change_in_production}
-      CLIENT_URL: http://localhost:5173
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
     volumes:
-      # giữ lại file upload giữa các lần chạy
-      - ./server/public/uploads:/home/pptruser/app/public/uploads
+      # Named volume thay vì bind mount: container chạy bằng user thường (uid 10001),
+      # bind mount từ host sẽ bị "permission denied" trên Linux.
+      - uploads-data:/app/public/uploads
+      - certificates-data:/app/public/certificates
 
   client:
     build: ./client
@@ -49,6 +51,10 @@ services:
       - server
     ports:
       - "5173:5173"
+    environment:
+      VITE_BACKEND_URL: ${VITE_BACKEND_URL:-http://localhost:3000}
 
 volumes:
   mongo-data:
+  uploads-data:
+  certificates-data:
