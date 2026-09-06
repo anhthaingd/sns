@@ -117,9 +117,17 @@ function WhatIfLayout() {
           {isSuccess && (
             <>
               <p>{t('intro', { total: data.totalJobs })}</p>
+              {/* Lồng bản dịch chứ không ghép hai câu bằng dấu cách trong JSX:
+                  tiếng Nhật không đặt dấu cách trước 「（」, nên "94件 （65社）"
+                  đọc sai. Lồng vào thì mỗi ngôn ngữ tự quyết định dấu nối, và
+                  cả hai chỗ đếm đều giữ được dạng số ít/số nhiều riêng. */}
               <p className='font-bold' data-testid='whatif-baseline'>
-                {t('baseline', { count: data.baseline.qualifiedJobs })}{' '}
-                {t('companies', { count: data.baseline.qualifiedCompanies })}
+                {t('baseline', {
+                  count: data.baseline.qualifiedJobs,
+                  companies: t('companies', {
+                    count: data.baseline.qualifiedCompanies,
+                  }),
+                })}
               </p>
             </>
           )}

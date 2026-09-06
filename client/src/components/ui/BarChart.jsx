@@ -24,7 +24,9 @@ function BarChart({ rows, emptyLabel }) {
               style={{ width: `${(r.value / max) * 100}%` }}
             />
           </span>
-          <span className='w-44 shrink-0 text-sm text-right text-neutral-500'>
+          {/* Đủ rộng cho "109件 · 中央値 300万円 / 年 · n=78" nằm gọn một dòng;
+              hẹp hơn thì mỗi hàng xuống dòng một kiểu, bảng đọc rất rối. */}
+          <span className='w-44 md:w-72 shrink-0 text-sm text-right text-neutral-500'>
             {r.caption}
           </span>
         </li>
