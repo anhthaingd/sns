@@ -6,7 +6,6 @@ import bcrypt as _bcrypt
 
 from app.controllers.user_common import (
     PAGE_SIZE,
-    USER_NOT_FOUND_MESSAGE,
     hash_password,
     parse_json,
     populate_followers,
@@ -32,7 +31,7 @@ logger = logging.getLogger("fuurin.users")
 async def get_user_by_token(decoded_user: dict):
     user = await User.find_one(User.email == decoded_user["email"])
     if not user:
-        raise ApiError(404, USER_NOT_FOUND_MESSAGE)
+        raise ApiError(404, code="user.notFound")
     return ok(
         user=await populate_role(user),
         followers=await populate_followers(decoded_user["_id"]),
@@ -44,7 +43,7 @@ async def get_user_details(user_id: str):
     oid = to_object_id(user_id, "user_id")
     user = await User.get(oid)
     if not user:
-        raise ApiError(404, USER_NOT_FOUND_MESSAGE)
+        raise ApiError(404, code="user.notFound")
 
     user_data = {
         "_id": str(user.id),
@@ -83,7 +82,7 @@ async def update_user(
     from datetime import datetime
 
     if str(decoded_user.get("_id")) != str(user_id):
-        raise ApiError(403, "Bạn không thể sửa thông tin của người khác!")
+        raise ApiError(403, code="user.cannotEditOthers")
 
     user_oid = to_object_id(user_id, "user_id")
     parse_old_avatar = parse_json(old_avatar)
@@ -103,7 +102,7 @@ async def update_user(
             or not old_password
             or not _bcrypt.checkpw(old_password.encode("utf-8"), (current.password or "").encode("utf-8"))
         ):
-            raise ApiError(403, "Mật khẩu cũ không chính xác!")
+            raise ApiError(403, code="user.wrongOldPassword")
         update_data["password"] = hash_password(new_password)
 
     images = files.get("images", []) if files else []
@@ -124,7 +123,7 @@ async def update_user(
                 await delete_file(parse_old_cover_bg.get("url", ""))
 
     await User.find_one(User.id == user_oid).update({"$set": update_data})
-    return ok(message="Cập nhật người dùng thành công!")
+    return ok(code="user.updated")
 
 
 # ---------------------------------------------------------------------------

@@ -107,7 +107,7 @@ async def get_jobs(
 async def get_job_details(job_id: str):
     job = await Job.get(to_object_id(job_id, "job_id"))
     if not job:
-        raise ApiError(404, "Không tìm thấy tin tuyển dụng!")
+        raise ApiError(404, code="job.notFound")
 
     data = _clean(job)
     if job.company:
@@ -140,7 +140,7 @@ async def get_companies(page: int = 1, search: str | None = None, with_profile: 
 async def get_company_details(company_id: str):
     company = await Company.get(to_object_id(company_id, "company_id"))
     if not company:
-        raise ApiError(404, "Không tìm thấy công ty!")
+        raise ApiError(404, code="company.notFound")
 
     jobs = await Job.find({"company": company.id, "is_active": True}).limit(50).to_list()
     return ok(company=_clean(company), jobs=[_clean(j) for j in jobs])

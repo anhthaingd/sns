@@ -6,11 +6,19 @@ cách lưu role thì chỉ sửa một chỗ.
 """
 
 from app.errors import ApiError
+from app.messages import message_for
 
 ADMIN_ROLE_VALUE = 1
 
-ADMIN_ONLY_MESSAGE = "Chức năng này chỉ dành cho admin!"
-NOT_ENOUGH_PERMISSION_MESSAGE = "Bạn không đủ quyền!"
+ADMIN_ONLY_MESSAGE = message_for("auth.adminOnly")
+NOT_ENOUGH_PERMISSION_MESSAGE = message_for("auth.notEnoughPermission")
+
+# Bảng tra ngược câu -> mã, để `require_admin` giữ nguyên chữ ký nhận `message`
+# (8 controller đang truyền câu tuỳ biến) mà vẫn gắn được mã cho client dịch.
+_MESSAGE_CODES = {
+    ADMIN_ONLY_MESSAGE: "auth.adminOnly",
+    NOT_ENOUGH_PERMISSION_MESSAGE: "auth.notEnoughPermission",
+}
 
 
 def role_value(decoded_user: dict) -> int:
@@ -27,4 +35,4 @@ def is_admin(decoded_user: dict) -> bool:
 
 def require_admin(decoded_user: dict, message: str = ADMIN_ONLY_MESSAGE) -> None:
     if not is_admin(decoded_user):
-        raise ApiError(403, message)
+        raise ApiError(403, message, code=_MESSAGE_CODES.get(message))

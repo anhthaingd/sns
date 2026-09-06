@@ -16,18 +16,20 @@ chung chung, chi tiết thì ghi vào log**.
 Toàn bộ nằm ở `server_python/app/errors.py`.
 
 ```python
-GENERIC_SERVER_ERROR = "Đã có lỗi xảy ra, vui lòng thử lại sau!"
-
 class ApiError(Exception):
-    def __init__(self, status_code: int, message: str): ...
+    def __init__(self, status_code, message=None, *, code=None, params=None): ...
 ```
 
 Controller **không tự trả về lỗi**, mà chỉ việc "ném" ra:
 
 ```python
 if job is None:
-    raise ApiError(404, "Không tìm thấy tin tuyển dụng!")
+    raise ApiError(404, code="job.notFound")
 ```
+
+`code` là **mã ổn định**; câu tiếng Việt tương ứng nằm trong
+`server_python/app/messages.py`. Nhờ mã đó mà giao diện dịch được thông báo
+sang tiếng Nhật và tiếng Anh — chi tiết ở [tài liệu 9](09-da-ngon-ngu.md).
 
 Có bốn chốt chặn, xếp thành lưới:
 
@@ -45,8 +47,17 @@ mã nguồn.
 Mọi phản hồi lỗi đều cùng một hình dạng, nên giao diện chỉ cần một chỗ để đọc:
 
 ```json
-{ "error": true, "success": false, "message": "Không tìm thấy tin tuyển dụng!" }
+{
+  "error": true,
+  "success": false,
+  "message": "Không tìm thấy tin tuyển dụng!",
+  "code": "job.notFound"
+}
 ```
+
+`message` luôn có (giao diện đọc nó ở 24 chỗ). `code` chỉ xuất hiện khi chỗ ném
+lỗi có đặt mã — giao diện ưu tiên dịch theo `code`, không có bản dịch thì hiện
+`message`.
 
 ### Một chi tiết dễ sai: thứ tự middleware
 

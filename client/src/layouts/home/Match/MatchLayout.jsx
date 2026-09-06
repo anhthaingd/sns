@@ -6,7 +6,10 @@ import Loading from '../../../components/ui/Loading';
 import NotFoundItem from '../../../components/ui/NotFoundItem';
 import { useGetMatchedCompaniesQuery } from '../../../services/redux/query/api/matchApi';
 import MatchScore from './components/MatchScore';
-import { formatSalary } from '../Recruitment/components/JobCard';
+import { formatSalary } from '../../../services/utils/jobFormat';
+import { gapText } from '../../../services/utils/matchText';
+import { useTranslation } from 'react-i18next';
+import { serverMessage } from '../../../services/utils/serverMessage';
 
 /**
  * Chức năng 1 — "CV của tôi hợp với công ty nào".
@@ -15,6 +18,7 @@ import { formatSalary } from '../Recruitment/components/JobCard';
  * hỏi "công ty nào", không phải "20 vị trí của cùng một công ty".
  */
 function MatchLayout() {
+  const { t } = useTranslation(['match', 'job', 'error']);
   const [searchParams, setSearchParams] = useSearchParams();
   const qualifiedOnly = searchParams.get('qualifiedOnly') === 'true';
 
@@ -35,9 +39,11 @@ function MatchLayout() {
     return (
       <Page>
         <section className='p-8 rounded-lg border border-neutral-300 dark:border-neutral-700 flex flex-col items-center gap-4'>
-          <p className='font-bold'>{error?.data?.message || 'Không tải được gợi ý.'}</p>
+          <p className='font-bold'>
+            {serverMessage(t, error?.data, 'loadFailed')}
+          </p>
           <Link to='/resume' className='px-4 py-2 rounded bg-blue-500 text-neutral-50'>
-            Tạo CV ngay
+            {t('createResume')}
           </Link>
         </section>
       </Page>
@@ -47,18 +53,16 @@ function MatchLayout() {
   return (
     <Page>
       <section className='mb-6 flex flex-col gap-3'>
-        <h1 className='text-2xl font-bold'>Công ty phù hợp với bạn</h1>
+        <h1 className='text-2xl font-bold'>{t('title')}</h1>
         <p className='text-sm opacity-70'>
-          Xếp hạng {data?.totalCompanies ?? 0} công ty dựa trên CV của bạn: mức độ liên quan về
-          ngành nghề cộng với mức đáp ứng các yêu cầu cứng (tiếng Nhật, kinh nghiệm, kỹ năng).
+          {t('subtitle', { count: data?.totalCompanies ?? 0 })}
         </p>
 
         {!data?.semanticAvailable && (
           // Nói thẳng khi phần xếp hạng ngữ nghĩa đang tắt, thay vì để giao diện
           // tỏ ra thông minh hơn thực tế.
           <p className='text-sm p-3 rounded bg-amber-50 dark:bg-amber-950 border-l-4 border-amber-500'>
-            Đang xếp hạng bằng luật (tiếng Nhật, kinh nghiệm, kỹ năng). Phần so khớp theo ngữ
-            nghĩa chưa sẵn sàng — kết quả vẫn dùng được, chỉ kém tinh tế hơn.
+            {t('ruleOnlyNotice')}
           </p>
         )}
 
@@ -76,7 +80,7 @@ function MatchLayout() {
               setSearchParams(next);
             }}
           />
-          Chỉ hiện công ty tôi đã đủ điều kiện
+          {t('qualifiedOnly')}
         </label>
       </section>
 
@@ -101,8 +105,12 @@ function MatchLayout() {
                     <div>
                       <h2 className='font-bold text-lg'>{m.company.name}</h2>
                       <p className='text-sm opacity-70'>
-                        {m.company.location || 'Chưa rõ địa điểm'}
-                        {m.company.job_count ? ` · ${m.company.job_count} vị trí` : ''}
+                        {m.company.location || t('unknownLocation')}
+                        {m.company.job_count
+                          ? ` · ${t('positionCount', {
+                              count: m.company.job_count,
+                            })}`
+                          : ''}
                       </p>
                     </div>
                   </div>
@@ -114,18 +122,21 @@ function MatchLayout() {
                 )}
 
                 <div className='p-3 rounded bg-neutral-100 dark:bg-neutral-700 text-sm'>
-                  <p className='font-medium'>Vị trí khớp nhất: {m.bestJob.title}</p>
+                  <p className='font-medium'>
+                    {t('bestJob')} {m.bestJob.title}
+                  </p>
                   <p className='opacity-70'>
-                    {formatSalary(m.bestJob.salary_min, m.bestJob.salary_max)}
+                    {formatSalary(t, m.bestJob.salary_min, m.bestJob.salary_max)}
                     {m.bestJob.prefecture ? ` · ${m.bestJob.prefecture}` : ''}
                   </p>
                 </div>
 
                 {m.match.gaps.length > 0 && (
                   <p className='text-sm'>
-                    <span className='opacity-70'>Còn thiếu: </span>
-                    {m.match.gaps[0].message}
-                    {m.match.gaps.length > 1 && ` (và ${m.match.gaps.length - 1} điểm khác)`}
+                    <span className='opacity-70'>{t('missingPrefix')} </span>
+                    {gapText(t, m.match.gaps[0])}
+                    {m.match.gaps.length > 1 &&
+                      ` ${t('moreGaps', { count: m.match.gaps.length - 1 })}`}
                   </p>
                 )}
 
@@ -135,14 +146,14 @@ function MatchLayout() {
                       to={`/match/companies/${m.company._id}`}
                       className='text-blue-600 dark:text-blue-400 hover:underline'
                     >
-                      Tôi còn thiếu gì để vào công ty này →
+                      {t('companyGapLink')}
                     </Link>
                   )}
                   <Link
                     to={`/match/jobs/${m.bestJob._id}`}
                     className='text-blue-600 dark:text-blue-400 hover:underline'
                   >
-                    Chi tiết vị trí →
+                    {t('jobDetailLink')}
                   </Link>
                 </div>
               </article>
@@ -151,7 +162,7 @@ function MatchLayout() {
           <Pagination curPage={data?.curPage || 1} totalPage={data?.totalPage || 1} />
         </>
       ) : (
-        <NotFoundItem message='Chưa có công ty nào phù hợp. Thử bỏ bộ lọc "đã đủ điều kiện".' />
+        <NotFoundItem message={t('empty')} />
       )}
     </Page>
   );

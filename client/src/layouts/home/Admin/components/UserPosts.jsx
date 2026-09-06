@@ -10,8 +10,10 @@ import UpdatePostModal from '../../../../components/modal/UpdatePostModal';
 import { FetchDataContext } from '../../../../context/FetchDataProvider';
 import useObserver from '../../../../hooks/useObserver';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 
 function UserPosts() {
+  const { t } = useTranslation(['post', 'common', 'admin']);
   const { user } = useContext(FetchDataContext);
   const [searchParams] = useSearchParams();
   const { setVisibleModal } = useContext(ModalContext);
@@ -95,7 +97,7 @@ function UserPosts() {
               {p?.user?._id === user?._id && (
                 <button
                   className='text-lg flex justify-center items-center hover:text-green-500 transition-colors'
-                  aria-label='update-btn'
+                  aria-label={t('actions.edit')}
                   onClick={() =>
                     setVisibleModal({
                       visibleUpdatePostModal: { ...p },
@@ -107,14 +109,13 @@ function UserPosts() {
               )}
               <button
                 className='text-lg flex justify-center items-center hover:text-red-500 transition-colors'
-                aria-label='delete-btn'
+                aria-label={t('actions.delete')}
                 onClick={() =>
                   setVisibleModal({
                     visibleConfirmModal: {
                       icon: <FaRegTrashCan className='text-red-500' />,
-                      question: `Are you sure you want to delete this post?`,
-                      description:
-                        'You will not be able to restore the recording after deletion',
+                      question: t('confirm.delete'),
+                      description: t('common:confirm.irreversible'),
                       loading: isLoadingDelete,
                       acceptFunc: () =>
                         deletePost({
@@ -132,6 +133,8 @@ function UserPosts() {
         </tr>
       ))
     );
+    // `t` phải nằm trong mảng phụ thuộc: đổi ngôn ngữ thì react-i18next trả về
+    // một `t` mới, thiếu nó thì bảng đã memo hoá giữ nguyên chữ của ngôn ngữ cũ.
   }, [
     isSuccessPosts,
     postsData,
@@ -139,6 +142,7 @@ function UserPosts() {
     setVisibleModal,
     deletePost,
     isLoadingDelete,
+    t,
   ]);
 
   useMutationToast({
@@ -155,7 +159,7 @@ function UserPosts() {
           className='w-max px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 font-bold'
           onClick={() => setOpenSelect((prevOpen) => !prevOpen)}
         >
-          {selectedChannel ? selectedChannel?.name : 'Select Channel'}
+          {selectedChannel ? selectedChannel?.name : t('admin:userPosts.selectChannel')}
         </button>
         <div
           className={`absolute top-[110%] z-10 h-[40vh] overflow-y-auto flex-col gap-4 rounded-lg border border-neutral-300 dark:border-neutral-600 py-4 bg-white dark:bg-neutral-900 ${
@@ -169,7 +173,7 @@ function UserPosts() {
               setSelectedChannel(null);
             }}
           >
-            <span className='w-max truncate'>Select All</span>
+            <span className='w-max truncate'>{t('actions.selectAll')}</span>
           </button>
           {channels?.map((c) => (
             <button
@@ -184,9 +188,7 @@ function UserPosts() {
             </button>
           ))}
           {hasMore && (
-            <p className='text-center' ref={itemRef}>
-              Loading more...
-            </p>
+            <p className='text-center' ref={itemRef}>{t('common:status.loadingMore')}</p>
           )}
         </div>
       </div>
@@ -211,7 +213,7 @@ function UserPosts() {
       )}
       {isSuccessPosts && postsData?.posts?.length === 0 && (
         <div className='w-full flex justify-center items-center py-4'>
-          <p className='text-lg md:text-xl font-bold'>No Post Yet!</p>
+          <p className='text-lg md:text-xl font-bold'>{t('empty')}</p>
         </div>
       )}
     </div>

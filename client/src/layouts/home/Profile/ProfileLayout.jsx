@@ -10,10 +10,12 @@ import { FaHouseChimney } from 'react-icons/fa6';
 import { ModalContext } from '../../../context/ModalProvider';
 import SinglePost from '../../../components/ui/SinglePost';
 import Pagination from '../../../components/ui/Pagination';
+import { useTranslation } from 'react-i18next';
 const UpdateProfileModal = lazy(() =>
   import('../../../components/modal/UpdateProfileModal')
 );
 function ProfileLayout() {
+  const { t } = useTranslation(['user', 'post']);
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const { user } = useContext(FetchDataContext);
@@ -51,7 +53,7 @@ function ProfileLayout() {
                   src={`${import.meta.env.VITE_BACKEND_URL}/${
                     userData?.user?.cover_bg?.url
                   }`}
-                  alt='cover-bg'
+                  alt={t('profile.coverAlt')}
                 />
                 <span
                   className='absolute top-0 left-0 w-full h-full'
@@ -85,7 +87,7 @@ function ProfileLayout() {
                         }
                       >
                         <FaPen />
-                        <span>Edit Profile</span>
+                        <span>{t('profile.edit')}</span>
                       </button>
                     )}
                   </div>
@@ -94,15 +96,15 @@ function ProfileLayout() {
                   </p>
                   <div className='w-full bg-neutral-200 dark:bg-neutral-800 rounded-md p-4 grid grid-cols-3'>
                     <div className='col-span-1'>
-                      <p className='font-medium'>Posts</p>
+                      <p className='font-medium'>{t('profile.posts')}</p>
                       <p>{userData?.posts}</p>
                     </div>
                     <div className='col-span-1'>
-                      <p className='font-medium'>Followers</p>
+                      <p className='font-medium'>{t('profile.followers')}</p>
                       <p>{userData?.followers?.length}</p>
                     </div>
                     <div className='col-span-1'>
-                      <p className='font-medium'>Channels</p>
+                      <p className='font-medium'>{t('profile.channels')}</p>
                       <p>{userData?.channels}</p>
                     </div>
                   </div>
@@ -113,9 +115,7 @@ function ProfileLayout() {
                         onClick={() =>
                           setVisibleModal({ visibleChatModal: userData?.user })
                         }
-                      >
-                        Chat
-                      </button>
+                      >{t('profile.chat')}</button>
                       <button
                         className='col-span-1 bg-blue-700 rounded text-white font-bold'
                         onClick={() => followingUser(userData?.user?._id)}
@@ -131,13 +131,13 @@ function ProfileLayout() {
             </section>
             <section className='relative border border-neutral-300 dark:border-neutral-500 rounded-xl flex flex-col gap-8 px-4 py-8'>
               <div className='flex flex-col gap-2'>
-                <h2 className='font-bold text-xl md:text-2xl'>Intro</h2>
+                <h2 className='font-bold text-xl md:text-2xl'>{t('profile.intro')}</h2>
                 <p className='text-center font-medium'>
                   {userData?.user?.intro}
                 </p>
               </div>
               <div className='flex flex-col gap-4'>
-                <h2 className='font-bold text-xl md:text-2xl'>Details</h2>
+                <h2 className='font-bold text-xl md:text-2xl'>{t('profile.details')}</h2>
                 <div className='flex items-center gap-4'>
                   <FaHouseChimney className='text-2xl' />
                   <p>{userData?.user?.address}</p>
@@ -146,7 +146,7 @@ function ProfileLayout() {
             </section>
             {isSuccessPosts && (
               <section className='py-8 flex flex-col gap-8 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4'>
-                <h2 className='text-2xl font-bold'>Posts</h2>
+                <h2 className='text-2xl font-bold'>{t('profile.posts')}</h2>
                 <div className='flex flex-col gap-6'>
                   {postsData?.totalPage > 0 &&
                     postsData?.posts?.map((p) => {

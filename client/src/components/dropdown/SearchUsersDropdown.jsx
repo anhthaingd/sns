@@ -4,8 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 import useObserver from '../../hooks/useObserver';
 import { FaXmark } from 'react-icons/fa6';
+import { useTranslation } from 'react-i18next';
 
 function SearchUsersDropdown({ searchValue, setIsFocus }) {
+  const { t } = useTranslation(['user', 'common']);
   const debouncedValue = useDebounce(searchValue, 500);
   const navigate = useNavigate();
   const [hasMore, setHasMore] = useState(true);
@@ -76,22 +78,20 @@ function SearchUsersDropdown({ searchValue, setIsFocus }) {
       className={`absolute w-[380px] h-[90vh] top-[100%] left-0 my-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden shadow-lg`}
     >
       <div className='p-4 flex justify-between items-center gap-4'>
-        <h2 className='text-lg font-bold'>Search</h2>
-        <button aria-label='close-search' onClick={setIsFocus}>
+        <h2 className='text-lg font-bold'>{t('search.title')}</h2>
+        <button aria-label={t('search.close')} onClick={setIsFocus}>
           <FaXmark className='text-2xl' />
         </button>
       </div>
       <div className='p-4 max-h-[80vh] overflow-y-auto'>
         {users?.length === 0 && (
           <div>
-            <p>No User Yet!</p>
+            <p>{t('search.empty')}</p>
           </div>
         )}
         <div className='flex flex-col gap-6'>{rendered}</div>
         {hasMore && (
-          <div className='text-center my-4' ref={itemRef}>
-            Loading more...
-          </div>
+          <div className='text-center my-4' ref={itemRef}>{t('common:status.loadingMore')}</div>
         )}
       </div>
     </div>

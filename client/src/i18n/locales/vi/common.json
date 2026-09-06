@@ -1,0 +1,59 @@
+{
+  "actions": {
+    "accept": "Chấp nhận",
+    "add": "Thêm",
+    "back": "Quay lại",
+    "cancel": "Huỷ",
+    "clearFilters": "Xoá bộ lọc",
+    "close": "Đóng",
+    "closeModal": "Đóng",
+    "confirm": "Xác nhận",
+    "delete": "Xoá",
+    "download": "Tải xuống",
+    "edit": "Sửa",
+    "goHome": "Về trang chủ",
+    "goToFeed": "Về bảng tin",
+    "loadMore": "Tải thêm",
+    "next": "Sau",
+    "preview": "Xem trước",
+    "previous": "Trước",
+    "reload": "Tải lại trang",
+    "reset": "Đặt lại",
+    "save": "Lưu",
+    "search": "Tìm kiếm",
+    "submit": "Gửi",
+    "update": "Cập nhật",
+    "viewDetail": "Xem chi tiết"
+  },
+  "status": {
+    "loading": "Đang tải…",
+    "saving": "Đang lưu…",
+    "empty": "Chưa có dữ liệu",
+    "noResult": "Không tìm thấy kết quả nào",
+    "loadingMore": "Đang tải thêm…",
+    "foundResults_other": "Tìm thấy {{count}} kết quả"
+  },
+  "language": {
+    "switcherLabel": "Ngôn ngữ hiển thị"
+  },
+  "pagination": {
+    "page": "Trang",
+    "of": "/"
+  },
+  "time": {
+    "ago": "{{value}} trước"
+  },
+  "footer": "Chân trang",
+  "confirm": {
+    "irreversible": "Đã xoá thì không khôi phục lại được.",
+    "areYouSure": "Bạn chắc chắn muốn thực hiện chứ?"
+  },
+  "notFound": {
+    "title": "Nội dung này hiện không xem được",
+    "description": "Có thể chủ sở hữu chỉ chia sẻ với một nhóm nhỏ, đã đổi quyền xem, hoặc nội dung đã bị xoá.",
+    "imageAlt": "Không tìm thấy trang"
+  },
+  "upload": {
+    "imageHint": "(Chỉ nhận ảnh *.jpeg, *.webp và *.png)"
+  }
+}

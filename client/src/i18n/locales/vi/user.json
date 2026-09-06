@@ -1,0 +1,54 @@
+{
+  "profile": {
+    "edit": "Sửa trang cá nhân",
+    "posts": "Bài viết",
+    "followers": "Người theo dõi",
+    "following": "Đang theo dõi",
+    "channels": "Channel",
+    "intro": "Giới thiệu",
+    "details": "Chi tiết",
+    "coverAlt": "Ảnh bìa",
+    "chat": "Nhắn tin"
+  },
+  "update": {
+    "title": "Sửa trang cá nhân",
+    "uploadHere": "Tải ảnh lên tại đây",
+    "removeImage": "Xoá ảnh",
+    "usernamePlaceholder": "Nhập tên người dùng mới…",
+    "passwordPlaceholder": "Nhập mật khẩu mới…",
+    "introPlaceholder": "Nhập giới thiệu mới…",
+    "addressPlaceholder": "Nhập địa chỉ mới…"
+  },
+  "search": {
+    "title": "Tìm kiếm",
+    "placeholder": "Tìm kiếm…",
+    "close": "Đóng ô tìm kiếm",
+    "empty": "Không tìm thấy người dùng nào",
+    "usernamePlaceholder": "Tìm theo tên người dùng…",
+    "people": "Mọi người",
+    "message": "Nhắn tin"
+  },
+  "followers": {
+    "empty": "Chưa có người theo dõi nào"
+  },
+  "following": {
+    "empty": "Chưa theo dõi ai"
+  },
+  "actions": {
+    "update": "Sửa",
+    "delete": "Xoá",
+    "notFoundImage": "Không tìm thấy trang"
+  },
+  "confirm": {
+    "removeFollower": "Bạn chắc chắn muốn gỡ {{name}} khỏi danh sách người theo dõi?",
+    "unfollow": "Bạn chắc chắn muốn bỏ theo dõi {{name}}?"
+  },
+  "field": {
+    "avatar": "Ảnh đại diện",
+    "coverBackground": "Ảnh bìa",
+    "username": "Tên người dùng",
+    "password": "Mật khẩu",
+    "intro": "Giới thiệu",
+    "address": "Địa chỉ"
+  }
+}

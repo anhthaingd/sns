@@ -1,11 +1,14 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useGetNotificationsQuery, useReadNotificationMutation } from '../../services/redux/query/api/notificationsApi';
 import { formatDistance } from 'date-fns';
+import { currentDateLocale } from '../../i18n/dateLocale';
 import { useNavigate } from 'react-router-dom';
 import { DropdownContext } from '../../context/NotificationProvider';
 import useObserver from '../../hooks/useObserver';
+import { useTranslation } from 'react-i18next';
 
 function NotificationDropdown({ setNotReadNotifications }) {
+  const { t } = useTranslation(['chat', 'common']);
   const { state, closeAllDropdown } = useContext(DropdownContext);
   const navigate = useNavigate();
   const [hasMore, setHasMore] = useState(true);
@@ -85,12 +88,12 @@ function NotificationDropdown({ setNotReadNotifications }) {
       } transition-all duration-200`}
     >
       <div className='p-4'>
-        <h2 className='text-lg font-bold'>Notifications</h2>
+        <h2 className='text-lg font-bold'>{t('notifications.title')}</h2>
       </div>
       <div className='p-4 max-h-[80vh] overflow-y-auto'>
         {notifications?.length === 0 && (
           <div>
-            <p>No Notification Yet!</p>
+            <p>{t('notifications.empty')}</p>
           </div>
         )}
         <div className='flex flex-col gap-4'>
@@ -124,6 +127,7 @@ function NotificationDropdown({ setNotReadNotifications }) {
                       new Date(Date.now()),
                       {
                         addSuffix: true,
+                        locale: currentDateLocale(),
                       }
                     )}
                   </p>
@@ -138,9 +142,7 @@ function NotificationDropdown({ setNotReadNotifications }) {
           ))}
         </div>
         {hasMore && (
-          <div className='text-center my-4' ref={itemRef}>
-            Loading more...
-          </div>
+          <div className='text-center my-4' ref={itemRef}>{t('common:status.loadingMore')}</div>
         )}
       </div>
     </div>

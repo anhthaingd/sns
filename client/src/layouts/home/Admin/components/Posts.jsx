@@ -7,8 +7,10 @@ import { FaRegTrashCan, FaRegPenToSquare } from 'react-icons/fa6';
 import { ModalContext } from '../../../../context/ModalProvider';
 import UpdatePostModal from '../../../../components/modal/UpdatePostModal';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 
 function Posts() {
+  const { t } = useTranslation(['post', 'common']);
   const [searchParams] = useSearchParams();
   const { setVisibleModal } = useContext(ModalContext);
   const { data: postsData, isSuccess: isSuccessPosts } = useGetPostsByUserQuery(
@@ -54,7 +56,7 @@ function Posts() {
               <div className='flex justify-center items-center gap-[12px]'>
                 <button
                   className='text-lg flex justify-center items-center hover:text-green-500 transition-colors'
-                  aria-label='update-btn'
+                  aria-label={t('actions.edit')}
                   onClick={() =>
                     setVisibleModal({
                       visibleUpdatePostModal: { ...p },
@@ -65,14 +67,13 @@ function Posts() {
                 </button>
                 <button
                   className='text-lg flex justify-center items-center hover:text-red-500 transition-colors'
-                  aria-label='delete-btn'
+                  aria-label={t('actions.delete')}
                   onClick={() =>
                     setVisibleModal({
                       visibleConfirmModal: {
                         icon: <FaRegTrashCan className='text-red-500' />,
-                        question: `Are you sure you want to delete this post?`,
-                        description:
-                          'You will not be able to restore the recording after deletion',
+                        question: t('confirm.delete'),
+                        description: t('common:confirm.irreversible'),
                         loading: isLoadingDelete,
                         acceptFunc: () =>
                           deletePost({
@@ -120,7 +121,7 @@ function Posts() {
       )}
       {isSuccessPosts && postsData?.posts?.length === 0 && (
         <div className='w-full flex justify-center items-center py-4'>
-          <p className='text-lg md:text-xl font-bold'>No Post Yet!</p>
+          <p className='text-lg md:text-xl font-bold'>{t('empty')}</p>
         </div>
       )}
     </div>

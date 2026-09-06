@@ -7,7 +7,10 @@ import { useLoginUserMutation } from '../../services/redux/query/api/usersApi';
 import { getWebInfo, setToken } from '../../services/redux/slice/userSlice';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import useMutationToast from '../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../../components/common/LanguageSwitcher';
 function LoginLayout() {
+  const { t } = useTranslation('auth');
   const webInfo = useSelector(getWebInfo);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -77,21 +80,24 @@ function LoginLayout() {
           className='bg-white flex flex-col justify-center px-8 md:px-16 gap-6 md:gap-8'
           onSubmit={handleSubmit}
         >
+          <div className='flex justify-end'>
+            <LanguageSwitcher variant='auth' />
+          </div>
           <h1 className='text-center lg:text-start text-4xl font-bold'>
-            Login
+            {t('login.title')}
           </h1>
           <div className='w-full flex flex-col gap-6'>
             <div className='w-full flex flex-col gap-2'>
               <input
                 className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
                 type='text'
-                placeholder='Enter your email...'
+                placeholder={t('field.emailPlaceholder')}
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
               {isValidate && !validateEmail(form.email) && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Email was wrong!
+                  {t('validate.email')}
                 </p>
               )}
             </div>
@@ -99,13 +105,13 @@ function LoginLayout() {
               <input
                 className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
                 type='password'
-                placeholder='Enter your password...'
+                placeholder={t('field.passwordPlaceholder')}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
               {isValidate && !form.password && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Password cant&apos;t be null
+                  {t('validate.password')}
                 </p>
               )}
             </div>
@@ -114,16 +120,16 @@ function LoginLayout() {
             className='h-[48px] bg-neutral-700 text-white font-bold rounded hover:bg-violet-500 transition-colors'
             type='submit'
           >
-            Login
+            {t('login.submit')}
           </button>
           <div className='flex items-center gap-2'>
-            <p className='font-bold'>Don&apos;t have an account?</p>
+            <p className='font-bold'>{t('login.noAccount')}</p>
             <button
               className='text-violet-500 font-bold'
               type='button'
               onClick={() => navigate('/register')}
             >
-              Register
+              {t('login.toRegister')}
             </button>
           </div>
         </form>

@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fa6';
 import { ModalContext } from '../../../../context/ModalProvider';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 const AddChannelModal = lazy(() =>
   import('../../../../components/modal/AddChannelModal')
 );
@@ -29,6 +30,7 @@ const ListMembersModal = lazy(() =>
   import('../../../../components/modal/ListMembersModal')
 );
 function Channels() {
+  const { t } = useTranslation(['channel', 'common']);
   const [searchParams] = useSearchParams();
   const { setVisibleModal } = useContext(ModalContext);
   const [createQueryString, deleteQueryString] = useQueryString();
@@ -67,9 +69,9 @@ function Channels() {
             <td className='p-4'>
               <div className='flex justify-center items-center gap-[12px]'>
                 <button
-                  title='View members'
+                  title={t('members.view')}
                   className='text-lg flex justify-center items-center hover:text-green-500 transition-colors'
-                  aria-label='view-members'
+                  aria-label={t('members.view')}
                   onClick={() =>
                     setVisibleModal({
                       visibleListMembersModal: {
@@ -82,9 +84,9 @@ function Channels() {
                   <FaRegEye />
                 </button>
                 <button
-                  title='Update channel'
+                  title={t('actions.update')}
                   className='text-lg flex justify-center items-center hover:text-green-500 transition-colors'
-                  aria-label='update-btn'
+                  aria-label={t('actions.update')}
                   onClick={() =>
                     setVisibleModal({
                       visibleUpdateChannelModal: { ...c },
@@ -94,16 +96,15 @@ function Channels() {
                   <FaRegPenToSquare />
                 </button>
                 <button
-                  title='Delete channel'
+                  title={t('actions.delete')}
                   className='text-lg flex justify-center items-center hover:text-red-500 transition-colors'
-                  aria-label='delete-btn'
+                  aria-label={t('actions.delete')}
                   onClick={() =>
                     setVisibleModal({
                       visibleConfirmModal: {
                         icon: <FaRegTrashCan className='text-red-500' />,
-                        question: `Are you sure you want to delete channel ${c?.name}?`,
-                        description:
-                          'You will not be able to restore the recording after deletion',
+                        question: t('confirm.delete', { name: c?.name }),
+                        description: t('common:confirm.irreversible'),
                         loading: isLoadingDelete,
                         acceptFunc: () => deleteChannel(c?._id),
                       },
@@ -118,7 +119,10 @@ function Channels() {
         );
       })
     );
-  }, [isSuccessChannels, channelsData]);
+  // `t` phải nằm trong mảng phụ thuộc: đổi ngôn ngữ thì react-i18next trả về
+  // một `t` mới, thiếu nó thì danh sách đã memo hoá giữ nguyên chữ của ngôn
+  // ngữ cũ cho tới khi có thứ khác kích hoạt tính lại.
+  }, [isSuccessChannels, channelsData, t]);
   useMutationToast({
     data: deleteData,
     error: errorDelete,
@@ -134,35 +138,31 @@ function Channels() {
       </Suspense>
       <div className='flex flex-col gap-8' aria-disabled={isLoadingDelete}>
         <div className='flex justify-between'>
-          <h1 className='text-lg md:text-xl font-bold'>Channels</h1>
+          <h1 className='text-lg md:text-xl font-bold'>{t('title')}</h1>
           <button
             className='px-4 py-2 font-bold bg-neutral-700 hover:bg-blue-500 transition-colors text-white rounded flex items-center gap-2'
             onClick={() => setVisibleModal('visibleAddChannelModal')}
           >
             <FaPlus className='text-lg' />
-            <span>Add Channel</span>
+            <span>{t('add.title')}</span>
           </button>
         </div>
         <div className='w-full flex items-center gap-2'>
           <input
             className='px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded dark:bg-neutral-800'
             type='text'
-            placeholder='Search channels...'
+            placeholder={t('searchPlaceholder')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
           />
           <button
             className='px-4 py-2 font-bold bg-neutral-700 text-white rounded'
             onClick={deleteQueryString}
-          >
-            Reset
-          </button>
+          >{t('common:actions.reset')}</button>
           <button
             className='px-4 py-2 font-bold bg-blue-500 rounded text-neutral-100'
             onClick={() => createQueryString('search', searchValue)}
-          >
-            Search
-          </button>
+          >{t('common:actions.search')}</button>
         </div>
         {isSuccessChannels && channelsData?.channels.length > 0 && (
           <Table
@@ -173,7 +173,7 @@ function Channels() {
           />
         )}
         {isSuccessChannels && channelsData?.channels?.length === 0 && (
-          <NotFoundItem message={'No Channel Yet!'} />
+          <NotFoundItem message={t('empty')} />
         )}
       </div>
     </>

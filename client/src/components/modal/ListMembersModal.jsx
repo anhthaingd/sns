@@ -5,7 +5,9 @@ import { FaXmark, FaRegTrashCan } from 'react-icons/fa6';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useDeleteUserFromChannelMutation } from '../../services/redux/query/api/channelsApi';
 import useMutationToast from '../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 function ListMembersModal() {
+  const { t } = useTranslation(['channel', 'common']);
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
   const [members, setMembers] = useState([]);
@@ -49,16 +51,15 @@ function ListMembersModal() {
           <td>
             <div className='flex justify-center items-center gap-[12px]'>
               <button
-                title='Delete User'
+                title={t('members.removeUser')}
                 className='text-lg flex justify-center items-center hover:text-red-500 transition-colors'
-                aria-label='delete-btn'
+                aria-label={t('members.removeUser')}
                 onClick={() =>
                   setVisibleModal({
                     visibleConfirmModal: {
                       icon: <FaRegTrashCan className='text-red-500' />,
-                      question: `Are you sure you want to remove ${m?.name} from chanel?`,
-                      description:
-                        'You will not be able to restore the recording after deletion',
+                      question: t('confirm.removeMember', { name: m?.name }),
+                      description: t('common:confirm.irreversible'),
                       loading: isLoadingDelete,
                       acceptFunc: () =>
                         deleteUser({
@@ -76,7 +77,10 @@ function ListMembersModal() {
         </tr>
       );
     });
-  }, [members]);
+  // `t` phải nằm trong mảng phụ thuộc: đổi ngôn ngữ thì react-i18next trả về
+  // một `t` mới, thiếu nó thì danh sách đã memo hoá giữ nguyên chữ của ngôn
+  // ngữ cũ cho tới khi có thứ khác kích hoạt tính lại.
+  }, [members, t]);
   useMutationToast({
     data: deleteData,
     error: errorDelete,
@@ -99,8 +103,8 @@ function ListMembersModal() {
           aria-disabled={isLoadingDelete}
         >
           <div className='px-4 pt-8 flex justify-between items-center'>
-            <h1 className='text-xl md:text-2xl font-bold'>Members</h1>
-            <button aria-label='close-list' onClick={closeModal}>
+            <h1 className='text-xl md:text-2xl font-bold'>{t('members.title')}</h1>
+            <button aria-label={t('members.close')} onClick={closeModal}>
               <FaXmark className='text-2xl' />
             </button>
           </div>
@@ -108,12 +112,12 @@ function ListMembersModal() {
             <table className='relative w-full h-full whitespace-nowrap'>
               <thead>
                 <tr className='border-b border-neutral-300 dark:border-neutral-700 font-medium'>
-                  <td className='p-4 text-center'>SR</td>
-                  <td className='p-4 text-center'>USERNAME</td>
-                  <td className='p-4 text-center'>AVATAR</td>
-                  <td className='p-4 text-center'>EMAIL</td>
-                  <td className='p-4 text-center'>ROLE</td>
-                  <td className='p-4 text-center'>ACTIONS</td>
+                  <td className='p-4 text-center'>{t('members.columns.no')}</td>
+                  <td className='p-4 text-center'>{t('members.columns.username')}</td>
+                  <td className='p-4 text-center'>{t('members.columns.avatar')}</td>
+                  <td className='p-4 text-center'>{t('members.columns.email')}</td>
+                  <td className='p-4 text-center'>{t('members.columns.role')}</td>
+                  <td className='p-4 text-center'>{t('members.columns.actions')}</td>
                 </tr>
               </thead>
               <tbody>{rendered}</tbody>

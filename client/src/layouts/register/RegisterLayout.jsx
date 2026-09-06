@@ -7,7 +7,10 @@ import { useRegisterUserMutation } from '../../services/redux/query/api/usersApi
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { getWebInfo } from '../../services/redux/slice/userSlice';
 import useMutationToast from '../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../../components/common/LanguageSwitcher';
 function RegisterLayout() {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const webInfo = useSelector(getWebInfo);
   const { user } = useContext(FetchDataContext);
@@ -62,21 +65,24 @@ function RegisterLayout() {
           className='bg-white flex flex-col justify-center px-8 md:px-16 gap-6 md:gap-8'
           onSubmit={handleSubmit}
         >
+          <div className='flex justify-end'>
+            <LanguageSwitcher variant='auth' />
+          </div>
           <h1 className='text-center lg:text-start text-4xl font-bold'>
-            Register
+            {t('register.title')}
           </h1>
           <div className='w-full flex flex-col gap-6'>
             <div className='w-full flex flex-col gap-2'>
               <input
                 className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
                 type='text'
-                placeholder='Enter your name...'
+                placeholder={t('field.namePlaceholder')}
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
               />
               {isValidate && !form.username && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Username can&apos;t be null!
+                  {t('validate.username')}
                 </p>
               )}
             </div>
@@ -84,13 +90,13 @@ function RegisterLayout() {
               <input
                 className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
                 type='text'
-                placeholder='Enter your email...'
+                placeholder={t('field.emailPlaceholder')}
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
               {isValidate && !validateEmail(form.email) && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Email was wrong!
+                  {t('validate.email')}
                 </p>
               )}
             </div>
@@ -98,13 +104,13 @@ function RegisterLayout() {
               <input
                 className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
                 type='password'
-                placeholder='Enter your password...'
+                placeholder={t('field.passwordPlaceholder')}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
               {isValidate && !form.password && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Password cant&apos;t be null
+                  {t('validate.password')}
                 </p>
               )}
             </div>
@@ -112,7 +118,7 @@ function RegisterLayout() {
               <input
                 className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
                 type='text'
-                placeholder='Enter your address...'
+                placeholder={t('field.addressPlaceholder')}
                 value={form.address}
                 onChange={(e) => setForm({ ...form, address: e.target.value })}
               />
@@ -120,7 +126,7 @@ function RegisterLayout() {
             <div className='w-full flex flex-col gap-2'>
               <textarea
                 className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
-                placeholder='Enter your intro...'
+                placeholder={t('field.introPlaceholder')}
                 value={form.intro}
                 rows={10}
                 onChange={(e) => setForm({ ...form, intro: e.target.value })}
@@ -131,16 +137,16 @@ function RegisterLayout() {
             className='h-[48px] bg-neutral-700 text-white font-bold rounded hover:bg-violet-500 transition-colors'
             type='submit'
           >
-            Register
+            {t('register.submit')}
           </button>
           <div className='flex items-center gap-2'>
-            <p className='font-bold'>Already have an account?</p>
+            <p className='font-bold'>{t('register.hasAccount')}</p>
             <button
               className='text-violet-500 font-bold'
               type='button'
               onClick={() => navigate('/login')}
             >
-              Login
+              {t('register.toLogin')}
             </button>
           </div>
         </form>

@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './services/router/router.jsx';
 import './index.css';
+// Nạp i18n TRƯỚC khi render: `useTranslation` ở bất kỳ component nào cũng cần
+// instance đã init sẵn, kể cả ErrorScreen nằm ngoài cây <App />.
+import './i18n/config.js';
 import { ModalProvider } from './context/ModalProvider.jsx';
 import { Provider } from 'react-redux';
 import { store } from './services/redux/store.js';

@@ -2,8 +2,10 @@ import { useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
 import { FaAnglesLeft, FaAnglesRight } from 'react-icons/fa6';
 import useQueryString from '../../hooks/useQueryString';
+import { useTranslation } from 'react-i18next';
 
 function Pagination({ curPage, totalPage }) {
+  const { t } = useTranslation('common');
   const [createQueryString] = useQueryString();
   const handlePageClick = useCallback(
     (selectedItem) => {
@@ -17,7 +19,7 @@ function Pagination({ curPage, totalPage }) {
       className='my-2 mx-4 flex justify-center items-stretch gap-[10px] font-bold text-neutral-700 dark:text-neutral-100 py-2'
       nextLabel={
         <button className='flex items-center gap-2 px-4 border border-neutral-300 py-2 text-neutral-500 dark:text-neutral-100 text-sm'>
-          <p>Next</p>
+          <p>{t('actions.next')}</p>
           <FaAnglesRight />
         </button>
       }
@@ -28,7 +30,7 @@ function Pagination({ curPage, totalPage }) {
       previousLabel={
         <button className='flex items-center gap-2 px-4 border border-neutral-300 py-2 text-neutral-500 dark:text-neutral-100 text-sm'>
           <FaAnglesLeft />
-          <p>Previous</p>
+          <p>{t('actions.previous')}</p>
         </button>
       }
       pageClassName='py-2 px-4 border border-neutral-300 text-sm flex justify-center items-center cursor-pointer'

@@ -1,8 +1,10 @@
 import { useContext } from 'react';
 import { ModalContext } from '../../context/ModalProvider';
 import useClickOutside from '../../hooks/useClickOutside';
+import { useTranslation } from 'react-i18next';
 
 function ConfirmModal() {
+  const { t } = useTranslation('common');
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
   return (
@@ -34,17 +36,13 @@ function ConfirmModal() {
             style={{ transition: 'all 0.2s linear' }}
             className='h-[48px] bg-neutral-500 hover:bg-neutral-600 hover:text-white text-gray p-4 flex justify-center items-center rounded-md'
             onClick={() => setVisibleModal('visibleConfirmModal')}
-          >
-            Cancel
-          </button>
+          >{t('actions.cancel')}</button>
           <button
             type='button'
             style={{ transition: 'all 0.2s linear' }}
             className='h-[48px] text-white bg-green-500 hover:bg-green-700 p-4 flex justify-center items-center rounded-md'
             onClick={state.visibleConfirmModal?.acceptFunc}
-          >
-            Accept
-          </button>
+          >{t('actions.accept')}</button>
         </div>
       </div>
     </section>

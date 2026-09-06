@@ -1,0 +1,29 @@
+{
+  "messages": {
+    "title": "Messages",
+    "empty": "No messages yet",
+    "youPrefix": "You:"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet"
+  },
+  "modal": {
+    "inputPlaceholder": "Type a message",
+    "send": "Send",
+    "close": "Close chat",
+    "loadingOlder": "Loading older messages…",
+    "videoCall": "Video call"
+  },
+  "video": {
+    "ended": "Call ended",
+    "cancel": "Cancel call",
+    "toggleMute": "Toggle microphone",
+    "toggleVideo": "Toggle camera",
+    "answer": "Answer",
+    "close": "Close",
+    "accept": "Accept",
+    "calling": "Calling…",
+    "incoming": "{{name}} is calling:"
+  }
+}

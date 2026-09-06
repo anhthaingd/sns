@@ -1,10 +1,8 @@
-import { useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ModalContext } from '../context/ModalProvider';
 import { logger } from '../services/logger';
-
-// Backend luôn trả thông báo tiếng Việt trong `message`. Chuỗi này chỉ dùng khi
-// request chết trước đó (mất mạng, CORS) nên không có body để đọc.
-const FALLBACK_ERROR = 'Đã có lỗi xảy ra, vui lòng thử lại sau!';
+import { serverMessage } from '../services/utils/serverMessage';
 
 /**
  * Hiện toast cho kết quả của một mutation RTK Query.
@@ -26,9 +24,12 @@ const FALLBACK_ERROR = 'Đã có lỗi xảy ra, vui lòng thử lại sau!';
  *        (ví dụ đăng nhập) — toast chỉ kịp loé lên rồi biến mất cùng trang cũ
  */
 const useMutationToast = (result, options = {}) => {
+  const { t } = useTranslation('error');
   const { setVisibleModal } = useContext(ModalContext);
   const { onSuccess, successMessage, showSuccess = true } = options;
   const { data, error, isSuccess, isError } = result || {};
+
+  const resolveMessage = useCallback((payload) => serverMessage(t, payload), [t]);
 
   useEffect(() => {
     if (!isSuccess) return;
@@ -36,7 +37,7 @@ const useMutationToast = (result, options = {}) => {
       setVisibleModal({
         visibleToastModal: {
           type: 'success',
-          message: successMessage || data?.message,
+          message: successMessage || resolveMessage(data),
         },
       });
     }
@@ -44,17 +45,19 @@ const useMutationToast = (result, options = {}) => {
     // `onSuccess`/`successMessage` cố ý không nằm trong mảng phụ thuộc: chúng
     // thường là hàm inline, đưa vào sẽ khiến toast hiện lại sau mỗi lần render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess, data, setVisibleModal]);
+  }, [isSuccess, data, setVisibleModal, resolveMessage]);
 
   useEffect(() => {
     if (!isError) return;
-    const message = error?.data?.message || FALLBACK_ERROR;
+    const message = resolveMessage(error?.data);
     setVisibleModal({
       visibleToastModal: { type: 'error', message },
     });
     // Toast biến mất sau vài giây; log thì còn lại để tra khi có người báo lỗi.
-    logger.warn('mutation.failed', { message });
-  }, [isError, error, setVisibleModal]);
+    // Ghi cả `code`: câu chữ đổi theo ngôn ngữ người dùng đang xem, còn mã thì
+    // không — tra log theo mã mới gom được mọi lần lỗi giống nhau.
+    logger.warn('mutation.failed', { code: error?.data?.code, message });
+  }, [isError, error, setVisibleModal, resolveMessage]);
 };
 
 export default useMutationToast;

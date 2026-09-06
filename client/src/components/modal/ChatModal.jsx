@@ -9,7 +9,9 @@ import { socket } from '../../context/SocketProvider';
 // Cuộn tới trong khoảng này tính từ đầu danh sách thì coi như "muốn xem tin cũ".
 const LOAD_MORE_SCROLL_THRESHOLD_PX = 24;
 import { useLazyGetChatQuery } from '../../services/redux/query/api/chatApi';
+import { useTranslation } from 'react-i18next';
 function ChatModal() {
+  const { t } = useTranslation('chat');
   const { user, refetchMessages } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -178,8 +180,8 @@ function ChatModal() {
           </div>
           <div className='flex items-center gap-2'>
             <button
-              title='Call Video'
-              aria-label='call-video'
+              title={t('modal.videoCall')}
+              aria-label={t('modal.videoCall')}
               onClick={() =>
                 setVisibleModal({
                   visibleVideoModal: {
@@ -192,8 +194,8 @@ function ChatModal() {
               <FaVideo className='text-2xl rotate-180' />
             </button>
             <button
-              title='Close chat'
-              aria-label='close-chat'
+              title={t('modal.close')}
+              aria-label={t('modal.close')}
               onClick={() => setVisibleModal('visibleChatModal')}
             >
               <FaXmark className='text-2xl' />
@@ -206,7 +208,7 @@ function ChatModal() {
           className='px-2 py-4 w-full h-full overflow-y-auto flex flex-col gap-4'
         >
           {isLoadingMore && (
-            <p className='text-center text-xs opacity-60'>Đang tải tin cũ...</p>
+            <p className='text-center text-xs opacity-60'>{t('modal.loadingOlder')}</p>
           )}
           {messages?.map((m) => {
             const isSender = m?.sender?._id === user?._id;
@@ -255,12 +257,12 @@ function ChatModal() {
               className='absolute top-1/2 left-6 -translate-y-1/2'
               onClick={handleFocusComment}
             >
-              <p>Aa</p>
+              <p>{t('modal.inputPlaceholder')}</p>
             </div>
           )}
           <button
             className='absolute bottom-[35%] right-6 z-10 hover:text-blue-500 transition-colors'
-            aria-label='send-btn'
+            aria-label={t('modal.send')}
             disabled={!messageRef.current?.textContent}
             onClick={sendMessage}
           >

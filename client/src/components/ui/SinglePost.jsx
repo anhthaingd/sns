@@ -1,4 +1,5 @@
 import { formatDistance, formatDistanceStrict } from 'date-fns';
+import { currentDateLocale } from '../../i18n/dateLocale';
 import { useNavigate } from 'react-router-dom';
 import {
   Suspense,
@@ -25,8 +26,10 @@ import { FetchDataContext } from '../../context/FetchDataProvider';
 import { useBookMarkPostMutation, useCommentPostMutation, useDeleteCommentPostMutation, useDeletePostMutation, useLikePostMutation } from '../../services/redux/query/api/postsApi';
 import { ModalContext } from '../../context/ModalProvider';
 import useMutationToast from '../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 const UpdatePostModal = lazy(() => import('../modal/UpdatePostModal'));
 function SinglePost({ post, changeData }) {
+  const { t } = useTranslation(['post', 'common']);
   const navigate = useNavigate();
   const { user, updateShortcut } = useContext(FetchDataContext);
   const { setVisibleModal } = useContext(ModalContext);
@@ -153,7 +156,7 @@ function SinglePost({ post, changeData }) {
                     }}
                   >
                     <FaPen className='text-sm' />
-                    <span>Edit</span>
+                    <span>{t('actions.edit')}</span>
                   </button>
                   <button
                     className='text-sm flex items-center gap-2'
@@ -161,9 +164,8 @@ function SinglePost({ post, changeData }) {
                       setVisibleModal({
                         visibleConfirmModal: {
                           icon: <FaRegTrashCan className='text-red-500' />,
-                          question: `Are you sure you want to this post?`,
-                          description:
-                            'You will not be able to restore the recording after deletion',
+                          question: t('confirm.delete'),
+                          description: t('common:confirm.irreversible'),
                           loading: isLoadingDelete,
                           acceptFunc: () =>
                             deletePost({
@@ -175,7 +177,7 @@ function SinglePost({ post, changeData }) {
                     }
                   >
                     <FaTrash className='text-sm' />
-                    <span>Delete</span>
+                    <span>{t('actions.delete')}</span>
                   </button>
                 </div>
               )}
@@ -215,6 +217,7 @@ function SinglePost({ post, changeData }) {
                 <p>
                   {formatDistance(new Date(created_at), new Date(Date.now()), {
                     addSuffix: true,
+                    locale: currentDateLocale(),
                   })}
                 </p>
               </div>
@@ -235,10 +238,10 @@ function SinglePost({ post, changeData }) {
         )}
         <div className='w-full flex justify-between'>
           <p className='text-lg font-medium'>
-            {liked?.length} {liked?.length > 1 ? 'likes' : 'like'}
+            {t('count.like', { count: liked?.length || 0 })}
           </p>
           <p className='text-lg font-medium'>
-            {comments?.length} {comments?.length > 1 ? 'comments' : 'comment'}
+            {t('count.comment', { count: comments?.length || 0 })}
           </p>
         </div>
         <div className='py-4 w-full flex justify-between items-center gap-4 border-t border-b border-neutral-300 dark:border-neutral-500'>
@@ -248,15 +251,15 @@ function SinglePost({ post, changeData }) {
                 ? 'text-blue-500'
                 : ''
             }`}
-            aria-label='like-btn'
+            aria-label={t('actions.like')}
             onClick={() => likePost({ channelId: channel._id, postId: _id })}
           >
             <FaRegThumbsUp className='text-2xl' />
-            <p>Like</p>
+            <p>{t('actions.like')}</p>
           </button>
-          <button className='flex items-center gap-2' aria-label='cmt-btn'>
+          <button className='flex items-center gap-2' aria-label={t('actions.comment')}>
             <IoChatboxOutline className='text-2xl' />
-            <p>Comment</p>
+            <p>{t('actions.comment')}</p>
           </button>
           <button
             className={`flex items-center gap-2 ${
@@ -264,11 +267,11 @@ function SinglePost({ post, changeData }) {
                 ? 'text-yellow-500'
                 : ''
             }`}
-            aria-label='mark-btn'
+            aria-label={t('actions.save')}
             onClick={() => bookNark({ channelId: channel._id, postId: _id })}
           >
             <IoBookmarkOutline className='text-2xl' />
-            <p>Save</p>
+            <p>{t('actions.save')}</p>
           </button>
         </div>
         {/* <div>
@@ -304,7 +307,7 @@ function SinglePost({ post, changeData }) {
                     {user?._id === c?.user?._id && (
                       <button
                         className='text-sm'
-                        aria-label='delete-btn'
+                        aria-label={t('actions.deleteComment')}
                         onClick={() =>
                           deleteComment({
                             channelId: channel._id,
@@ -313,7 +316,7 @@ function SinglePost({ post, changeData }) {
                           })
                         }
                       >
-                        Delete
+                        {t('actions.delete')}
                       </button>
                     )}
                   </div>
@@ -321,7 +324,8 @@ function SinglePost({ post, changeData }) {
                     <p className='text-[12px] md:text-sm text-neutral-500 dark:text-neutral-300'>
                       {formatDistanceStrict(
                         new Date(Date.now()),
-                        new Date(c?.created_at)
+                        new Date(c?.created_at),
+                        { locale: currentDateLocale() }
                       )}
                     </p>
                   </div>
@@ -354,12 +358,12 @@ function SinglePost({ post, changeData }) {
                 className='absolute top-1/2 left-4 -translate-y-1/2'
                 onClick={handleFocusComment}
               >
-                <p>Comment as {user?.username}</p>
+                <p>{t('actions.commentAs', { name: user?.username })}</p>
               </div>
             )}
             <button
               className='absolute bottom-[30%] right-4 z-10 hover:text-blue-500 transition-colors'
-              aria-label='send-btn'
+              aria-label={t('actions.sendComment')}
               onClick={handlePostComment}
             >
               <FaPaperPlane />

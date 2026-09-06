@@ -5,7 +5,9 @@ import { ModalContext } from '../../../context/ModalProvider';
 import useClickOutside from '../../../hooks/useClickOutside';
 import Template1 from './Template1';
 import Template2 from './Template2';
+import { useTranslation } from 'react-i18next';
 function ResumeModal() {
+  const { t } = useTranslation('resume');
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
   const [curTemplate, setCurTemplate] = useState('1');
@@ -38,9 +40,7 @@ function ResumeModal() {
                   : 'border border-neutral-300 text-neutral-700'
               } px-4 py-1 font-bold rounded`}
               onClick={() => setCurTemplate('1')}
-            >
-              Template 1
-            </button>
+            >{t('template.pick1')}</button>
             <button
               className={`${
                 curTemplate === '2'
@@ -48,9 +48,7 @@ function ResumeModal() {
                   : 'border border-neutral-300 text-neutral-700'
               } px-4 py-1 font-bold rounded`}
               onClick={() => setCurTemplate('2')}
-            >
-              Template 2
-            </button>
+            >{t('template.pick2')}</button>
           </div>
           {curTemplate === '1' && <Template1 resume={form} />}
           {curTemplate === '2' && <Template2 resume={form} />}

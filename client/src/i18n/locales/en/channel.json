@@ -1,0 +1,52 @@
+{
+  "title": "Channels",
+  "empty": "No channels yet",
+  "searchPlaceholder": "Search channels…",
+  "add": {
+    "title": "Add Channel",
+    "namePlaceholder": "Enter channel name…",
+    "introPlaceholder": "Enter channel intro…",
+    "uploadHere": "Upload your image here",
+    "removeImage": "Remove image"
+  },
+  "update": {
+    "title": "Update Channel"
+  },
+  "detail": {
+    "createdDay": "Created day",
+    "joined": "Joined",
+    "leave": "Leave channel",
+    "join": "Join",
+    "visit": "Visit"
+  },
+  "members": {
+    "title": "Members",
+    "close": "Close member list",
+    "view": "View members",
+    "removeUser": "Remove member",
+    "columns": {
+      "no": "No.",
+      "username": "Username",
+      "avatar": "Avatar",
+      "email": "Email",
+      "role": "Role",
+      "actions": "Actions"
+    }
+  },
+  "actions": {
+    "update": "Update channel",
+    "delete": "Delete channel"
+  },
+  "confirm": {
+    "delete": "Are you sure you want to delete channel {{name}}?",
+    "leave": "Are you sure you want to leave channel {{name}}?",
+    "removeMember": "Are you sure you want to remove {{name}} from the channel?"
+  },
+  "field": {
+    "background": "Background",
+    "name": "Name",
+    "intro": "Intro"
+  },
+  "memberCount_one": "{{count}} member",
+  "memberCount_other": "{{count}} members"
+}

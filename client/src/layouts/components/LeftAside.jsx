@@ -1,4 +1,5 @@
 import { useCallback, useContext } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { icons } from '../../assets/icons';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { scrollElement } from '../../services/utils/scrollElement';
 import { useGetShortcutsQuery } from '../../services/redux/query/api/channelsApi';
 
 function LeftAside() {
+  const { t } = useTranslation('nav');
   const { user, updateShortcut } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const { data: shortcutsData, isSuccess: isSuccessShortcuts } =
@@ -43,21 +45,21 @@ function LeftAside() {
           onClick={() => handleRedirect(`/search`)}
         >
           <span dangerouslySetInnerHTML={{ __html: icons.search_icon }}></span>
-          <p>Search</p>
+          <p>{t('search')}</p>
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
           onClick={() => handleRedirect(`/profile/${user?._id}`)}
         >
           <span dangerouslySetInnerHTML={{ __html: icons.user_icon }}></span>
-          <p>Profile</p>
+          <p>{t('profile')}</p>
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
           onClick={() => handleRedirect(`/resume`)}
         >
           <span dangerouslySetInnerHTML={{ __html: icons.resume_icon }}></span>
-          <p>Resume</p>
+          <p>{t('resume')}</p>
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
@@ -66,7 +68,7 @@ function LeftAside() {
           <span
             dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}
           ></span>
-          <p>Recruitment</p>
+          <p>{t('recruitment')}</p>
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
@@ -75,14 +77,14 @@ function LeftAside() {
           <span
             dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}
           ></span>
-          <p>Công ty phù hợp</p>
+          <p>{t('match')}</p>
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
           onClick={() => handleRedirect('/channels')}
         >
           <span dangerouslySetInnerHTML={{ __html: icons.channel_icon }}></span>
-          <p>Channels</p>
+          <p>{t('channels')}</p>
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
@@ -91,7 +93,7 @@ function LeftAside() {
           <span
             dangerouslySetInnerHTML={{ __html: icons.book_mark_icon }}
           ></span>
-          <p>Bookmark</p>
+          <p>{t('bookmark')}</p>
         </button>
         <button
           className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
@@ -106,7 +108,7 @@ function LeftAside() {
           <span
             dangerouslySetInnerHTML={{ __html: icons.settings_icon }}
           ></span>
-          <p>Settings</p>
+          <p>{t('settings')}</p>
         </button>
         {user?.role?.value === 1 && (
           <button
@@ -116,12 +118,12 @@ function LeftAside() {
             <span
               dangerouslySetInnerHTML={{ __html: icons.management_icon }}
             ></span>
-            <p>Management</p>
+            <p>{t('management')}</p>
           </button>
         )}
       </div>
       <div className='flex flex-col gap-4'>
-        <p>Your channel&apos;s shortcuts</p>
+        <p>{t('shortcuts')}</p>
         <div>
           {isSuccessShortcuts &&
             shortcutsData?.shortcuts?.map((s) => {

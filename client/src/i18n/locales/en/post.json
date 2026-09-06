@@ -1,0 +1,43 @@
+{
+  "title": "Post",
+  "plural": "Posts",
+  "empty": "No posts yet",
+  "create": {
+    "placeholder": "What's on your mind, {{name}}?",
+    "selectChannel": "Select your channel",
+    "addToPost": "Add to your post",
+    "addImage": "Add an image",
+    "submit": "Post",
+    "imageAlt": "Attachment {{index}}"
+  },
+  "update": {
+    "title": "Update Post",
+    "uploadHere": "Upload your image here",
+    "images": "Images",
+    "content": "Content"
+  },
+  "actions": {
+    "like": "Like",
+    "comment": "Comment",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "selectAll": "Select all",
+    "sendComment": "Send comment",
+    "deleteComment": "Delete comment",
+    "commentAs": "Comment as {{name}}"
+  },
+  "bookmark": {
+    "empty": "No bookmarks yet",
+    "toggle": "Bookmark"
+  },
+  "confirm": {
+    "delete": "Are you sure you want to delete this post?"
+  },
+  "count": {
+    "like_one": "{{count}} like",
+    "like_other": "{{count}} likes",
+    "comment_one": "{{count}} comment",
+    "comment_other": "{{count}} comments"
+  }
+}

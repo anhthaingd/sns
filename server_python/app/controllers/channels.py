@@ -77,7 +77,7 @@ async def get_channel_details(decoded_user: dict, channel_id: str):
     user_id = to_object_id(decoded_user["_id"], "user_id")
     channel = await Channel.find_one({"_id": to_object_id(channel_id, "channel_id"), "members": user_id})
     if not channel:
-        raise ApiError(403, "Bạn chưa tham gia channel này!")
+        raise ApiError(403, code="channel.notJoined")
     populated = await _populate_channels([channel])
     return ok(channel=populated[0])
 
@@ -92,7 +92,7 @@ async def create_channel(decoded_user: dict, name: str, intro: str = None, files
         # không mỗi lần trùng tên là một file rác nằm lại vĩnh viễn.
         if images:
             await delete_file(images[0].get("path", ""))
-        raise ApiError(409, "Channel đã tồn tại!")
+        raise ApiError(409, code="channel.exists")
 
     channel_data = {
         "name": name,
@@ -103,18 +103,18 @@ async def create_channel(decoded_user: dict, name: str, intro: str = None, files
         channel_data["background"] = {"name": images[0]["filename"], "url": images[0]["path"]}
 
     await Channel(**channel_data).insert()
-    return ok(message="Tạo channel thành công!")
+    return ok(code="channel.created")
 
 
 async def join_channel(decoded_user: dict, channel_id: str):
     if is_admin(decoded_user):
-        raise ApiError(403, "Admin không thể tự ý rời khỏi nhóm!")
+        raise ApiError(403, code="channel.adminCannotLeave")
 
     user_id = to_object_id(decoded_user["_id"], "user_id")
     channel_oid = to_object_id(channel_id, "channel_id")
     channel = await Channel.get(channel_oid)
     if not channel:
-        raise ApiError(404, "Channel không tồn tại!")
+        raise ApiError(404, code="channel.notFound")
 
     shortcut = await Shortcut.find_one({"user": user_id, "channel": channel_oid})
     if not shortcut:
@@ -123,18 +123,18 @@ async def join_channel(decoded_user: dict, channel_id: str):
     if user_id in channel.members:
         await Channel.find_one(Channel.id == channel_oid).update({"$pull": {"members": user_id}})
         await Shortcut.find_one({"user": user_id, "channel": channel_oid}).delete()
-        return ok(message="Bạn đã thoát nhóm channel!")
+        return ok(code="channel.left")
 
     await Channel.find_one(Channel.id == channel_oid).update({"$push": {"members": user_id}})
     await Shortcut.find_one({"user": user_id, "channel": channel_oid}).update({"$set": {"isJoin": True}})
-    return ok(message="Gia nhập channel thành công!")
+    return ok(code="channel.joined")
 
 
 async def remove_user_from_channel(decoded_user: dict, channel_id: str, user_id_to_remove: str):
     require_admin(decoded_user)
 
     if user_id_to_remove == decoded_user["_id"]:
-        raise ApiError(409, "Bạn không thể xóa chính mình ra khỏi channel!")
+        raise ApiError(409, code="channel.cannotRemoveSelf")
 
     target_oid = to_object_id(user_id_to_remove, "userId")
     channel_oid = to_object_id(channel_id, "channel_id")
@@ -143,7 +143,7 @@ async def remove_user_from_channel(decoded_user: dict, channel_id: str, user_id_
     if target_user and target_user.role:
         target_role = await Role.get(target_user.role)
         if target_role and target_role.value == 1:
-            raise ApiError(403, "Bạn không thể xóa admin khác ra khỏi nhóm!")
+            raise ApiError(403, code="channel.cannotRemoveOtherAdmin")
 
     channel = await Channel.find_one(Channel.id == channel_oid)
     await Channel.find_one(Channel.id == channel_oid).update({"$pull": {"members": target_oid}})
@@ -173,7 +173,7 @@ async def update_channel(
     try:
         parse_old_image = json.loads(old_background) if old_background else None
     except json.JSONDecodeError as err:
-        raise ApiError(400, "Dữ liệu ảnh nền cũ không hợp lệ!") from err
+        raise ApiError(400, code="channel.invalidOldBackground") from err
 
     update_data = {"name": name, "intro": intro}
 
@@ -184,7 +184,7 @@ async def update_channel(
         update_data["background"] = {"name": images[0]["filename"], "url": images[0]["path"]}
 
     await Channel.find_one(Channel.id == to_object_id(channel_id, "channel_id")).update({"$set": update_data})
-    return ok(message="Cập nhật channel thành công!")
+    return ok(code="channel.updated")
 
 
 async def delete_channel(decoded_user: dict, channel_id: str):
@@ -193,11 +193,11 @@ async def delete_channel(decoded_user: dict, channel_id: str):
     channel_oid = to_object_id(channel_id, "channel_id")
     channel = await Channel.get(channel_oid)
     if not channel:
-        raise ApiError(404, "Channel không tồn tại!")
+        raise ApiError(404, code="channel.notFound")
 
     await channel.delete()
     await Post.find(Post.channel == channel_oid).delete()
     await Shortcut.find_one({"channel": channel_oid}).update({"$set": {"isJoin": False}})
     if channel.background:
         await delete_file(channel.background.get("url", ""))
-    return ok(message="Xóa channel thành công!")
+    return ok(code="channel.deleted")

@@ -127,7 +127,7 @@ async def read_message(decoded_user: dict, message_id: str):
         }
     )
     if not msg:
-        raise ApiError(404, "Không tìm thấy hội thoại!")
+        raise ApiError(404, code="chat.conversationNotFound")
 
     if msg.sender and msg.sender.get("user") == user_id:
         await NewestMessage.find_one(NewestMessage.id == message_oid).update({"$set": {"sender.isRead": True}})

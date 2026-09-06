@@ -1,0 +1,32 @@
+{
+  "management": {
+    "title": "Quản trị",
+    "tabs": {
+      "website": "Website",
+      "users": "Người dùng",
+      "channels": "Channel",
+      "userPosts": "Bài viết"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "tabs": {
+      "posts": "Bài viết",
+      "followers": "Người theo dõi",
+      "following": "Đang theo dõi"
+    }
+  },
+  "website": {
+    "id": "Mã website",
+    "name": "Tên website",
+    "colorTitle": "Màu chữ tên website",
+    "logo": "Logo",
+    "changeLogo": "Đổi logo",
+    "logoHint": "Chỉ nhận ảnh *.jpeg, *.webp và *.png!",
+    "quotesRegister": "Câu trích trang đăng ký",
+    "quotesLogin": "Câu trích trang đăng nhập"
+  },
+  "userPosts": {
+    "selectChannel": "Chọn channel"
+  }
+}

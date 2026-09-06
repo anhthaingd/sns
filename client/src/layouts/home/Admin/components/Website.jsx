@@ -8,7 +8,9 @@ import { useUpdateWebMutation } from '../../../../services/redux/query/webQuery'
 import { useSelector } from 'react-redux';
 import { getWebInfo } from '../../../../services/redux/slice/userSlice';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 function Website() {
+  const { t } = useTranslation(['admin', 'common']);
   const webInfo = useSelector(getWebInfo);
   const [form, setForm] = useState({
     _id: '',
@@ -118,9 +120,7 @@ function Website() {
                 <label
                   htmlFor='webId'
                   className='block text-sm md:text-base mb-1 sm:col-span-2 font-bold'
-                >
-                  Web Id
-                </label>
+                >{t('website.id')}</label>
                 <div className='sm:col-span-3 flex flex-col gap-2'>
                   <input
                     className='block w-full h-12 px-3 py-1 text-sm focus:outline-none leading-5 rounded-md  dark:bg-neutral-700 mr-2 p-2'
@@ -134,9 +134,7 @@ function Website() {
                 <label
                   htmlFor='website_name'
                   className='block text-sm md:text-base mb-1 sm:col-span-2 font-bold'
-                >
-                  Website Name
-                </label>
+                >{t('website.name')}</label>
                 <div className='sm:col-span-3 flex flex-col gap-2'>
                   <input
                     name='website_name'
@@ -151,9 +149,7 @@ function Website() {
                 <label
                   htmlFor='color_title'
                   className='block text-sm md:text-base mb-1 sm:col-span-2 font-bold'
-                >
-                  Color for website name
-                </label>
+                >{t('website.colorTitle')}</label>
                 <div className='sm:col-span-3 flex flex-col gap-2'>
                   <input
                     name='color_title'
@@ -168,9 +164,7 @@ function Website() {
                 <label
                   htmlFor=''
                   className='block text-sm md:text-base mb-1 sm:col-span-2 font-bold'
-                >
-                  Logo
-                </label>
+                >{t('website.logo')}</label>
                 <div className='sm:col-span-3 flex flex-col gap-4'>
                   <div className='flex justify-between items-center sm:flex-row flex-col gap-4'>
                     <img
@@ -190,22 +184,16 @@ function Website() {
                       type='button'
                       className='w-[120px] bg-blue-500 px-4 py-2 text-sm rounded text-neutral-100'
                       onClick={handleUploadImg}
-                    >
-                      Change Logo
-                    </button>
+                    >{t('website.changeLogo')}</button>
                   </div>
-                  <p className='text-sm font-bold'>
-                    Only *.jpeg, *.webp and *.png images will be accepted!
-                  </p>
+                  <p className='text-sm font-bold'>{t('website.logoHint')}</p>
                 </div>
               </div>
               <div className='grid md:grid-cols-5 items-center sm:grid-cols-12 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6'>
                 <label
                   htmlFor='website_quotes_register'
                   className='block text-sm md:text-base mb-1 sm:col-span-2 font-bold'
-                >
-                  Quotes Register
-                </label>
+                >{t('website.quotesRegister')}</label>
                 <div className='sm:col-span-3 flex flex-col gap-2'>
                   <input
                     name='website_quotes_register'
@@ -220,9 +208,7 @@ function Website() {
                 <label
                   htmlFor='website_quotes_login'
                   className='block text-sm md:text-base mb-1 sm:col-span-2 font-bold'
-                >
-                  Quotes Login
-                </label>
+                >{t('website.quotesLogin')}</label>
                 <div className='sm:col-span-3 flex flex-col gap-2'>
                   <input
                     name='website_quotes_login'
@@ -241,17 +227,13 @@ function Website() {
                   type='button'
                   disabled={isLoadingUpdate}
                   onClick={handleCancelUpdate}
-                >
-                  Cancel
-                </button>
+                >{t('common:actions.cancel')}</button>
                 <button
                   className={`w-full sm:w-[160px] h-[48px] px-8 py-2 flex justify-center items-center rounded-lg bg-blue-500 text-white hover:bg-blue-700 transition-colors text-sm font-bold  ${
                     isLoadingUpdate ? 'cursor-not-allowed' : 'cursor-pointer'
                   }`}
                   type='submit'
-                >
-                  Update
-                </button>
+                >{t('common:actions.update')}</button>
               </div>
             </div>
           </div>

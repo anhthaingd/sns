@@ -14,7 +14,9 @@ import useClickOutside from '../../hooks/useClickOutside';
 import { useUpdatePostMutation } from '../../services/redux/query/api/postsApi';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import useMutationToast from '../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 function UpdatePostModal() {
+  const { t } = useTranslation(['post', 'common']);
   const { user } = useContext(FetchDataContext);
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
@@ -101,10 +103,10 @@ function UpdatePostModal() {
           onSubmit={handleSubmit}
         >
           <div className='px-4 py-4 sm:py-6 flex justify-between items-center gap-4 bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-100'>
-            <h1 className='text-xl sm:text-2xl font-bold'>Update Post</h1>
+            <h1 className='text-xl sm:text-2xl font-bold'>{t('update.title')}</h1>
             <button
               type='button'
-              aria-label='close-modal'
+              aria-label={t('common:actions.closeModal')}
               onClick={() => setVisibleModal('visibleUpdatePostModal')}
             >
               <FaXmark className='text-2xl sm:text-3xl' />
@@ -115,9 +117,7 @@ function UpdatePostModal() {
               <label
                 htmlFor='images'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Images
-              </label>
+              >{t('update.images')}</label>
               <div className='col-span-8 sm:col-span-4 flex flex-col gap-4'>
                 <div className='border-2 border-dotted border-neutral-300 rounded-lg'>
                   <div
@@ -126,9 +126,9 @@ function UpdatePostModal() {
                     onClick={handleUploadImg}
                   >
                     <IoCloudUploadOutline className='text-2xl text-blue-500' />
-                    <p className='font-bold'>Upload your image here</p>
+                    <p className='font-bold'>{t('update.uploadHere')}</p>
                     <p className='italic text-sm'>
-                      (Only *.jpeg, *.webp and *.png images will be accepted)
+                      {t('common:upload.imageHint')}
                     </p>
                   </div>
                   <input
@@ -182,18 +182,16 @@ function UpdatePostModal() {
               <label
                 htmlFor='content'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Content
-              </label>
+              >{t('update.content')}</label>
               <div className='col-span-8 sm:col-span-4'>
                 <ReactQuill
                   className='dark:text-neutral-300 h-full p-4 border border-neutral-300 rounded-lg'
                   modules={{ toolbar: false }}
-                  placeholder={`What's on your mind, ${
-                    user?.username?.split(' ')[
+                  placeholder={t('create.placeholder', {
+                    name: user?.username?.split(' ')[
                       user?.username?.split(' ').length - 1
-                    ]
-                  }?`}
+                    ],
+                  })}
                   value={form.content}
                   onChange={(value) => setForm({ ...form, content: value })}
                 />
@@ -204,15 +202,11 @@ function UpdatePostModal() {
                 type='button'
                 className='border border-neutral-700 rounded px-4 py-2 hover:border-red-300 hover:text-red-400 transition-colors'
                 onClick={() => setVisibleModal('visibleUpdatePostModal')}
-              >
-                Cancel
-              </button>
+              >{t('common:actions.cancel')}</button>
               <button
                 type='submit'
                 className='bg-neutral-700 text-white rounded px-4 py-2 hover:bg-blue-500 transition-colors'
-              >
-                Update Post
-              </button>
+              >{t('update.title')}</button>
             </div>
           </div>
         </form>

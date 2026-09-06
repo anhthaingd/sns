@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import httpx
@@ -6,9 +7,13 @@ import socketio
 from .conftest import (
     API_URL,
     APP_URL,
+    LOCALES_DIR,
     login_via_ui,
+    new_page_context,
+    new_page_with_console,
     promote_to_admin,
     register_via_ui,
+    tr,
     unique_email,
 )
 
@@ -50,11 +55,13 @@ async def test_wrong_password_shows_backend_error_message(page):
     email = unique_email("badpw")
     await register_via_ui(page, email)
     await page.goto(f"{APP_URL}/login", wait_until="domcontentloaded")
-    await page.get_by_placeholder("Enter your email...").fill(email)
-    await page.get_by_placeholder("Enter your password...").fill("wrong-password")
-    await page.get_by_role("button", name="Login").click()
+    await page.get_by_placeholder(tr("auth", "field.emailPlaceholder")).fill(email)
+    await page.get_by_placeholder(tr("auth", "field.passwordPlaceholder")).fill("wrong-password")
+    await page.get_by_role("button", name=tr("auth", "login.submit"), exact=True).click()
     # Thông báo cố ý CHUNG cho cả email lạ lẫn sai mật khẩu (chống dò email).
-    await page.wait_for_selector("text=Email hoặc mật khẩu không đúng!", timeout=15000)
+    # Chờ theo bản dịch của mã `auth.invalidCredentials`: đi hết đường từ
+    # `raise ApiError(401, code=...)` ở backend tới câu hiển thị trên màn hình.
+    await page.wait_for_selector(f"text={tr('error', 'server.auth.invalidCredentials')}", timeout=15000)
 
 
 async def test_plain_user_has_no_admin_menu(page):
@@ -62,7 +69,9 @@ async def test_plain_user_has_no_admin_menu(page):
     await register_via_ui(page, email)
     await login_via_ui(page, email)
     await page.wait_for_timeout(3000)
-    assert await page.get_by_role("link", name="Admin").count() == 0
+    # Kiểm đúng mục menu quản trị. Bản cũ tìm chữ "Admin" — vốn không có trong
+    # giao diện, nên phép đếm luôn bằng 0 và test luôn xanh kể cả khi menu bị lộ.
+    assert await page.get_by_role("button", name=tr("nav", "management")).count() == 0
 
 
 async def test_admin_sees_admin_menu(page, db):
@@ -70,7 +79,7 @@ async def test_admin_sees_admin_menu(page, db):
     await register_via_ui(page, email, username="admin e2e")
     await promote_to_admin(db, email)
     await login_via_ui(page, email)
-    await page.wait_for_selector("text=Admin", timeout=20000)
+    await page.get_by_role("button", name=tr("nav", "management")).wait_for(timeout=20000)
 
 
 async def test_channel_join_and_post_flow(page, browser, db):
@@ -99,17 +108,17 @@ async def test_channel_join_and_post_flow(page, browser, db):
     channel = await db.channels.find_one({"name": name})
     assert channel is not None
 
-    ctx = await browser.new_context(viewport={"width": 1440, "height": 900})
-    user_page = await ctx.new_page()
+    ctx = await new_page_context(browser)
+    user_page = await new_page_with_console(ctx)
     try:
         email = unique_email("member")
         await register_via_ui(user_page, email, username="member e2e")
         await login_via_ui(user_page, email)
 
         await user_page.goto(f"{APP_URL}/channels", wait_until="domcontentloaded")
-        await user_page.get_by_placeholder("Search channels...").fill(name)
+        await user_page.get_by_placeholder(tr("channel", "searchPlaceholder")).fill(name)
         await user_page.wait_for_timeout(2500)
-        await user_page.get_by_role("button", name="Join").first.click()
+        await user_page.get_by_role("button", name=tr("channel", "detail.join"), exact=True).first.click()
         await user_page.wait_for_timeout(2500)
 
         member = await db.channels.find_one({"name": name})
@@ -120,10 +129,14 @@ async def test_channel_join_and_post_flow(page, browser, db):
         content = f"e2e post {uuid.uuid4().hex[:6]}"
         # CreatePost dùng ReactQuill -> ô nhập là contenteditable .ql-editor, không phải <input>.
         editor = user_page.locator(".ql-editor").first
-        await editor.wait_for(timeout=30000)
+        try:
+            await editor.wait_for(timeout=30000)
+        except Exception:
+            print("[e2e] console cua user_page:", user_page.console_errors[-15:])
+            raise
         await editor.click()
         await editor.type(content)
-        await user_page.get_by_role("button", name="Post", exact=True).first.click()
+        await user_page.get_by_role("button", name=tr("post", "create.submit"), exact=True).first.click()
         await user_page.wait_for_timeout(3000)
 
         # Quill lưu nội dung dạng HTML (<p>...</p>).
@@ -223,29 +236,32 @@ async def test_recruitment_page_shows_structured_jobs_with_filters(page):
     await login_via_ui(page, email)
 
     await page.goto(f"{APP_URL}/recruitment", wait_until="domcontentloaded")
-    await page.get_by_placeholder("Tìm theo chức danh, công ty, mô tả...").wait_for(timeout=30000)
+    await page.get_by_placeholder(tr("job", "searchPlaceholder")).wait_for(timeout=30000)
 
     body = await page.inner_text("body")
-    assert "tin tổng hợp từ" in body, f"không thấy số liệu tổng hợp. body={body[:300]}"
+    # Câu tổng hợp có dạng "... {{count}} ..." nên chỉ so phần cố định đứng đầu.
+    subtitle_head = tr("job", "subtitle_other").split("{{")[0].strip()
+    assert subtitle_head in body, f"không thấy số liệu tổng hợp. body={body[:300]}"
 
-    # Bộ lọc phải được nạp từ dữ liệu thật, không viết cứng.
-    options = await page.locator("select[aria-label='Lọc theo địa điểm'] option").all_inner_texts()
+    # Bộ lọc bám vào `data-testid` chứ không vào nhãn: nhãn đổi theo ngôn ngữ,
+    # còn thứ đang kiểm ở đây là hành vi lọc, không phải câu chữ.
+    options = await page.locator("[data-testid='filter-prefecture'] option").all_inner_texts()
     assert len(options) > 1, f"bộ lọc địa điểm trống: {options}"
 
     # Chọn hai bộ lọc liên tiếp rồi bỏ một cái: kiểm rằng bộ lọc còn lại KHÔNG
     # bị mất. Bản đầu dùng hook `useQueryString` nên mỗi thao tác phải gọi hai
     # lần (đặt bộ lọc + đưa về trang 1) mà cả hai lần đọc cùng một query cũ ->
     # lần sau ghi đè lần trước; còn `deleteQueryString()` thì xoá sạch mọi tham số.
-    await page.locator("select[aria-label='Lọc theo tiếng Nhật']").select_option("business")
+    await page.locator("[data-testid='filter-japanese']").select_option("business")
     await page.wait_for_timeout(1500)
     assert "japanese=business" in page.url, page.url
 
-    await page.locator("select[aria-label='Lọc theo địa điểm']").select_option("Tokyo")
+    await page.locator("[data-testid='filter-prefecture']").select_option("Tokyo")
     await page.wait_for_timeout(1500)
     assert "japanese=business" in page.url and "prefecture=Tokyo" in page.url, page.url
     assert "page=1" in page.url, f"đổi bộ lọc phải quay về trang 1: {page.url}"
 
-    await page.locator("select[aria-label='Lọc theo địa điểm']").select_option("")
+    await page.locator("[data-testid='filter-prefecture']").select_option("")
     await page.wait_for_timeout(1500)
     assert "prefecture=" not in page.url, page.url
     assert "japanese=business" in page.url, f"bỏ một bộ lọc đã xoá mất bộ lọc khác: {page.url}"
@@ -259,7 +275,7 @@ async def test_match_page_requires_a_resume_then_shows_companies(page, db):
 
     # Chưa có CV: phải chỉ đường sang trang tạo CV chứ không hiện lỗi cụt lủn.
     await page.goto(f"{APP_URL}/match", wait_until="domcontentloaded")
-    await page.get_by_role("link", name="Tạo CV ngay").wait_for(timeout=30000)
+    await page.get_by_role("link", name=tr("match", "createResume")).wait_for(timeout=30000)
 
     # Tạo CV tối thiểu ngay qua API của ứng dụng (form CV rất dài, không phải
     # thứ đang kiểm ở test này).
@@ -284,17 +300,64 @@ async def test_match_page_requires_a_resume_then_shows_companies(page, db):
     assert result == 200, f"không tạo được CV: {result}"
 
     await page.goto(f"{APP_URL}/match", wait_until="domcontentloaded")
-    await page.get_by_text("Công ty phù hợp với bạn").wait_for(timeout=30000)
+    await page.get_by_text(tr("match", "title")).wait_for(timeout=30000)
     await page.wait_for_timeout(2000)
 
     body = await page.inner_text("body")
-    assert "Xếp hạng" in body
-    gap_link = page.get_by_role("link", name="Tôi còn thiếu gì để vào công ty này →").first
+    assert tr("match", "subtitle_other").split("{{")[0].strip() in body
+    gap_link = page.get_by_role("link", name=tr("match", "companyGapLink")).first
     assert await gap_link.count() > 0, f"không có công ty nào được gợi ý. body={body[:400]}"
 
     # Chức năng 2: mở phân tích thiếu sót của công ty đầu bảng.
     await gap_link.click()
     await page.wait_for_timeout(2500)
     gap_body = await page.inner_text("body")
-    assert "Bạn còn thiếu gì để vào" in gap_body, f"body={gap_body[:400]}"
-    assert "Các vị trí đang tuyển" in gap_body
+    title_head = tr("match", "companyGap.title").split("{{")[0].strip()
+    assert title_head in gap_body, f"body={gap_body[:400]}"
+    assert tr("match", "openPositions") in gap_body
+
+
+async def test_switching_language_changes_the_whole_interface(page, db):
+    """Đổi ngôn ngữ đổi cả giao diện tĩnh lẫn câu chữ do backend sinh ra.
+
+    Hai thứ này đi hai đường khác nhau và hỏng độc lập với nhau:
+
+      * menu bên trái là chuỗi trong `nav.json` -> chỉ cần `t()` là xong;
+      * toast lỗi là mã `code` do backend trả về (`auth.invalidCredentials`),
+        client mới tra sang `error.json`.
+
+    Đường thứ hai là đường dễ gãy: thêm một endpoint quên đặt `code` thì toast
+    vẫn hiện, vẫn đúng nghĩa, chỉ là sai ngôn ngữ — không ai phát hiện cho tới
+    lúc demo. Nên test kiểm cả hai, và kiểm rằng lựa chọn sống sót qua F5.
+    """
+    email = unique_email("lang")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+
+    # Mặc định (UI_LANG) hiển thị đúng.
+    await page.get_by_role("button", name=tr("nav", "resume")).first.wait_for(timeout=30000)
+
+    # Đổi sang tiếng Việt bằng chính nút trên thanh header.
+    await page.get_by_role("button", name="VI", exact=True).click()
+    await page.wait_for_timeout(1000)
+
+    vi_nav = json.loads((LOCALES_DIR / "vi" / "nav.json").read_text(encoding="utf-8"))
+    body = await page.inner_text("body")
+    assert vi_nav["resume"] in body, f"menu chưa đổi sang tiếng Việt. body={body[:300]}"
+    assert await page.evaluate("() => document.documentElement.lang") == "vi"
+
+    # Lựa chọn phải sống sót qua tải lại trang, nếu không người dùng phải bấm
+    # lại sau mỗi lần F5.
+    await page.reload(wait_until="domcontentloaded")
+    await page.wait_for_timeout(2000)
+    assert vi_nav["resume"] in await page.inner_text("body")
+
+    # Thông báo lỗi do backend sinh ra cũng phải theo ngôn ngữ đang chọn.
+    vi_error = json.loads((LOCALES_DIR / "vi" / "error.json").read_text(encoding="utf-8"))
+    await page.evaluate("() => window.localStorage.removeItem('social_app_token')")
+    await page.goto(f"{APP_URL}/login", wait_until="domcontentloaded")
+    vi_auth = json.loads((LOCALES_DIR / "vi" / "auth.json").read_text(encoding="utf-8"))
+    await page.get_by_placeholder(vi_auth["field"]["emailPlaceholder"]).fill(email)
+    await page.get_by_placeholder(vi_auth["field"]["passwordPlaceholder"]).fill("sai-mat-khau")
+    await page.get_by_role("button", name=vi_auth["login"]["submit"], exact=True).click()
+    await page.wait_for_selector(f"text={vi_error['server']['auth']['invalidCredentials']}", timeout=15000)

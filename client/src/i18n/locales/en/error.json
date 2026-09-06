@@ -1,0 +1,112 @@
+{
+  "ui": {
+    "title": "This page hit a problem",
+    "description": "Something went wrong while rendering. The issue has been logged — please try reloading the page.",
+    "networkFallback": "Something went wrong, please try again later.",
+    "technicalDetails": "Technical details (development only)"
+  },
+  "server": {
+    "server": {
+      "generic": "Something went wrong, please try again later."
+    },
+    "common": {
+      "invalidId": "Invalid identifier.",
+      "invalidValue": "The value of '{{field}}' is invalid.",
+      "invalidPayload": "The submitted data is invalid.",
+      "invalidPayloadFields": "Invalid data in: {{fields}}",
+      "tooManyRequests": "Too many requests, please try again in a few minutes."
+    },
+    "auth": {
+      "missingToken": "Token is missing.",
+      "invalidOrExpiredToken": "Token has expired or is invalid.",
+      "invalidToken": "Token is not valid.",
+      "adminOnly": "This feature is for administrators only.",
+      "notEnoughPermission": "You do not have enough permission.",
+      "credentialsRequired": "Email and password are required.",
+      "emailExists": "This email address is already registered.",
+      "invalidCredentials": "Email or password is incorrect.",
+      "sessionExpired": "Your session has expired, please log in again.",
+      "registered": "Account created successfully.",
+      "loggedOut": "Logged out successfully."
+    },
+    "upload": {
+      "unsupportedType": "Unsupported file type. Allowed: {{allowed}}",
+      "tooLarge": "File exceeds {{max}}MB."
+    },
+    "user": {
+      "notFound": "User not found.",
+      "cannotEditOthers": "You cannot edit another user's information.",
+      "wrongOldPassword": "The current password is incorrect.",
+      "updated": "User updated successfully."
+    },
+    "follow": {
+      "cannotFollowSelf": "You cannot follow yourself.",
+      "followed": "Followed successfully.",
+      "unfollowed": "Unfollowed successfully.",
+      "followingRemoved": "Removed from your following list.",
+      "followerRemoved": "Removed from your followers."
+    },
+    "post": {
+      "notFound": "Post not found.",
+      "contentAndChannelRequired": "A post needs both content and a channel.",
+      "invalidOldImages": "The existing image data is invalid.",
+      "cannotEditOthers": "You cannot edit someone else's post, or a post in a deleted channel.",
+      "cannotDeleteOthers": "You cannot delete someone else's post.",
+      "emptyComment": "You cannot post an empty comment.",
+      "created": "Post created.",
+      "updated": "Post updated.",
+      "deleted": "Post deleted.",
+      "liked": "Post liked.",
+      "unliked": "Like removed.",
+      "saved": "Post saved.",
+      "unsaved": "Post unsaved.",
+      "commented": "Comment posted.",
+      "commentDeleted": "Comment deleted."
+    },
+    "channel": {
+      "notFound": "Channel not found.",
+      "exists": "A channel with this name already exists.",
+      "notJoined": "You have not joined this channel.",
+      "notJoinedShortcut": "You have not joined this channel.",
+      "adminCannotLeave": "An administrator cannot leave the channel on their own.",
+      "cannotRemoveSelf": "You cannot remove yourself from the channel.",
+      "cannotRemoveOtherAdmin": "You cannot remove another administrator.",
+      "invalidOldBackground": "The existing background image data is invalid.",
+      "created": "Channel created.",
+      "joined": "Joined the channel.",
+      "left": "You left the channel.",
+      "updated": "Channel updated.",
+      "deleted": "Channel deleted."
+    },
+    "chat": {
+      "conversationNotFound": "Conversation not found."
+    },
+    "job": {
+      "notFound": "Job posting not found."
+    },
+    "company": {
+      "notFound": "Company not found.",
+      "noOpenJobs": "This company has no open positions right now."
+    },
+    "resume": {
+      "saved": "Resume saved."
+    },
+    "match": {
+      "noResume": "Create your resume first to use company matching."
+    },
+    "web": {
+      "invalidOldLogo": "The existing logo data is invalid.",
+      "updated": "Website information updated."
+    },
+    "admin": {
+      "unknownSource": "Unknown source: {{sources}}",
+      "pagesOutOfRange": "Page count must be between 1 and {{max}}.",
+      "detailOutOfRange": "Detail count must be between 0 and {{max}}.",
+      "etlRunning": "A data collection batch is already running, please wait.",
+      "etlStarted": "Data collection started, follow it at /api/admin/etl/status"
+    },
+    "log": {
+      "received": "Recorded."
+    }
+  }
+}

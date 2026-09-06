@@ -4,7 +4,9 @@ import Loading from '../../../components/ui/Loading';
 import { useGetCompanyGapQuery } from '../../../services/redux/query/api/matchApi';
 import GapList from './components/GapList';
 import MatchScore from './components/MatchScore';
-import { formatSalary } from '../Recruitment/components/JobCard';
+import { formatSalary } from '../../../services/utils/jobFormat';
+import { useTranslation } from 'react-i18next';
+import { serverMessage } from '../../../services/utils/serverMessage';
 
 /**
  * Chức năng 2 ở mức công ty — tổng hợp thiếu sót trên MỌI vị trí đang tuyển.
@@ -13,6 +15,7 @@ import { formatSalary } from '../Recruitment/components/JobCard';
  * mình chưa có", nên gộp và loại trùng thiếu sót của tất cả vị trí.
  */
 function CompanyGapLayout() {
+  const { t } = useTranslation(['match', 'job', 'error']);
   const { id } = useParams();
   const { data, isLoading, isError, error } = useGetCompanyGapQuery(id);
 
@@ -21,9 +24,11 @@ function CompanyGapLayout() {
     return (
       <Page>
         <section className='p-8 rounded-lg border border-neutral-300 dark:border-neutral-700 flex flex-col items-center gap-4'>
-          <p className='font-bold'>{error?.data?.message || 'Không tải được dữ liệu.'}</p>
+          <p className='font-bold'>
+            {serverMessage(t, error?.data, 'jobGap.loadFailed')}
+          </p>
           <Link to='/match' className='px-4 py-2 rounded bg-blue-500 text-neutral-50'>
-            Về danh sách gợi ý
+            {t('backToList')}
           </Link>
         </section>
       </Page>
@@ -62,16 +67,18 @@ function CompanyGapLayout() {
         )}
         {company.tech_stack?.length > 0 && (
           <p className='text-sm'>
-            <span className='opacity-70'>Công nghệ công ty dùng: </span>
+            <span className='opacity-70'>{t('techStack')} </span>
             {company.tech_stack.join(', ')}
           </p>
         )}
       </section>
 
       <section className='mb-6'>
-        <h2 className='text-lg font-bold mb-3'>Bạn còn thiếu gì để vào {company.name}</h2>
+        <h2 className='text-lg font-bold mb-3'>
+          {t('companyGap.title', { name: company.name })}
+        </h2>
         <p className='text-sm opacity-70 mb-3'>
-          Tổng hợp từ {positions.length} vị trí đang tuyển. Vị trí khớp nhất hiện tại:{' '}
+          {t('companyGap.summary', { count: positions.length })}{' '}
           <Link to={`/match/jobs/${bestJob._id}`} className='text-blue-600 dark:text-blue-400 hover:underline'>
             {bestJob.title}
           </Link>
@@ -80,7 +87,7 @@ function CompanyGapLayout() {
       </section>
 
       <section>
-        <h2 className='text-lg font-bold mb-3'>Các vị trí đang tuyển</h2>
+        <h2 className='text-lg font-bold mb-3'>{t('openPositions')}</h2>
         <ul className='flex flex-col gap-2'>
           {positions.map((p) => (
             <li
@@ -95,7 +102,7 @@ function CompanyGapLayout() {
                   {p.job.title}
                 </Link>
                 <p className='text-sm opacity-70'>
-                  {formatSalary(p.job.salary_min, p.job.salary_max)}
+                  {formatSalary(t, p.job.salary_min, p.job.salary_max)}
                   {p.job.prefecture ? ` · ${p.job.prefecture}` : ''}
                 </p>
               </div>

@@ -1,0 +1,41 @@
+{
+  "title": "Bài viết",
+  "plural": "Bài viết",
+  "empty": "Chưa có bài viết nào",
+  "create": {
+    "placeholder": "{{name}} ơi, bạn đang nghĩ gì?",
+    "selectChannel": "Chọn channel",
+    "addToPost": "Thêm vào bài viết",
+    "addImage": "Thêm ảnh",
+    "submit": "Đăng bài",
+    "imageAlt": "Ảnh đính kèm {{index}}"
+  },
+  "update": {
+    "title": "Sửa bài viết",
+    "uploadHere": "Tải ảnh lên tại đây",
+    "images": "Hình ảnh",
+    "content": "Nội dung"
+  },
+  "actions": {
+    "like": "Thích",
+    "comment": "Bình luận",
+    "save": "Lưu",
+    "edit": "Sửa",
+    "delete": "Xoá",
+    "selectAll": "Chọn tất cả",
+    "sendComment": "Gửi bình luận",
+    "deleteComment": "Xoá bình luận",
+    "commentAs": "Bình luận với tên {{name}}"
+  },
+  "bookmark": {
+    "empty": "Chưa lưu bài viết nào",
+    "toggle": "Lưu bài viết"
+  },
+  "confirm": {
+    "delete": "Bạn chắc chắn muốn xoá bài viết này?"
+  },
+  "count": {
+    "like_other": "{{count}} lượt thích",
+    "comment_other": "{{count}} bình luận"
+  }
+}

@@ -3,8 +3,10 @@ import { useGetSearchUsersQuery } from '../../../../services/redux/query/api/use
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Pagination from '../../../../components/ui/Pagination';
 import { ModalContext } from '../../../../context/ModalProvider';
+import { useTranslation } from 'react-i18next';
 
 function Users({ searchValue }) {
+  const { t } = useTranslation(['user', 'common']);
   const navigate = useNavigate();
   const { setVisibleModal } = useContext(ModalContext);
   const [searchParams] = useSearchParams();
@@ -15,13 +17,10 @@ function Users({ searchValue }) {
   return (
     <div className='bg-neutral-100 dark:bg-neutral-800 p-4 rounded'>
       <div className='flex justify-between items-center gap-4'>
-        <h1 className='text-xl md:text-2xl font-bold dark:text-white'>
-          People
-        </h1>
+        <h1 className='text-xl md:text-2xl font-bold dark:text-white'>{t('search.people')}</h1>
         {isSuccessUsers && (
           <p className='text-medium text-lg'>
-            Found {usersData?.totalUsers}{' '}
-            {usersData?.totalUsers > 1 ? 'Results' : 'Result'}
+            {t('common:status.foundResults', { count: usersData?.totalUsers || 0 })}
           </p>
         )}
       </div>
@@ -51,9 +50,7 @@ function Users({ searchValue }) {
                       <button
                         className='bg-blue-500 text-neutral-100 px-4 py-1 rounded'
                         onClick={() => setVisibleModal({ visibleChatModal: u })}
-                      >
-                        Message
-                      </button>
+                      >{t('search.message')}</button>
                     </div>
                   </div>
                 </article>
@@ -70,7 +67,7 @@ function Users({ searchValue }) {
       )}
       {isSuccessUsers && usersData?.users?.length === 0 && (
         <div className='my-8'>
-          <p className='text-xl font-bold text-center'>No User Yet!</p>
+          <p className='text-xl font-bold text-center'>{t('search.empty')}</p>
         </div>
       )}
     </div>

@@ -6,8 +6,10 @@ import { FaRegTrashCan } from 'react-icons/fa6';
 import { ModalContext } from '../../../../context/ModalProvider';
 import UpdatePostModal from '../../../../components/modal/UpdatePostModal';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 
 function Followers() {
+  const { t } = useTranslation(['user', 'common']);
   const [searchParams] = useSearchParams();
   const { setVisibleModal } = useContext(ModalContext);
   const { data: followersData, isSuccess: isSuccessFollowers } =
@@ -54,14 +56,13 @@ function Followers() {
                 </button> */}
                 <button
                   className='text-lg flex justify-center items-center hover:text-red-500 transition-colors'
-                  aria-label='delete-btn'
+                  aria-label={t('actions.delete')}
                   onClick={() =>
                     setVisibleModal({
                       visibleConfirmModal: {
                         icon: <FaRegTrashCan className='text-red-500' />,
-                        question: `Are you sure you want to remove ${f?.username} from the list?`,
-                        description:
-                          'You will not be able to restore the recording after deletion',
+                        question: t('confirm.removeFollower', { name: f?.username }),
+                        description: t('common:confirm.irreversible'),
                         loading: isLoadingDelete,
                         acceptFunc: () => deleteUser(f?._id),
                       },
@@ -96,7 +97,7 @@ function Followers() {
       )}
       {isSuccessFollowers && followersData?.followers?.length === 0 && (
         <div className='w-full flex justify-center items-center py-4'>
-          <p className='text-lg md:text-xl font-bold'>No Follower Yet!</p>
+          <p className='text-lg md:text-xl font-bold'>{t('followers.empty')}</p>
         </div>
       )}
     </div>

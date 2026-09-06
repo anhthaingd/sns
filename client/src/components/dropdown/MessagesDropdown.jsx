@@ -6,12 +6,15 @@ import {
   useState,
 } from 'react';
 import { formatDistanceStrict } from 'date-fns';
+import { currentDateLocale } from '../../i18n/dateLocale';
 import { DropdownContext } from '../../context/NotificationProvider';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { ModalContext } from '../../context/ModalProvider';
 import { useReadMessageMutation } from '../../services/redux/query/api/chatApi';
+import { useTranslation } from 'react-i18next';
 
 function MessagesDropdown() {
+  const { t } = useTranslation('chat');
   const { user, newestMessages, refetchMessages } =
     useContext(FetchDataContext);
   const { setVisibleModal } = useContext(ModalContext);
@@ -72,7 +75,7 @@ function MessagesDropdown() {
             <p className='text-lg font-bold'>{receiver?.user?.username}</p>
             <div className='text-neutral-600 dark:text-neutral-300 font-bold flex items-center gap-2 pr-4'>
               <div className='flex gap-2'>
-                {user._id === m?.lastSent && <p>You:</p>}
+                {user._id === m?.lastSent && <p>{t('messages.youPrefix')}</p>}
                 <p
                   className={`max-w-[180px] w-full truncate ${
                     !me?.isRead ? 'dark:text-neutral-50 text-neutral-800' : ''
@@ -84,7 +87,8 @@ function MessagesDropdown() {
               <p className='text-[12px] flex'>
                 {formatDistanceStrict(
                   new Date(Date.now()),
-                  new Date(m?.updated_at)
+                  new Date(m?.updated_at),
+                  { locale: currentDateLocale() }
                 )}
               </p>
             </div>
@@ -95,7 +99,10 @@ function MessagesDropdown() {
         </article>
       );
     });
-  }, [newestMessages, state.visibleMessagesDropdown]);
+  // `t` phải nằm trong mảng phụ thuộc: đổi ngôn ngữ thì react-i18next trả về
+  // một `t` mới, thiếu nó thì danh sách đã memo hoá giữ nguyên chữ của ngôn
+  // ngữ cũ cho tới khi có thứ khác kích hoạt tính lại.
+  }, [newestMessages, state.visibleMessagesDropdown, t]);
   return (
     <div
       className={`absolute w-[380px] right-0 my-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden shadow-lg ${
@@ -103,12 +110,12 @@ function MessagesDropdown() {
       } transition-all duration-200 flex flex-col gap-4`}
     >
       <div className='p-4'>
-        <h2 className='text-lg font-bold'>Messages</h2>
+        <h2 className='text-lg font-bold'>{t('messages.title')}</h2>
       </div>
       <div className='max-h-[80vh] overflow-y-auto'>
         {newestMessages?.messages?.length === 0 && (
           <div>
-            <p>No Messages Yet!</p>
+            <p>{t('messages.empty')}</p>
           </div>
         )}
         <div className='flex flex-col gap-4'>{memoMessages}</div>

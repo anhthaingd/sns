@@ -67,10 +67,23 @@ def _level_rank(level: str | None) -> int | None:
 
 @dataclass
 class Gap:
-    """Một chỗ CV chưa đáp ứng được."""
+    """Một chỗ CV chưa đáp ứng được.
+
+    Ba trường `code` / `params` / `message` phục vụ ba việc khác nhau:
+
+    * `code`    — mã ổn định để giao diện tra bản dịch (Nhật/Việt/Anh).
+    * `params`  — giá trị thô để ghép vào câu dịch. **Cố ý là dữ liệu thô**
+      (`"business"`, `3`) chứ không phải nhãn đã dịch sẵn: nhãn "Nghiệp vụ
+      (N2)" chỉ đúng với tiếng Việt, gửi đi thì giao diện tiếng Nhật hết
+      đường sửa.
+    * `message` — câu tiếng Việt dựng sẵn, dùng khi giao diện chưa có bản dịch
+      cho mã đó. Không bao giờ để người dùng nhìn thấy khoá thô.
+    """
 
     kind: str
     message: str
+    code: str = ""
+    params: dict = field(default_factory=dict)
     required: str = ""
     current: str = ""
     # `blocking=True`: hồ sơ gần như chắc chắn bị loại nếu không bù được.
@@ -81,11 +94,24 @@ class Gap:
 
 
 @dataclass
+class Met:
+    """Một yêu cầu CV đã đáp ứng. Cùng cơ chế mã/tham số như `Gap`."""
+
+    kind: str
+    message: str
+    code: str = ""
+    params: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
 class MatchResult:
     score: float
     semantic: float
     requirement_ratio: float | None
-    met: list[str] = field(default_factory=list)
+    met: list[Met] = field(default_factory=list)
     gaps: list[Gap] = field(default_factory=list)
     # Không có vector (embedder tắt) thì điểm chỉ dựa vào luật — nói rõ ra để
     # không ai hiểu nhầm là hệ thống đã "hiểu" nội dung CV.
@@ -97,7 +123,7 @@ class MatchResult:
             "semantic": round(self.semantic, 3),
             "requirementRatio": round(self.requirement_ratio, 3) if self.requirement_ratio is not None else None,
             "semanticAvailable": self.semantic_available,
-            "met": self.met,
+            "met": [m.to_dict() for m in self.met],
             "gaps": [g.to_dict() for g in self.gaps],
         }
 
@@ -112,17 +138,30 @@ def _check_language(
     labels: dict[str, str],
     name: str,
     kind: str,
-) -> tuple[float, str | None, Gap | None]:
+    language: str,
+) -> tuple[float, Met | None, Gap | None]:
     """Trả về (điểm 0-1, mô tả nếu đạt, gap nếu chưa đạt).
 
     Yêu cầu không rõ (`required is None`) thì KHÔNG tính vào điểm — chấm một
     người là "chưa đạt" vì tin không ghi rõ là sai.
+
+    `language` là `"japanese"` / `"english"` — mã thô cho giao diện, khác với
+    `name` là chữ tiếng Việt dùng dựng câu dự phòng.
     """
     required_rank = _level_rank(required)
     if required_rank is None:
         return 0.0, None, None
     if required == "none":
-        return 1.0, f"{name}: không yêu cầu", None
+        return (
+            1.0,
+            Met(
+                kind=kind,
+                code="met.language.noRequirement",
+                params={"language": language},
+                message=f"{name}: không yêu cầu",
+            ),
+            None,
+        )
 
     current_rank = _level_rank(current)
     if current_rank is None:
@@ -131,6 +170,8 @@ def _check_language(
             None,
             Gap(
                 kind=kind,
+                code="gap.language.notStated",
+                params={"language": language, "requiredLevel": required},
                 message=f"Tin yêu cầu {name} mức {labels.get(required, required)}, CV chưa ghi trình độ",
                 required=labels.get(required, required),
                 current="chưa ghi",
@@ -138,13 +179,24 @@ def _check_language(
             ),
         )
     if current_rank >= required_rank:
-        return 1.0, f"{name} {labels.get(current, current)} — đạt yêu cầu", None
+        return (
+            1.0,
+            Met(
+                kind=kind,
+                code="met.language.ok",
+                params={"language": language, "level": current},
+                message=f"{name} {labels.get(current, current)} — đạt yêu cầu",
+            ),
+            None,
+        )
 
     return (
         0.0,
         None,
         Gap(
             kind=kind,
+            code="gap.language.below",
+            params={"language": language, "requiredLevel": required, "currentLevel": current},
             message=(f"Cần {name} mức {labels.get(required, required)}, CV đang ở mức {labels.get(current, current)}"),
             required=labels.get(required, required),
             current=labels.get(current, current),
@@ -153,7 +205,7 @@ def _check_language(
     )
 
 
-def _check_skills(required: list[str], current: list[str]) -> tuple[float, str | None, Gap | None]:
+def _check_skills(required: list[str], current: list[str]) -> tuple[float, Met | None, Gap | None]:
     if not required:
         return 0.0, None, None
 
@@ -162,7 +214,16 @@ def _check_skills(required: list[str], current: list[str]) -> tuple[float, str |
     matched = [s for s in required if s.lower() in have]
     ratio = len(matched) / len(required)
 
-    met = f"Khớp {len(matched)}/{len(required)} kỹ năng: {', '.join(matched)}" if matched else None
+    met = (
+        Met(
+            kind="skills",
+            code="met.skills.matched",
+            params={"matched": matched, "matchedCount": len(matched), "total": len(required)},
+            message=f"Khớp {len(matched)}/{len(required)} kỹ năng: {', '.join(matched)}",
+        )
+        if matched
+        else None
+    )
     if not missing:
         return 1.0, met, None
 
@@ -171,6 +232,8 @@ def _check_skills(required: list[str], current: list[str]) -> tuple[float, str |
         met,
         Gap(
             kind="missing_skill",
+            code="gap.skills.missing",
+            params={"missing": missing, "count": len(missing)},
             message="Thiếu kỹ năng: " + ", ".join(missing),
             required=", ".join(required),
             current=", ".join(matched) or "chưa có kỹ năng nào trong danh sách",
@@ -181,30 +244,47 @@ def _check_skills(required: list[str], current: list[str]) -> tuple[float, str |
     )
 
 
-def _check_years(required: int | None, current: int | None) -> tuple[float, str | None, Gap | None]:
+def _check_years(required: int | None, current: int | None) -> tuple[float, Met | None, Gap | None]:
     if required is None:
         return 0.0, None, None
     if required == 0:
-        return 1.0, "Không yêu cầu kinh nghiệm", None
+        return (
+            1.0,
+            Met(kind="experience_years", code="met.years.noRequirement", message="Không yêu cầu kinh nghiệm"),
+            None,
+        )
     if current is None:
         return (
             0.0,
             None,
             Gap(
                 kind="experience_years",
+                code="gap.years.notStated",
+                params={"required": required},
                 message=f"Tin yêu cầu {required} năm kinh nghiệm, CV chưa ghi số năm",
                 required=f"{required} năm",
                 current="chưa ghi",
             ),
         )
     if current >= required:
-        return 1.0, f"{current} năm kinh nghiệm — đạt yêu cầu {required} năm", None
+        return (
+            1.0,
+            Met(
+                kind="experience_years",
+                code="met.years.ok",
+                params={"current": current, "required": required},
+                message=f"{current} năm kinh nghiệm — đạt yêu cầu {required} năm",
+            ),
+            None,
+        )
 
     return (
         current / required,
         None,
         Gap(
             kind="experience_years",
+            code="gap.years.below",
+            params={"required": required, "current": current, "short": required - current},
             message=f"Cần {required} năm kinh nghiệm, CV có {current} năm (còn thiếu {required - current} năm)",
             required=f"{required} năm",
             current=f"{current} năm",
@@ -221,6 +301,11 @@ def _soft_checks(job, resume: ResumeMatchView) -> list[Gap]:
         gaps.append(
             Gap(
                 kind="salary",
+                code="gap.salary.below",
+                params={
+                    "jobMax": job.salary_max // 10_000,
+                    "desired": resume.desired_salary_min // 10_000,
+                },
                 message=(
                     f"Mức lương tối đa {job.salary_max // 10_000} man/năm thấp hơn mong muốn "
                     f"{resume.desired_salary_min // 10_000} man/năm"
@@ -234,6 +319,8 @@ def _soft_checks(job, resume: ResumeMatchView) -> list[Gap]:
         gaps.append(
             Gap(
                 kind="location",
+                code="gap.location.outside",
+                params={"prefecture": job.prefecture, "desired": list(resume.desired_locations)},
                 message=f"Nơi làm việc {job.prefecture} không nằm trong khu vực mong muốn",
                 required=job.prefecture,
                 current=", ".join(resume.desired_locations),
@@ -257,17 +344,31 @@ def evaluate(job, resume: ResumeMatchView, cosine: float | None = None) -> Match
     `ResumeMatchView` — chỉ cần có đủ các trường được khai báo ở hai lớp view.
     """
     weighted: list[tuple[float, float]] = []
-    met: list[str] = []
+    met: list[Met] = []
     gaps: list[Gap] = []
 
     for weight, (value, ok_text, gap) in [
         (
             WEIGHT_JAPANESE,
-            _check_language(job.required_japanese, resume.japanese_level, LEVEL_LABELS, "Tiếng Nhật", "japanese_level"),
+            _check_language(
+                job.required_japanese,
+                resume.japanese_level,
+                LEVEL_LABELS,
+                "Tiếng Nhật",
+                "japanese_level",
+                "japanese",
+            ),
         ),
         (
             WEIGHT_ENGLISH,
-            _check_language(job.required_english, resume.english_level, ENGLISH_LABELS, "Tiếng Anh", "english_level"),
+            _check_language(
+                job.required_english,
+                resume.english_level,
+                ENGLISH_LABELS,
+                "Tiếng Anh",
+                "english_level",
+                "english",
+            ),
         ),
         (WEIGHT_SKILLS, _check_skills(job.required_skills or [], resume.skills_normalized or [])),
         (WEIGHT_YEARS, _check_years(job.min_years, resume.years_of_experience)),

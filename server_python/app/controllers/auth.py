@@ -43,7 +43,6 @@ logger = logging.getLogger("fuurin.auth")
 # Một thông báo duy nhất cho mọi kiểu đăng nhập hỏng. Bản cũ trả 404 "Tài khoản
 # chưa được đăng ký!" khi email lạ và 403 "Sai mật khẩu!" khi sai mật khẩu —
 # chỉ cần thử một lần là biết email nào có thật trong hệ thống.
-INVALID_CREDENTIALS_MESSAGE = "Email hoặc mật khẩu không đúng!"
 
 # Hash "mồi" để lần đăng nhập với email không tồn tại vẫn tốn đúng chừng ấy
 # thời gian như email có thật. Không có nó, kẻ tấn công đo thời gian phản hồi là
@@ -55,11 +54,11 @@ async def register_user(
     email: str = None, password: str = None, username: str = None, address: str = None, intro: str = None
 ):
     if not email or not password:
-        raise ApiError(400, "Yêu cầu cần có email và password!")
+        raise ApiError(400, code="auth.credentialsRequired")
 
     duplicated = await User.find_one(User.email == email)
     if duplicated:
-        raise ApiError(409, "Địa chỉ email đã tồn tại!")
+        raise ApiError(409, code="auth.emailExists")
 
     user_role = await Role.find_one(Role.value == 0)
     created_user = User(
@@ -74,11 +73,11 @@ async def register_user(
         await created_user.insert()
     except DuplicateKeyError as err:
         # Hai request đăng ký cùng lúc: unique index là chốt chặn cuối.
-        raise ApiError(409, "Địa chỉ email đã tồn tại!") from err
+        raise ApiError(409, code="auth.emailExists") from err
 
     await Follower(user=created_user.id).insert()
     await Following(user=created_user.id).insert()
-    return ok(message="Tạo tài khoản thành công!")
+    return ok(code="auth.registered")
 
 
 LOGIN_EMAIL_BUCKET = "login_fail_email"
@@ -99,7 +98,7 @@ async def login_user(email: str, password: str, response: Response, ip: str = "u
     if not user or not user.password or not password_ok:
         await rate_limit.record_failure(LOGIN_EMAIL_BUCKET, identity, LOGIN_RATE_LIMIT_WINDOW_SECONDS)
         await rate_limit.record_failure(LOGIN_IP_BUCKET, ip, LOGIN_RATE_LIMIT_WINDOW_SECONDS)
-        raise ApiError(401, INVALID_CREDENTIALS_MESSAGE)
+        raise ApiError(401, code="auth.invalidCredentials")
 
     await rate_limit.reset(LOGIN_EMAIL_BUCKET, identity)
     await rate_limit.reset(LOGIN_IP_BUCKET, ip)
@@ -125,22 +124,22 @@ async def refresh_access_token(refresh_token: str | None, response: Response):
     refresh token bị đánh cắp chỉ dùng được đúng một lần.
     """
     if not refresh_token:
-        raise ApiError(401, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!")
+        raise ApiError(401, code="auth.sessionExpired")
 
     try:
         decoded = decode_refresh_token(refresh_token)
     except jwt.PyJWTError as err:
         clear_refresh_cookie(response)
-        raise ApiError(401, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!") from err
+        raise ApiError(401, code="auth.sessionExpired") from err
 
     if await is_revoked(decoded.get("jti", "")):
         clear_refresh_cookie(response)
-        raise ApiError(401, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!")
+        raise ApiError(401, code="auth.sessionExpired")
 
     user = await User.get(to_object_id(decoded["_id"], "user_id"))
     if not user:
         clear_refresh_cookie(response)
-        raise ApiError(401, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!")
+        raise ApiError(401, code="auth.sessionExpired")
 
     await revoke(decoded.get("jti", ""), seconds_until_expiry(decoded))
 
@@ -178,7 +177,7 @@ async def logout_user(authorization: str | None, refresh_token: str | None, resp
             pass
 
     clear_refresh_cookie(response)
-    return ok(message="Đăng xuất tài khoản thành công!")
+    return ok(code="auth.loggedOut")
 
 
 # ---------------------------------------------------------------------------

@@ -18,6 +18,7 @@ Nếu bạn mới tiếp cận dự án, đọc lần lượt từ trên xuống
 | 6 | [Luồng CV và việc làm](06-luong-cv-va-viec-lam.md) | CV lưu ở đâu? 430 tin tuyển dụng từ đâu ra? |
 | 7 | [Embedding và gợi ý công ty](07-embedding-va-goi-y.md) | Máy "hiểu" CV kiểu gì? Điểm phù hợp tính ra sao? |
 | 8 | [Lỗi, log và kiểm thử](08-loi-log-va-kiem-thu.md) | Có lỗi thì tra ở đâu? Làm sao biết code không hỏng? |
+| 9 | [Đa ngôn ngữ](09-da-ngon-ngu.md) | Giao diện nói ba thứ tiếng bằng cách nào? Thêm một câu chữ mới thì sửa ở đâu? |
 
 ## Dự án này là gì
 

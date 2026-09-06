@@ -4,9 +4,12 @@ import { FetchDataContext } from '../../../context/FetchDataProvider';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Page from '../../Page';
 import { formatDistance } from 'date-fns';
+import { currentDateLocale } from '../../../i18n/dateLocale';
 import { IoBookmarkOutline } from 'react-icons/io5';
 import Pagination from '../../../components/ui/Pagination';
+import { useTranslation } from 'react-i18next';
 function BookMarkLayout() {
+  const { t } = useTranslation('post');
   const { user } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -44,7 +47,7 @@ function BookMarkLayout() {
                     {p?.channel?.name}
                   </h2>
                   <button
-                    aria-label='bookmark-btn'
+                    aria-label={t('bookmark.toggle')}
                     onClick={() =>
                       bookmark({ channelId: p?.channel._id, postId: p?._id })
                     }
@@ -67,6 +70,7 @@ function BookMarkLayout() {
                         new Date(Date.now()),
                         {
                           addSuffix: true,
+                          locale: currentDateLocale(),
                         }
                       )}
                     </p>
@@ -86,7 +90,10 @@ function BookMarkLayout() {
         );
       })
     );
-  }, [isSuccessBookmarks, bookmarksData]);
+  // `t` phải nằm trong mảng phụ thuộc: đổi ngôn ngữ thì react-i18next trả về
+  // một `t` mới, thiếu nó thì danh sách đã memo hoá giữ nguyên chữ của ngôn
+  // ngữ cũ cho tới khi có thứ khác kích hoạt tính lại.
+  }, [isSuccessBookmarks, bookmarksData, t]);
   return (
     <Page>
       <div className='flex flex-col gap-8  md:px-16 lg:px-32 xl:px-64'>
@@ -95,7 +102,7 @@ function BookMarkLayout() {
         )}
         {isSuccessBookmarks && bookmarksData?.posts?.length === 0 && (
           <div className='my-8 full flex justify-center items-end'>
-            <p className='text-2xl font-bold'>No Bookmark Yet!</p>
+            <p className='text-2xl font-bold'>{t('bookmark.empty')}</p>
           </div>
         )}
         {isSuccessBookmarks && bookmarksData?.totalPage > 1 && (

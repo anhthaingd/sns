@@ -177,8 +177,10 @@ async def count_jobs_by_prefecture():
 Ba quy tắc bắt buộc trong dự án:
 
 1. **Luôn trả về qua `ok(...)`** để có lớp vỏ chung.
-2. **Báo lỗi bằng `raise ApiError(404, "Thông báo tiếng Việt")`**, đừng tự trả
-   về `{"error": ...}`. Có một chỗ duy nhất xử lý mọi lỗi (xem tài liệu 8).
+2. **Báo lỗi bằng `raise ApiError(404, code="job.notFound")`**, đừng tự trả về
+   `{"error": ...}`. Có một chỗ duy nhất xử lý mọi lỗi (xem tài liệu 8). Mã
+   (`job.notFound`) phải có trong `app/messages.py` — nhờ nó mà giao diện dịch
+   được thông báo sang tiếng Nhật và tiếng Anh (xem tài liệu 9).
 3. **Viết chú thích cho quyết định nghiệp vụ**, ví dụ vì sao lại bỏ qua tin
    không có tỉnh.
 
@@ -252,7 +254,7 @@ Rồi mở <http://localhost:3000/docs>, tìm endpoint mới và bấm **Try it 
 |---|---|
 | Thêm một trường mới cho tin tuyển dụng | `app/models/job.py` |
 | Đổi số tin trên mỗi trang | `app/controllers/jobs.py`, hằng `PAGE_SIZE` |
-| Đổi nội dung thông báo lỗi | ngay chỗ `raise ApiError(...)` trong controller |
+| Đổi nội dung thông báo lỗi | `server_python/app/messages.py` (câu tiếng Việt) + `client/src/i18n/locales/*/error.json` (bản dịch) |
 | Thêm quy tắc kiểm tra dữ liệu gửi lên | `app/schemas/requests.py` |
 | Cho phép gọi API mà không cần đăng nhập | bỏ `Depends(get_current_user)` ở route |
 | Giới hạn số lần gọi (chống spam) | thêm `dependencies=[Depends(rate_limit(...))]`, xem `app/routes/client_logs.py` |

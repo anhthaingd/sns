@@ -1,0 +1,32 @@
+{
+  "management": {
+    "title": "管理",
+    "tabs": {
+      "website": "サイト設定",
+      "users": "ユーザー",
+      "channels": "チャンネル",
+      "userPosts": "投稿管理"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "tabs": {
+      "posts": "投稿",
+      "followers": "フォロワー",
+      "following": "フォロー中"
+    }
+  },
+  "website": {
+    "id": "サイトID",
+    "name": "サイト名",
+    "colorTitle": "サイト名の文字色",
+    "logo": "ロゴ",
+    "changeLogo": "ロゴを変更",
+    "logoHint": "利用できる画像形式は *.jpeg / *.webp / *.png のみです。",
+    "quotesRegister": "登録画面のひとこと",
+    "quotesLogin": "ログイン画面のひとこと"
+  },
+  "userPosts": {
+    "selectChannel": "チャンネルを選択"
+  }
+}

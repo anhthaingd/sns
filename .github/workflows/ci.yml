@@ -57,7 +57,11 @@ jobs:
       # react-hooks/exhaustive-deps). Sua mang phu thuoc co the doi hanh vi
       # runtime nen phai sua tung cho co kiem chung, khong sua hang loat. Chot
       # o day de con so chi duoc GIAM: them canh bao moi la CI do.
-      - name: ESLint
+      # `npm run lint` chay hai thu: ESLint va `scripts/check-i18n.mjs`.
+      # Cai thu hai doi ba file dich (ja/vi/en) phai cung tap khoa va cung tham
+      # so. Thieu mot khoa o tieng Viet KHONG lam hong build va KHONG lo ra khi
+      # thu bang tieng Nhat — no chi hien ra dung luc demo, nen phai chan o day.
+      - name: ESLint + kiem tra file dich
         run: npm run lint
 
       # Container dang chay bang `npm run dev`, nen neu khong build o day thi

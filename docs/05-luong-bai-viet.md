@@ -85,7 +85,7 @@ File `server_python/app/middleware/upload.py`:
 # Kiểm tra kích thước TRƯỚC khi đọc: `await file.read()` nạp toàn bộ file vào
 # RAM, nên kiểm tra sau khi đọc thì file 2GB đã kịp làm sập tiến trình.
 if file.size is not None and file.size > MAX_FILE_SIZE:
-    raise ApiError(413, f"File vượt quá {MAX_FILE_SIZE // (1024 * 1024)}MB.")
+    raise ApiError(413, code="upload.tooLarge", params={"max": MAX_FILE_SIZE // (1024 * 1024)})
 ```
 
 Thứ tự ở đây quyết định sống chết của máy chủ. Kiểm tra **sau** khi đọc file

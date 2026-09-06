@@ -40,7 +40,7 @@ def _target_dir(ext: str, field_name: str) -> str:
     # ApiError chứ không phải ValueError: ValueError sẽ rơi vào chốt chặn 500
     # và người dùng chỉ thấy "Đã có lỗi xảy ra" — không biết là do sai định dạng.
     allowed = ", ".join(sorted(ALLOWED_IMAGE_EXTENSIONS | ALLOWED_PDF_EXTENSIONS))
-    raise ApiError(400, f"Định dạng file không được hỗ trợ. Chỉ nhận: {allowed}")
+    raise ApiError(400, code="upload.unsupportedType", params={"allowed": allowed})
 
 
 async def save_upload_file(file: UploadFile, field_name: str = "images") -> dict:
@@ -56,11 +56,11 @@ async def save_upload_file(file: UploadFile, field_name: str = "images") -> dict
     # vào RAM, nên kiểm tra sau khi đọc thì file 2GB đã kịp làm sập tiến trình.
     # Starlette điền sẵn `size` từ Content-Length của phần multipart.
     if file.size is not None and file.size > MAX_FILE_SIZE:
-        raise ApiError(413, f"File vượt quá {MAX_FILE_SIZE // (1024 * 1024)}MB.")
+        raise ApiError(413, code="upload.tooLarge", params={"max": MAX_FILE_SIZE // (1024 * 1024)})
 
     content = await file.read()
     if len(content) > MAX_FILE_SIZE:
-        raise ApiError(413, f"File vượt quá {MAX_FILE_SIZE // (1024 * 1024)}MB.")
+        raise ApiError(413, code="upload.tooLarge", params={"max": MAX_FILE_SIZE // (1024 * 1024)})
 
     (abs_dir / filename).write_bytes(content)
 

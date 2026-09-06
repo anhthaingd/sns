@@ -1,0 +1,32 @@
+{
+  "management": {
+    "title": "Management",
+    "tabs": {
+      "website": "Website",
+      "users": "Users",
+      "channels": "Channels",
+      "userPosts": "User Posts"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "posts": "Posts",
+      "followers": "Followers",
+      "following": "Following"
+    }
+  },
+  "website": {
+    "id": "Web Id",
+    "name": "Website Name",
+    "colorTitle": "Color for website name",
+    "logo": "Logo",
+    "changeLogo": "Change Logo",
+    "logoHint": "Only *.jpeg, *.webp and *.png images will be accepted!",
+    "quotesRegister": "Quotes Register",
+    "quotesLogin": "Quotes Login"
+  },
+  "userPosts": {
+    "selectChannel": "Select Channel"
+  }
+}

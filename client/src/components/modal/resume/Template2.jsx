@@ -7,9 +7,10 @@ import {
   FaLocationDot,
   FaGithub,
 } from 'react-icons/fa6';
-import { format } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { formatShortDate } from '../../../services/utils/format';
+import { useTranslation } from 'react-i18next';
 function Template2({ resume }) {
+  const { t } = useTranslation('resume');
   const componentRef = useRef();
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -60,9 +61,7 @@ function Template2({ resume }) {
               <div className='flex items-center gap-2'>
                 <FaCakeCandles />
                 <p className='font-medium'>
-                  {format(new Date(resume?.birthday), 'dd/MM/yyyy', {
-                    locale: vi,
-                  })}
+                  {formatShortDate(resume?.birthday)}
                 </p>
               </div>
             )}
@@ -99,9 +98,7 @@ function Template2({ resume }) {
             )}
           </div>
           <div>
-            <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>
-              Skills
-            </h2>
+            <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>{t('template.skills')}</h2>
             <ul className='flex flex-col gap-2 p-2'>
               {resume?.skills?.map((s, index) => {
                 return (
@@ -116,9 +113,7 @@ function Template2({ resume }) {
           </div>
           {resume?.languages?.length > 0 && (
             <div>
-              <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>
-                Languages
-              </h2>
+              <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>{t('template.languages')}</h2>
               <ul className='flex flex-col gap-2 p-2'>
                 {resume?.languages?.map((l, index) => {
                   return (
@@ -132,9 +127,7 @@ function Template2({ resume }) {
           )}
           {resume?.oldCertificates?.length > 0 && (
             <div>
-              <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>
-                Certificates
-              </h2>
+              <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>{t('template.certificates')}</h2>
               <div className='flex flex-col gap-2 p-2 font-medium'>
                 {resume?.oldCertificates?.map((c, index) => {
                   return (
@@ -147,7 +140,7 @@ function Template2({ resume }) {
                         download={c?.name}
                         target='_blank'
                       >
-                        {c?.name}.pdf
+                        {t('template.certificateFile', { name: c?.name })}
                       </a>
                     </div>
                   );
@@ -159,16 +152,12 @@ function Template2({ resume }) {
         <div className='col-span-2 pt-[200px] px-4 flex flex-col gap-4'>
           {resume?.objective && (
             <div className='flex flex-col gap-4'>
-              <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>
-                Objective
-              </h2>
+              <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>{t('template.objective')}</h2>
               <p className='text-medium'>{resume?.objective}</p>
             </div>
           )}
           <div className='flex flex-col gap-4'>
-            <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>
-              Education
-            </h2>
+            <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>{t('template.education')}</h2>
             <div className='flex flex-col gap-2'>
               <h3 className='font-bold text-lg uppercase'>
                 {resume?.educationName}
@@ -177,16 +166,13 @@ function Template2({ resume }) {
                 {resume?.educationCompletion}
               </p>
               <p className='font-medium'>{resume?.educationMajor}</p>
-              <p>
-                GPA: <span className='font-medium'>{resume?.educationGPA}</span>
+              <p>{t('template.gpa')}<span className='font-medium'>{resume?.educationGPA}</span>
               </p>
             </div>
           </div>
           {resume?.experiences?.length > 0 && (
             <div className='flex flex-col gap-4'>
-              <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>
-                Experiences
-              </h2>
+              <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>{t('template.experiences')}</h2>
               <div className='flex flex-col gap-2'>
                 <div>
                   {resume?.experiences?.map((e, index) => {
@@ -197,7 +183,7 @@ function Template2({ resume }) {
                           {e?.startTime} - {e?.endTime}
                         </p>
                         <p>{e?.position}</p>
-                        <p>Description: {e?.description}</p>
+                        <p>{t('label.descriptionValue', { value: e?.description })}</p>
                       </div>
                     );
                   })}
@@ -207,9 +193,7 @@ function Template2({ resume }) {
           )}
           {resume?.projects?.length > 0 && (
             <div className='flex flex-col gap-4'>
-              <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>
-                Projects
-              </h2>
+              <h2 className='uppercase tracking-[6px] text-lg font-bold bg-neutral-200 p-2 text-center'>{t('template.projects')}</h2>
               <div className='flex flex-col gap-2'>
                 <div>
                   {resume?.projects?.map((p, index) => {
@@ -217,7 +201,7 @@ function Template2({ resume }) {
                       <div className='font-medium' key={index}>
                         <h3 className='font-bold text-lg'>{p?.name}</h3>
                         <p>{p?.tech}</p>
-                        <p>Description: {p?.description}</p>
+                        <p>{t('label.descriptionValue', { value: p?.description })}</p>
                       </div>
                     );
                   })}
@@ -231,9 +215,7 @@ function Template2({ resume }) {
         <button
           className='px-4 py-2 bg-blue-500 hover:bg-blue-700 transition-colors text-white font-bold'
           onClick={handlePrint}
-        >
-          DOWNLOAD
-        </button>
+        >{t('template.download')}</button>
       </div>
     </>
   );

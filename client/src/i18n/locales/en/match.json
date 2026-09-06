@@ -1,0 +1,86 @@
+{
+  "title": "Companies that match you",
+  "createResume": "Create your resume",
+  "backToList": "Back to suggestions",
+  "ruleOnlyNotice": "Ranking by rules only (Japanese, experience, skills). Semantic matching is unavailable — results are still usable, just less nuanced.",
+  "qualifiedOnly": "Only show companies I already qualify for",
+  "missingPrefix": "Missing:",
+  "companyGapLink": "What am I missing for this company? →",
+  "jobDetailLink": "Job details →",
+  "techStack": "Tech stack used here:",
+  "jobTech": "Tech:",
+  "openPositions": "Open positions",
+  "gapList": {
+    "noRequirement": "This posting states no concrete requirement to compare against your resume.",
+    "blocking_other": "Must be closed ({{count}})",
+    "optional_other": "Nice to have ({{count}})",
+    "met_other": "You already meet ({{count}})",
+    "blocking_one": "Must be closed ({{count}})",
+    "optional_one": "Nice to have ({{count}})",
+    "met_one": "You already meet ({{count}})"
+  },
+  "gap": {
+    "language": {
+      "notStated": "The posting requires {{language, lang}} at {{requiredLevel, level}}, but your resume states no level",
+      "below": "Needs {{language, lang}} at {{requiredLevel, level}}, your resume is at {{currentLevel, level}}"
+    },
+    "skills": {
+      "missing": "Missing skills: {{missing, list}}"
+    },
+    "years": {
+      "notStated": "The posting requires {{required}} years of experience, your resume states no number",
+      "below": "Needs {{required}} years of experience, your resume has {{current}} ({{short}} short)"
+    },
+    "salary": {
+      "below": "The maximum salary ¥{{jobMax}}0k/year is below your target of ¥{{desired}}0k/year"
+    },
+    "location": {
+      "outside": "The work location {{prefecture}} is not among your preferred areas"
+    }
+  },
+  "met": {
+    "language": {
+      "noRequirement": "{{language, lang}}: not required",
+      "ok": "{{language, lang}} {{level, level}} — requirement met"
+    },
+    "skills": {
+      "matched": "Matched {{matchedCount}}/{{total}} skills: {{matched, list}}"
+    },
+    "years": {
+      "noRequirement": "No experience requirement",
+      "ok": "{{current}} years of experience — meets the {{required}} required"
+    }
+  },
+  "language": {
+    "japanese": "Japanese",
+    "english": "English"
+  },
+  "loadFailed": "Could not load suggestions.",
+  "unknownLocation": "Location unknown",
+  "bestJob": "Best matching role:",
+  "empty": "No matching company yet. Try turning off the \"already qualify\" filter.",
+  "subtitle_other": "Ranking {{count}} companies against your resume: topical relevance plus how well you meet the hard requirements (Japanese, experience, skills).",
+  "positionCount_other": "{{count}} positions",
+  "moreGaps_other": "(and {{count}} more)",
+  "subtitle_one": "Ranking {{count}} company against your resume: topical relevance plus how well you meet the hard requirements (Japanese, experience, skills).",
+  "positionCount_one": "{{count}} position",
+  "moreGaps_one": "(and {{count}} more)",
+  "jobGap": {
+    "loadFailed": "Could not load the data.",
+    "qualified": "You meet every mandatory requirement of this role.",
+    "notQualified": "Some mandatory requirements are not met yet — see the list below.",
+    "employmentType": "Employment type",
+    "openOriginal": "Open the original posting on {{source}} →",
+    "aboutCompany": "About {{name}}"
+  },
+  "companyGap": {
+    "title": "What you're missing to join {{name}}",
+    "summary_one": "Aggregated from {{count}} open position. Your best match right now:",
+    "summary_other": "Aggregated from {{count}} open positions. Your best match right now:"
+  },
+  "score": {
+    "semantic": "Topical relevance: {{percent}}%",
+    "requirement": "Requirements met:",
+    "noRequirement": "the posting states no concrete requirement"
+  }
+}

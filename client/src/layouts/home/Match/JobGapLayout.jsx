@@ -4,10 +4,17 @@ import Loading from '../../../components/ui/Loading';
 import { useGetJobGapQuery } from '../../../services/redux/query/api/matchApi';
 import GapList from './components/GapList';
 import MatchScore from './components/MatchScore';
-import { LEVEL_LABELS, formatSalary } from '../Recruitment/components/JobCard';
+import {
+  experienceLabel,
+  formatSalary,
+  japaneseLevelLabel,
+} from '../../../services/utils/jobFormat';
+import { useTranslation } from 'react-i18next';
+import { serverMessage } from '../../../services/utils/serverMessage';
 
 /** Chức năng 2 — "tôi còn thiếu gì để vào vị trí này". */
 function JobGapLayout() {
+  const { t } = useTranslation(['match', 'job', 'error']);
   const { id } = useParams();
   const { data, isLoading, isError, error } = useGetJobGapQuery(id);
 
@@ -16,9 +23,11 @@ function JobGapLayout() {
     return (
       <Page>
         <section className='p-8 rounded-lg border border-neutral-300 dark:border-neutral-700 flex flex-col items-center gap-4'>
-          <p className='font-bold'>{error?.data?.message || 'Không tải được dữ liệu.'}</p>
+          <p className='font-bold'>
+            {serverMessage(t, error?.data, 'jobGap.loadFailed')}
+          </p>
           <Link to='/resume' className='px-4 py-2 rounded bg-blue-500 text-neutral-50'>
-            Tạo CV ngay
+            {t('createResume')}
           </Link>
         </section>
       </Page>
@@ -49,21 +58,30 @@ function JobGapLayout() {
           }`}
         >
           <p className='font-medium'>
-            {qualified
-              ? 'Bạn đã đáp ứng mọi điều kiện bắt buộc của vị trí này.'
-              : 'Còn điều kiện bắt buộc chưa đạt — xem danh sách bên dưới.'}
+            {qualified ? t('jobGap.qualified') : t('jobGap.notQualified')}
           </p>
         </div>
 
         <div className='flex flex-wrap gap-x-6 gap-y-1 text-sm opacity-80'>
-          <span>Lương: {formatSalary(job.salary_min, job.salary_max)}</span>
+          <span>
+            {t('job:salary.label')}: {formatSalary(t, job.salary_min, job.salary_max)}
+          </span>
           {job.required_japanese && (
-            <span>Tiếng Nhật: {LEVEL_LABELS[job.required_japanese] || job.required_japanese}</span>
+            <span>
+              {t('job:japaneseLabel')}:{' '}
+              {japaneseLevelLabel(t, job.required_japanese)}
+            </span>
           )}
           {job.min_years !== null && job.min_years !== undefined && (
-            <span>Kinh nghiệm: {job.min_years} năm</span>
+            <span>
+              {t('job:experience.label')}: {experienceLabel(t, job.min_years)}
+            </span>
           )}
-          {job.employment_type && <span>Hình thức: {job.employment_type}</span>}
+          {job.employment_type && (
+            <span>
+              {t('jobGap.employmentType')}: {job.employment_type}
+            </span>
+          )}
         </div>
 
         <a
@@ -72,7 +90,7 @@ function JobGapLayout() {
           rel='noreferrer'
           className='self-start text-sm text-blue-600 dark:text-blue-400 hover:underline'
         >
-          Mở tin gốc trên {job.source} →
+          {t('jobGap.openOriginal', { source: job.source })}
         </a>
       </section>
 
@@ -80,11 +98,13 @@ function JobGapLayout() {
 
       {company?.description && (
         <section className='mt-6 p-4 rounded-lg border border-neutral-300 dark:border-neutral-600'>
-          <h3 className='font-bold mb-2'>Về {company.name}</h3>
+          <h3 className='font-bold mb-2'>
+            {t('jobGap.aboutCompany', { name: company.name })}
+          </h3>
           <p className='text-sm opacity-80 whitespace-pre-line'>{company.description}</p>
           {company.tech_stack?.length > 0 && (
             <p className='mt-2 text-sm'>
-              <span className='opacity-70'>Công nghệ: </span>
+              <span className='opacity-70'>{t('jobTech')} </span>
               {company.tech_stack.join(', ')}
             </p>
           )}

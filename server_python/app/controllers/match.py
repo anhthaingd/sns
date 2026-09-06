@@ -32,7 +32,6 @@ logger = logging.getLogger("fuurin.match")
 
 PAGE_SIZE = 10
 
-NO_RESUME_MESSAGE = "Bạn cần tạo CV trước khi dùng chức năng gợi ý công ty phù hợp!"
 
 # Chấm nhiều hơn số hiển thị để việc sắp xếp có ý nghĩa, nhưng không chấm vô
 # hạn. 420 tin hiện tại nằm gọn trong ngưỡng này.
@@ -42,7 +41,7 @@ MAX_JOBS_SCORED = 1000
 async def _require_resume(decoded_user: dict) -> Resume:
     resume = await Resume.find_one(Resume.user == to_object_id(decoded_user["_id"], "user_id"))
     if resume is None:
-        raise ApiError(404, NO_RESUME_MESSAGE)
+        raise ApiError(404, code="match.noResume")
     return resume
 
 
@@ -164,7 +163,7 @@ async def job_gap(decoded_user: dict, job_id: str):
 
     job = await Job.find_one({"_id": oid}, projection_model=JobMatchView)
     if job is None:
-        raise ApiError(404, "Không tìm thấy tin tuyển dụng!")
+        raise ApiError(404, code="job.notFound")
 
     similarities = await job_index.similarities(resume.embedding)
     result = evaluate(job, resume, similarities.get(oid))
@@ -195,7 +194,7 @@ async def company_gap(decoded_user: dict, company_id: str):
     resume = await _require_resume(decoded_user)
     company = await Company.get(to_object_id(company_id, "company_id"))
     if company is None:
-        raise ApiError(404, "Không tìm thấy công ty!")
+        raise ApiError(404, code="company.notFound")
 
     similarities = await job_index.similarities(resume.embedding)
     jobs = await Job.find(
@@ -204,7 +203,7 @@ async def company_gap(decoded_user: dict, company_id: str):
     ).to_list()
 
     if not jobs:
-        raise ApiError(404, "Công ty này chưa có vị trí nào đang tuyển!")
+        raise ApiError(404, code="company.noOpenJobs")
 
     scored = sorted(
         ((job, evaluate(job, resume, similarities.get(job.id))) for job in jobs),

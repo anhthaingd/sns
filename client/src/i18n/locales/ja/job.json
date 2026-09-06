@@ -1,0 +1,51 @@
+{
+  "title": "日本の求人",
+  "searchPlaceholder": "職種・企業名・仕事内容で検索…",
+  "search": "検索",
+  "filter": {
+    "location": "勤務地で絞り込む",
+    "anyLocation": "すべての勤務地",
+    "japanese": "日本語レベルで絞り込む",
+    "anyJapanese": "すべての日本語レベル",
+    "salary": "年収で絞り込む",
+    "anySalary": "すべての年収",
+    "from300": "300万円以上",
+    "from500": "500万円以上",
+    "from800": "800万円以上",
+    "remoteOnly": "リモートのみ"
+  },
+  "card": {
+    "remote": "リモート",
+    "gapLink": "この求人に足りないものを見る →"
+  },
+  "level": {
+    "none": "不問",
+    "basic": "初級（N4〜N5）",
+    "conversational": "日常会話（N3）",
+    "business": "ビジネス（N2）",
+    "fluent": "上級（N1）",
+    "native": "ネイティブ"
+  },
+  "englishLevel": {
+    "none": "不問",
+    "basic": "初級",
+    "conversational": "日常会話",
+    "business": "ビジネス",
+    "fluent": "上級",
+    "native": "ネイティブ"
+  },
+  "salary": {
+    "undisclosed": "非公開",
+    "range": "{{minMan}}万円 〜 {{maxMan}}万円 / 年",
+    "single": "{{minMan}}万円 / 年",
+    "label": "年収"
+  },
+  "experience": {
+    "none": "経験不問",
+    "years": "経験{{years}}年以上",
+    "label": "経験"
+  },
+  "japaneseLabel": "日本語",
+  "empty": "条件に一致する求人が見つかりません。",
+  "subtitle_other": "GaijinPot・DaiJob・Nihongo Engineer・LinkedIn JP から集約した{{count}}件"
+}

@@ -166,30 +166,34 @@ Tạo file `client/src/layouts/home/Jobs/JobsByPrefectureLayout.jsx`:
 import Page from '../../Page';
 import Loading from '../../../components/ui/Loading';
 import NotFoundItem from '../../../components/ui/NotFoundItem';
+import { useTranslation } from 'react-i18next';
 import { useGetJobsByPrefectureQuery } from '../../../services/redux/query/api/jobsApi';
 
 function JobsByPrefectureLayout() {
+  const { t } = useTranslation('job');
   const { data, isLoading, isError, error } = useGetJobsByPrefectureQuery();
 
   if (isLoading) return <Loading />;
   if (isError) {
     return (
       <Page>
-        <p className='font-bold'>{error?.data?.message || 'Không tải được dữ liệu.'}</p>
+        <p className='font-bold'>{error?.data?.message || t('loadFailed')}</p>
       </Page>
     );
   }
 
   return (
     <Page>
-      <h1 className='text-2xl font-bold mb-4'>Việc làm theo tỉnh</h1>
-      {data?.prefectures?.length === 0 && <NotFoundItem />}
+      <h1 className='text-2xl font-bold mb-4'>{t('byPrefecture.title')}</h1>
+      {data?.prefectures?.length === 0 && <NotFoundItem message={t('empty')} />}
       <ul className='flex flex-col gap-2'>
         {data?.prefectures?.map((p) => (
           <li key={p.name} className='flex justify-between p-3 rounded border
                                       border-neutral-300 dark:border-neutral-700'>
             <span>{p.name}</span>
-            <span className='font-bold'>{p.total} tin</span>
+            <span className='font-bold'>
+              {t('byPrefecture.count', { count: p.total })}
+            </span>
           </li>
         ))}
       </ul>
@@ -200,8 +204,12 @@ function JobsByPrefectureLayout() {
 export default JobsByPrefectureLayout;
 ```
 
-Ba điều bắt buộc:
+Bốn điều bắt buộc:
 
+- **Không viết chữ thẳng vào JSX.** Mọi câu chữ đi qua `t('khoá')`, và khoá phải
+  có trong **cả ba** file `client/src/i18n/locales/{ja,vi,en}/job.json`. Viết
+  `<h1>Việc làm theo tỉnh</h1>` thì ESLint báo lỗi và CI đỏ. Cách thêm khoá mới
+  nằm ở [tài liệu 9](09-da-ngon-ngu.md).
 - **Bọc trong `<Page>`** để có bố cục chung (menu trái, cột phải).
 - **`key={...}` khi dùng `.map()`** — React cần một giá trị duy nhất cho mỗi
   phần tử để biết cái nào vừa đổi. Thiếu nó, danh sách sẽ nhảy lung tung khi
@@ -253,9 +261,12 @@ các nút có sẵn:
   onClick={() => handleRedirect('/jobs-by-prefecture')}
 >
   <span dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}></span>
-  <p>Việc làm theo tỉnh</p>
+  <p>{t('jobsByPrefecture')}</p>
 </button>
 ```
+
+`LeftAside.jsx` đã có sẵn `const { t } = useTranslation('nav')` ở đầu file, nên
+chỉ cần thêm khoá `jobsByPrefecture` vào ba file `locales/*/nav.json`.
 
 ### Bước 5 — Chạy thử
 
@@ -329,7 +340,11 @@ người dùng bấm nhanh tay sẽ tạo ra hai bản ghi trùng.
 | Danh sách nhảy loạn khi cập nhật | Thiếu `key` trong `.map()` |
 | Bộ lọc mất khi bấm F5 | Trạng thái để trong bộ nhớ thay vì trong URL |
 | `npm run lint` báo đỏ | Đọc thông báo, nó chỉ đúng dòng. Đừng bỏ qua — chính lint đã chỉ ra 2 lỗi làm sập trang trong dự án này |
+| Màn hình hiện `job.byPrefecture.title` thay vì chữ | Khoá chưa có trong file dịch — xem [tài liệu 9](09-da-ngon-ngu.md) |
+| Một dòng ra tiếng Nhật giữa giao diện tiếng Việt | Thiếu khoá ở `locales/vi/` nên rơi về ngôn ngữ mặc định |
 
 ---
 
 Tiếp theo: [4. Luồng đăng nhập](04-luong-dang-nhap.md)
+
+Liên quan: [9. Đa ngôn ngữ](09-da-ngon-ngu.md) — nơi cất toàn bộ chữ nghĩa của giao diện

@@ -1,0 +1,54 @@
+{
+  "profile": {
+    "edit": "Edit Profile",
+    "posts": "Posts",
+    "followers": "Followers",
+    "following": "Following",
+    "channels": "Channels",
+    "intro": "Intro",
+    "details": "Details",
+    "coverAlt": "Cover image",
+    "chat": "Chat"
+  },
+  "update": {
+    "title": "Update Profile",
+    "uploadHere": "Upload your image here",
+    "removeImage": "Remove image",
+    "usernamePlaceholder": "Enter your new username…",
+    "passwordPlaceholder": "Enter your new password…",
+    "introPlaceholder": "Enter your new intro…",
+    "addressPlaceholder": "Enter your new address…"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search…",
+    "close": "Close search",
+    "empty": "No users found",
+    "usernamePlaceholder": "Search username…",
+    "people": "People",
+    "message": "Message"
+  },
+  "followers": {
+    "empty": "No followers yet"
+  },
+  "following": {
+    "empty": "Not following anyone yet"
+  },
+  "actions": {
+    "update": "Update",
+    "delete": "Delete",
+    "notFoundImage": "Page not found"
+  },
+  "confirm": {
+    "removeFollower": "Are you sure you want to remove {{name}} from the list?",
+    "unfollow": "Are you sure you want to unfollow {{name}}?"
+  },
+  "field": {
+    "avatar": "Avatar",
+    "coverBackground": "Cover Background",
+    "username": "Username",
+    "password": "Password",
+    "intro": "Intro",
+    "address": "Address"
+  }
+}

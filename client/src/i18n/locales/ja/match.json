@@ -1,0 +1,79 @@
+{
+  "title": "あなたに合う企業",
+  "createResume": "履歴書を作成する",
+  "backToList": "おすすめ一覧に戻る",
+  "ruleOnlyNotice": "現在はルール（日本語力・経験年数・スキル）のみで順位付けしています。意味的なマッチングは利用できませんが、結果は十分に使えます。",
+  "qualifiedOnly": "応募条件を満たす企業だけ表示",
+  "missingPrefix": "不足:",
+  "companyGapLink": "この企業に足りないものを見る →",
+  "jobDetailLink": "求人の詳細 →",
+  "techStack": "この企業で使われている技術:",
+  "jobTech": "技術:",
+  "openPositions": "募集中のポジション",
+  "gapList": {
+    "noRequirement": "この求人には、履歴書と照らし合わせられる具体的な条件が書かれていません。",
+    "blocking_other": "必ず満たす必要があるもの（{{count}}件）",
+    "optional_other": "あると望ましいもの（{{count}}件）",
+    "met_other": "すでに満たしているもの（{{count}}件）"
+  },
+  "gap": {
+    "language": {
+      "notStated": "この求人は{{language, lang}}が{{requiredLevel, level}}レベル必要ですが、履歴書に記載がありません",
+      "below": "{{language, lang}}が{{requiredLevel, level}}レベル必要ですが、履歴書は{{currentLevel, level}}です"
+    },
+    "skills": {
+      "missing": "不足しているスキル: {{missing, list}}"
+    },
+    "years": {
+      "notStated": "この求人は経験{{required}}年以上が必要ですが、履歴書に年数の記載がありません",
+      "below": "経験{{required}}年が必要ですが、履歴書は{{current}}年です（あと{{short}}年）"
+    },
+    "salary": {
+      "below": "この求人の年収上限{{jobMax}}万円は、希望額{{desired}}万円を下回っています"
+    },
+    "location": {
+      "outside": "勤務地「{{prefecture}}」は希望勤務地に含まれていません"
+    }
+  },
+  "met": {
+    "language": {
+      "noRequirement": "{{language, lang}}: 不問",
+      "ok": "{{language, lang}} {{level, level}} — 条件を満たしています"
+    },
+    "skills": {
+      "matched": "スキル{{total}}件中{{matchedCount}}件が一致: {{matched, list}}"
+    },
+    "years": {
+      "noRequirement": "経験年数の指定なし",
+      "ok": "経験{{current}}年 — 必要な{{required}}年を満たしています"
+    }
+  },
+  "language": {
+    "japanese": "日本語",
+    "english": "英語"
+  },
+  "loadFailed": "おすすめを読み込めませんでした。",
+  "unknownLocation": "勤務地不明",
+  "bestJob": "最も合う求人:",
+  "empty": "条件に合う企業がまだありません。「応募条件を満たす企業だけ表示」を外してみてください。",
+  "subtitle_other": "あなたの履歴書をもとに{{count}}社を順位付けしています。業種の関連度と、必須条件（日本語・経験・スキル）の充足度を合わせて評価します。",
+  "positionCount_other": "{{count}}件の求人",
+  "moreGaps_other": "（ほか{{count}}件）",
+  "jobGap": {
+    "loadFailed": "データを読み込めませんでした。",
+    "qualified": "この求人の必須条件はすべて満たしています。",
+    "notQualified": "満たしていない必須条件があります。下の一覧をご確認ください。",
+    "employmentType": "雇用形態",
+    "openOriginal": "{{source}}の元の求人を開く →",
+    "aboutCompany": "{{name}}について"
+  },
+  "companyGap": {
+    "title": "{{name}}に入るために足りないもの",
+    "summary_other": "募集中の{{count}}件の求人から集約しています。現在いちばん合う求人:"
+  },
+  "score": {
+    "semantic": "業種の関連度: {{percent}}%",
+    "requirement": "条件の充足度:",
+    "noRequirement": "具体的な条件の記載なし"
+  }
+}

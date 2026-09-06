@@ -22,36 +22,77 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.messages import message_for
+
 logger = logging.getLogger("fuurin.error")
 
 # Thông báo duy nhất được phép trả ra cho lỗi ngoài dự kiến. Chi tiết thật
 # nằm trong log của server, không bao giờ đi ra ngoài.
-GENERIC_SERVER_ERROR = "Đã có lỗi xảy ra, vui lòng thử lại sau!"
-INVALID_ID_MESSAGE = "Định danh không hợp lệ!"
+GENERIC_SERVER_ERROR = message_for("server.generic")
+INVALID_ID_MESSAGE = message_for("common.invalidId")
 
 
 class ApiError(Exception):
-    """Lỗi nghiệp vụ có chủ đích — thông báo an toàn để hiển thị cho người dùng."""
+    """Lỗi nghiệp vụ có chủ đích — thông báo an toàn để hiển thị cho người dùng.
 
-    def __init__(self, status_code: int, message: str):
+    Hai cách dùng, cách thứ hai được ưu tiên::
+
+        raise ApiError(409, "Địa chỉ email đã tồn tại!")          # cũ, còn chạy
+        raise ApiError(409, code="auth.emailExists")              # nên dùng
+
+    Đưa `code` vào thì câu tiếng Việt được lấy từ `app/messages.py`, và client
+    có thứ để tra bản dịch (xem giải thích trong file đó). Tham số thay đổi
+    được truyền qua `params` chứ KHÔNG ghép sẵn vào chuỗi — ghép sẵn là client
+    hết đường dịch::
+
+        raise ApiError(413, code="upload.tooLarge", params={"max": 5})
+    """
+
+    def __init__(
+        self,
+        status_code: int,
+        message: str | None = None,
+        *,
+        code: str | None = None,
+        params: dict | None = None,
+    ):
+        if message is None:
+            if code is None:
+                raise ValueError("ApiError cần `message` hoặc `code`")
+            message = message_for(code, params)
         super().__init__(message)
         self.status_code = status_code
         self.message = message
+        self.code = code
+        self.params = params
 
 
-def error_body(message: str) -> dict[str, Any]:
-    return {"error": True, "success": False, "message": message}
+def error_body(message: str, code: str | None = None, params: dict | None = None) -> dict[str, Any]:
+    """Thân response lỗi.
+
+    `code`/`params` chỉ xuất hiện khi có — thêm khoá `null` vào mọi lỗi chỉ làm
+    payload rối mà client vẫn phải kiểm tra falsy.
+    """
+    body: dict[str, Any] = {"error": True, "success": False, "message": message}
+    if code:
+        body["code"] = code
+    if params:
+        body["params"] = params
+    return body
 
 
-def _json_error(status_code: int, message: str) -> JSONResponse:
-    return JSONResponse(status_code=status_code, content=error_body(message))
+def _json_error(status_code: int, message: str, code: str | None = None, params: dict | None = None) -> JSONResponse:
+    return JSONResponse(status_code=status_code, content=error_body(message, code, params))
 
 
-def _humanize_validation_error(exc: RequestValidationError) -> str:
-    """Biến lỗi Pydantic thành một câu tiếng Việt gọn, không lộ cấu trúc nội bộ."""
+def _humanize_validation_error(exc: RequestValidationError) -> tuple[str, str, dict | None]:
+    """Biến lỗi Pydantic thành (câu tiếng Việt, mã, tham số).
+
+    Không lộ cấu trúc nội bộ của Pydantic ra ngoài; chỉ giữ tên trường.
+    """
     errors = exc.errors()
     if not errors:
-        return "Dữ liệu gửi lên không hợp lệ!"
+        return message_for("common.invalidPayload"), "common.invalidPayload", None
 
     fields = []
     for err in errors:
@@ -61,9 +102,9 @@ def _humanize_validation_error(exc: RequestValidationError) -> str:
             fields.append(".".join(parts))
 
     if not fields:
-        return "Dữ liệu gửi lên không hợp lệ!"
-    unique_fields = list(dict.fromkeys(fields))
-    return f"Dữ liệu gửi lên không hợp lệ ở: {', '.join(unique_fields)}"
+        return message_for("common.invalidPayload"), "common.invalidPayload", None
+    params = {"fields": ", ".join(dict.fromkeys(fields))}
+    return message_for("common.invalidPayloadFields", params), "common.invalidPayloadFields", params
 
 
 class CatchAllErrorMiddleware:
@@ -99,11 +140,11 @@ class CatchAllErrorMiddleware:
             if response_started:
                 # Đã gửi header đi rồi thì không thể thay bằng JSON được nữa.
                 raise
-            await _json_error(500, GENERIC_SERVER_ERROR)(scope, receive, send)
+            await _json_error(500, GENERIC_SERVER_ERROR, "server.generic")(scope, receive, send)
 
 
 async def _api_error_handler(_: Request, exc: ApiError) -> JSONResponse:
-    return _json_error(exc.status_code, exc.message)
+    return _json_error(exc.status_code, exc.message, exc.code, exc.params)
 
 
 async def _http_exception_handler(_: Request, exc: StarletteHTTPException) -> JSONResponse:
@@ -116,7 +157,8 @@ async def _http_exception_handler(_: Request, exc: StarletteHTTPException) -> JS
 
 
 async def _validation_error_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
-    return _json_error(422, _humanize_validation_error(exc))
+    message, code, params = _humanize_validation_error(exc)
+    return _json_error(422, message, code, params)
 
 
 async def _invalid_id_handler(_: Request, exc: InvalidId) -> JSONResponse:
@@ -125,7 +167,7 @@ async def _invalid_id_handler(_: Request, exc: InvalidId) -> JSONResponse:
     # WARNING chu khong phai INFO: toi day nghia la co cho quen dung
     # `to_object_id()`, tuc la con mot duong ro thong bao cua driver.
     logger.warning("InvalidId lot toi handler (thieu to_object_id o dau do): %s", exc)
-    return _json_error(400, INVALID_ID_MESSAGE)
+    return _json_error(400, INVALID_ID_MESSAGE, "common.invalidId")
 
 
 def register_error_handlers(app: FastAPI) -> None:

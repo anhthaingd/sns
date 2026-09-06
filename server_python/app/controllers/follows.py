@@ -43,7 +43,7 @@ async def get_following(decoded_user: dict, page: int = 1):
 async def following_user(decoded_user: dict, target_id: str):
     user_id = decoded_user["_id"]
     if user_id == target_id:
-        raise ApiError(409, "Bạn không thể tự follow bản thân!")
+        raise ApiError(409, code="follow.cannotFollowSelf")
 
     user_oid = to_object_id(user_id, "user_id")
     target_oid = to_object_id(target_id, "target_id")
@@ -52,11 +52,11 @@ async def following_user(decoded_user: dict, target_id: str):
     if following_doc and target_oid in following_doc.following:
         await Following.find_one(Following.user == user_oid).update({"$pull": {"following": target_oid}})
         await Follower.find_one(Follower.user == target_oid).update({"$pull": {"followers": user_oid}})
-        return ok(message="Hủy follow tài khoản thành công!")
+        return ok(code="follow.unfollowed")
 
     await Following.find_one(Following.user == user_oid).update({"$push": {"following": target_oid}})
     await Follower.find_one(Follower.user == target_oid).update({"$push": {"followers": user_oid}})
-    return ok(message="Follow tài khoản thành công!")
+    return ok(code="follow.followed")
 
 
 async def remove_following(decoded_user: dict, target_id: str):
@@ -64,7 +64,7 @@ async def remove_following(decoded_user: dict, target_id: str):
     target_oid = to_object_id(target_id, "target_id")
     await Following.find_one(Following.user == user_oid).update({"$pull": {"following": target_oid}})
     await Follower.find_one(Follower.user == target_oid).update({"$pull": {"followers": user_oid}})
-    return ok(message="Hủy theo dõi người dùng thành công!")
+    return ok(code="follow.followingRemoved")
 
 
 async def remove_followers(decoded_user: dict, target_id: str):
@@ -72,7 +72,7 @@ async def remove_followers(decoded_user: dict, target_id: str):
     target_oid = to_object_id(target_id, "target_id")
     await Following.find_one(Following.user == target_oid).update({"$pull": {"following": user_oid}})
     await Follower.find_one(Follower.user == user_oid).update({"$pull": {"followers": target_oid}})
-    return ok(message="Gỡ thành công người dùng ra khỏi danh sách theo dõi!")
+    return ok(code="follow.followerRemoved")
 
 
 # ---------------------------------------------------------------------------

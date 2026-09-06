@@ -25,7 +25,10 @@ import { useNavigate } from 'react-router-dom';
 import { scrollElement } from '../../services/utils/scrollElement';
 import { useSelector } from 'react-redux';
 import MessagesDropdown from '../dropdown/MessagesDropdown';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useTranslation } from 'react-i18next';
 function Header() {
+  const { t } = useTranslation('nav');
   const webInfo = useSelector(getWebInfo);
   const { user, newestMessages } = useContext(FetchDataContext);
   const navigate = useNavigate();
@@ -113,7 +116,7 @@ function Header() {
             ref={searchInputRef}
             className='w-full py-2 px-8 rounded-3xl bg-neutral-200 dark:bg-neutral-600'
             type='text'
-            placeholder='Search...'
+            placeholder={t('searchPlaceholder')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onClick={() => setIsFocus(true)}
@@ -128,9 +131,11 @@ function Header() {
         </div>
       </div>
       <div className='flex items-center gap-4'>
+        <LanguageSwitcher />
         <button
           className='size-[40px] rounded-full overflow-hidden flex justify-center items-center bg-neutral-200 dark:bg-neutral-600'
           onClick={toggleTheme}
+          aria-label={t('theme')}
         >
           {curTheme === 'dark' ? (
             <FaSun className='text-xl' />
@@ -142,6 +147,7 @@ function Header() {
           <button
             className='size-[40px] rounded-full overflow-hidden flex justify-center items-center bg-neutral-200 dark:bg-neutral-600'
             onClick={() => setVisibleDropdown('visibleMessagesDropdown')}
+            aria-label={t('messages')}
           >
             <FaFacebookMessenger className='text-xl' />
           </button>
@@ -156,6 +162,7 @@ function Header() {
           <button
             className='size-[40px] rounded-full overflow-hidden flex justify-center items-center bg-neutral-200 dark:bg-neutral-600'
             onClick={() => setVisibleDropdown('visibleNotificationDropdown')}
+            aria-label={t('notifications')}
           >
             <FaBell className='text-xl' />
           </button>
@@ -186,7 +193,7 @@ function Header() {
               onClick={logoutUser}
             >
               <FaArrowRightFromBracket />
-              <span>Logout</span>
+              <span>{t('logout')}</span>
             </button>
           )}
         </div>

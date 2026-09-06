@@ -1,0 +1,79 @@
+{
+  "title": "Công ty phù hợp với bạn",
+  "createResume": "Tạo CV ngay",
+  "backToList": "Về danh sách gợi ý",
+  "ruleOnlyNotice": "Đang xếp hạng bằng luật (tiếng Nhật, kinh nghiệm, kỹ năng). Phần so khớp theo ngữ nghĩa chưa sẵn sàng — kết quả vẫn dùng được, chỉ kém tinh tế hơn.",
+  "qualifiedOnly": "Chỉ hiện công ty tôi đã đủ điều kiện",
+  "missingPrefix": "Còn thiếu:",
+  "companyGapLink": "Tôi còn thiếu gì để vào công ty này →",
+  "jobDetailLink": "Chi tiết vị trí →",
+  "techStack": "Công nghệ công ty dùng:",
+  "jobTech": "Công nghệ:",
+  "openPositions": "Các vị trí đang tuyển",
+  "gapList": {
+    "noRequirement": "Tin này không nêu yêu cầu cụ thể nào để đối chiếu với CV của bạn.",
+    "blocking_other": "Bắt buộc phải bù ({{count}})",
+    "optional_other": "Nên có thêm ({{count}})",
+    "met_other": "Bạn đã đáp ứng ({{count}})"
+  },
+  "gap": {
+    "language": {
+      "notStated": "Tin yêu cầu {{language, lang}} mức {{requiredLevel, level}}, CV chưa ghi trình độ",
+      "below": "Cần {{language, lang}} mức {{requiredLevel, level}}, CV đang ở mức {{currentLevel, level}}"
+    },
+    "skills": {
+      "missing": "Thiếu kỹ năng: {{missing, list}}"
+    },
+    "years": {
+      "notStated": "Tin yêu cầu {{required}} năm kinh nghiệm, CV chưa ghi số năm",
+      "below": "Cần {{required}} năm kinh nghiệm, CV có {{current}} năm (còn thiếu {{short}} năm)"
+    },
+    "salary": {
+      "below": "Mức lương tối đa {{jobMax}} man/năm thấp hơn mong muốn {{desired}} man/năm"
+    },
+    "location": {
+      "outside": "Nơi làm việc {{prefecture}} không nằm trong khu vực mong muốn"
+    }
+  },
+  "met": {
+    "language": {
+      "noRequirement": "{{language, lang}}: không yêu cầu",
+      "ok": "{{language, lang}} {{level, level}} — đạt yêu cầu"
+    },
+    "skills": {
+      "matched": "Khớp {{matchedCount}}/{{total}} kỹ năng: {{matched, list}}"
+    },
+    "years": {
+      "noRequirement": "Không yêu cầu kinh nghiệm",
+      "ok": "{{current}} năm kinh nghiệm — đạt yêu cầu {{required}} năm"
+    }
+  },
+  "language": {
+    "japanese": "Tiếng Nhật",
+    "english": "Tiếng Anh"
+  },
+  "loadFailed": "Không tải được gợi ý.",
+  "unknownLocation": "Chưa rõ địa điểm",
+  "bestJob": "Vị trí khớp nhất:",
+  "empty": "Chưa có công ty nào phù hợp. Thử bỏ bộ lọc \"đã đủ điều kiện\".",
+  "subtitle_other": "Xếp hạng {{count}} công ty dựa trên CV của bạn: mức độ liên quan về ngành nghề cộng với mức đáp ứng các yêu cầu cứng (tiếng Nhật, kinh nghiệm, kỹ năng).",
+  "positionCount_other": "{{count}} vị trí",
+  "moreGaps_other": "(và {{count}} điểm khác)",
+  "jobGap": {
+    "loadFailed": "Không tải được dữ liệu.",
+    "qualified": "Bạn đã đáp ứng mọi điều kiện bắt buộc của vị trí này.",
+    "notQualified": "Còn điều kiện bắt buộc chưa đạt — xem danh sách bên dưới.",
+    "employmentType": "Hình thức",
+    "openOriginal": "Mở tin gốc trên {{source}} →",
+    "aboutCompany": "Về {{name}}"
+  },
+  "companyGap": {
+    "title": "Bạn còn thiếu gì để vào {{name}}",
+    "summary_other": "Tổng hợp từ {{count}} vị trí đang tuyển. Vị trí khớp nhất hiện tại:"
+  },
+  "score": {
+    "semantic": "Độ liên quan ngành nghề: {{percent}}%",
+    "requirement": "Đáp ứng yêu cầu:",
+    "noRequirement": "tin không nêu yêu cầu cụ thể"
+  }
+}

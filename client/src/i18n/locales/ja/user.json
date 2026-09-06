@@ -1,0 +1,54 @@
+{
+  "profile": {
+    "edit": "プロフィールを編集",
+    "posts": "投稿",
+    "followers": "フォロワー",
+    "following": "フォロー中",
+    "channels": "チャンネル",
+    "intro": "自己紹介",
+    "details": "詳細",
+    "coverAlt": "カバー画像",
+    "chat": "チャット"
+  },
+  "update": {
+    "title": "プロフィールを編集",
+    "uploadHere": "ここに画像をアップロード",
+    "removeImage": "画像を削除",
+    "usernamePlaceholder": "新しいユーザー名を入力",
+    "passwordPlaceholder": "新しいパスワードを入力",
+    "introPlaceholder": "新しい自己紹介を入力",
+    "addressPlaceholder": "新しい住所を入力"
+  },
+  "search": {
+    "title": "検索",
+    "placeholder": "検索…",
+    "close": "検索を閉じる",
+    "empty": "該当するユーザーがいません",
+    "usernamePlaceholder": "ユーザー名で検索…",
+    "people": "ユーザー",
+    "message": "メッセージを送る"
+  },
+  "followers": {
+    "empty": "まだフォロワーがいません"
+  },
+  "following": {
+    "empty": "まだ誰もフォローしていません"
+  },
+  "actions": {
+    "update": "編集",
+    "delete": "削除",
+    "notFoundImage": "ページが見つかりません"
+  },
+  "confirm": {
+    "removeFollower": "{{name}}さんをフォロワーから外してよろしいですか？",
+    "unfollow": "{{name}}さんのフォローを解除してよろしいですか？"
+  },
+  "field": {
+    "avatar": "アバター",
+    "coverBackground": "カバー画像",
+    "username": "ユーザー名",
+    "password": "パスワード",
+    "intro": "自己紹介",
+    "address": "住所"
+  }
+}

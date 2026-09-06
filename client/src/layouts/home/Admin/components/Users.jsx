@@ -5,8 +5,10 @@ import { formatDate } from '../../../../services/utils/format';
 import Table from '../../../../components/ui/Table';
 import NotFoundItem from '../../../../components/ui/NotFoundItem';
 import useQueryString from '../../../../hooks/useQueryString';
+import { useTranslation } from 'react-i18next';
 
 function Users() {
+  const { t } = useTranslation(['user', 'common']);
   const [searchParams] = useSearchParams();
   const [createQueryString, deleteQueryString] = useQueryString();
   const [searchValue, setSearchValue] = useState('');
@@ -43,22 +45,18 @@ function Users() {
         <input
           className='px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded dark:bg-neutral-800'
           type='text'
-          placeholder='Search username...'
+          placeholder={t('search.usernamePlaceholder')}
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
         />
         <button
           className='px-4 py-2 font-bold bg-neutral-700 text-white rounded'
           onClick={deleteQueryString}
-        >
-          Reset
-        </button>
+        >{t('common:actions.reset')}</button>
         <button
           className='px-4 py-2 font-bold bg-blue-500 rounded text-neutral-100'
           onClick={() => createQueryString('search', searchValue)}
-        >
-          Search
-        </button>
+        >{t('common:actions.search')}</button>
       </div>
       {isSuccessUsers && usersData?.users.length > 0 && (
         <Table
@@ -69,7 +67,7 @@ function Users() {
         />
       )}
       {isSuccessUsers && usersData?.users?.length === 0 && (
-        <NotFoundItem message={'No User Yet!'} />
+        <NotFoundItem message={t('search.empty')} />
       )}
     </div>
   );

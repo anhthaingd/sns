@@ -1,13 +1,15 @@
 import { useContext } from 'react';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { ModalContext } from '../../context/ModalProvider';
+import { useTranslation } from 'react-i18next';
 
 function RightAside() {
+  const { t } = useTranslation('user');
   const { following } = useContext(FetchDataContext);
   const { setVisibleModal } = useContext(ModalContext);
   return (
     <section className='fixed top-0 right-0 mt-[72px] w-[320px] h-[95vh] px-4 font-medium hidden lg:flex flex-col gap-4 overflow-y-auto'>
-      <p className='font-bold text-base md:text-lg'>Following</p>
+      <p className='font-bold text-base md:text-lg'>{t('profile.following')}</p>
       <div className='pb-4 border-b border-neutral-300 flex flex-col'>
         {following?.map((f) => {
           return (

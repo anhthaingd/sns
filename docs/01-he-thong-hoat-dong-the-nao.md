@@ -121,6 +121,7 @@ FinalProject_Fuurin/
 │       │   ├── redux/query/api/  ← khai báo cách gọi từng API
 │       │   ├── router/      ← bảng "đường dẫn nào mở trang nào"
 │       │   └── logger.js    ← ghi lại lỗi phía trình duyệt
+│       ├── i18n/            ← chữ nghĩa của 3 ngôn ngữ (Nhật, Việt, Anh)
 │       ├── hooks/           ← đoạn logic dùng chung cho nhiều trang
 │       └── context/         ← dữ liệu dùng chung toàn app (user đang đăng nhập...)
 │

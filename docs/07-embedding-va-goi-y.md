@@ -227,6 +227,12 @@ biệt trên là do phần chấm điểm theo luật.
 phép chấm điểm — mở ra thay vì chỉ lấy con số. Nhờ vậy hai chức năng không bao
 giờ nói ngược nhau.
 
+> 💡 Backend **không gửi câu chữ đã dựng sẵn** cho phần này. Mỗi mục là
+> `{ kind, code, params, message }`, trong đó `params` chứa **dữ liệu thô**
+> (`"business"`, `3`) chứ không phải nhãn đã dịch. Giao diện mới ghép thành câu
+> theo ngôn ngữ đang chọn. Lý do và cách làm ở [tài liệu 9](09-da-ngon-ngu.md);
+> tóm tắt: gửi sẵn "Nghiệp vụ (N2)" thì giao diện tiếng Nhật hết đường sửa.
+
 Ví dụ thật, tin AWS Cloud Engineer với CV demo:
 
 ```

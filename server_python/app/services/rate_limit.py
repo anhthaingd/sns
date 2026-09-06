@@ -23,7 +23,6 @@ from app.errors import ApiError
 logger = logging.getLogger("fuurin.rate_limit")
 
 _KEY_PREFIX = "fuurin:ratelimit:"
-TOO_MANY_REQUESTS_MESSAGE = "Bạn thao tác quá nhiều lần, vui lòng thử lại sau ít phút!"
 
 # Fallback khi không có Redis: {key: (count, expires_at_monotonic)}
 _memory_counters: dict[str, tuple[int, float]] = {}
@@ -84,7 +83,7 @@ async def ensure_under_limit(bucket: str, identity: str, limit: int) -> None:
     if not RATE_LIMIT_ENABLED or not identity:
         return
     if await current_count(bucket, identity) >= limit:
-        raise ApiError(429, TOO_MANY_REQUESTS_MESSAGE)
+        raise ApiError(429, code="common.tooManyRequests")
 
 
 async def record_failure(bucket: str, identity: str, window_seconds: int) -> None:
@@ -129,7 +128,7 @@ async def hit(bucket: str, identity: str, limit: int, window_seconds: int) -> No
         return
     await record_failure(bucket, identity, window_seconds)
     if await current_count(bucket, identity) > limit:
-        raise ApiError(429, TOO_MANY_REQUESTS_MESSAGE)
+        raise ApiError(429, code="common.tooManyRequests")
 
 
 def rate_limit(bucket: str, limit: int, window_seconds: int):

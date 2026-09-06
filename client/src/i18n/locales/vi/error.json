@@ -1,0 +1,112 @@
+{
+  "ui": {
+    "title": "Trang gặp sự cố",
+    "description": "Đã có lỗi xảy ra khi hiển thị nội dung. Sự cố đã được ghi nhận, bạn thử tải lại trang giúp nhé.",
+    "networkFallback": "Đã có lỗi xảy ra, vui lòng thử lại sau!",
+    "technicalDetails": "Chi tiết kỹ thuật (chỉ hiện khi phát triển)"
+  },
+  "server": {
+    "server": {
+      "generic": "Đã có lỗi xảy ra, vui lòng thử lại sau!"
+    },
+    "common": {
+      "invalidId": "Định danh không hợp lệ!",
+      "invalidValue": "Giá trị '{{field}}' không hợp lệ!",
+      "invalidPayload": "Dữ liệu gửi lên không hợp lệ!",
+      "invalidPayloadFields": "Dữ liệu gửi lên không hợp lệ ở: {{fields}}",
+      "tooManyRequests": "Bạn thao tác quá nhiều lần, vui lòng thử lại sau ít phút!"
+    },
+    "auth": {
+      "missingToken": "Token không tồn tại",
+      "invalidOrExpiredToken": "Token đã hết hạn hoặc không hợp lệ.",
+      "invalidToken": "Token không chính xác!",
+      "adminOnly": "Chức năng này chỉ dành cho admin!",
+      "notEnoughPermission": "Bạn không đủ quyền!",
+      "credentialsRequired": "Yêu cầu cần có email và password!",
+      "emailExists": "Địa chỉ email đã tồn tại!",
+      "invalidCredentials": "Email hoặc mật khẩu không đúng!",
+      "sessionExpired": "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!",
+      "registered": "Tạo tài khoản thành công!",
+      "loggedOut": "Đăng xuất tài khoản thành công!"
+    },
+    "upload": {
+      "unsupportedType": "Định dạng file không được hỗ trợ. Chỉ nhận: {{allowed}}",
+      "tooLarge": "File vượt quá {{max}}MB."
+    },
+    "user": {
+      "notFound": "Không tìm thấy người dùng!",
+      "cannotEditOthers": "Bạn không thể sửa thông tin của người khác!",
+      "wrongOldPassword": "Mật khẩu cũ không chính xác!",
+      "updated": "Cập nhật người dùng thành công!"
+    },
+    "follow": {
+      "cannotFollowSelf": "Bạn không thể tự follow bản thân!",
+      "followed": "Follow tài khoản thành công!",
+      "unfollowed": "Hủy follow tài khoản thành công!",
+      "followingRemoved": "Hủy theo dõi người dùng thành công!",
+      "followerRemoved": "Gỡ thành công người dùng ra khỏi danh sách theo dõi!"
+    },
+    "post": {
+      "notFound": "Không tìm thấy bài viết!",
+      "contentAndChannelRequired": "Yêu cầu bài viết phải có nội dung và channelId!",
+      "invalidOldImages": "Dữ liệu ảnh cũ không hợp lệ!",
+      "cannotEditOthers": "Bạn không thể sửa bài viết của người khác hoặc bài viết trong channel đã bị xóa!",
+      "cannotDeleteOthers": "Bạn không thể xóa bài viết của người khác",
+      "emptyComment": "Không thể đăng bình luận trống!",
+      "created": "Tạo bài viết thành công!",
+      "updated": "Cập nhật bài viết thành công",
+      "deleted": "Xóa bài viết thành công!",
+      "liked": "Thích bài viết thành công!",
+      "unliked": "Hủy thích bài viết thành công!",
+      "saved": "Lưu bài viết thành công!",
+      "unsaved": "Hủy lưu bài viết thành công!",
+      "commented": "Đăng bình luận thành công",
+      "commentDeleted": "Xoá bình luận thành công!"
+    },
+    "channel": {
+      "notFound": "Channel không tồn tại!",
+      "exists": "Channel đã tồn tại!",
+      "notJoined": "Bạn chưa tham gia channel này!",
+      "notJoinedShortcut": "Bạn chưa gia nhập channel này!",
+      "adminCannotLeave": "Admin không thể tự ý rời khỏi nhóm!",
+      "cannotRemoveSelf": "Bạn không thể xóa chính mình ra khỏi channel!",
+      "cannotRemoveOtherAdmin": "Bạn không thể xóa admin khác ra khỏi nhóm!",
+      "invalidOldBackground": "Dữ liệu ảnh nền cũ không hợp lệ!",
+      "created": "Tạo channel thành công!",
+      "joined": "Gia nhập channel thành công!",
+      "left": "Bạn đã thoát nhóm channel!",
+      "updated": "Cập nhật channel thành công!",
+      "deleted": "Xóa channel thành công!"
+    },
+    "chat": {
+      "conversationNotFound": "Không tìm thấy hội thoại!"
+    },
+    "job": {
+      "notFound": "Không tìm thấy tin tuyển dụng!"
+    },
+    "company": {
+      "notFound": "Không tìm thấy công ty!",
+      "noOpenJobs": "Công ty này chưa có vị trí nào đang tuyển!"
+    },
+    "resume": {
+      "saved": "Lưu CV thành công!"
+    },
+    "match": {
+      "noResume": "Bạn cần tạo CV trước khi dùng chức năng gợi ý công ty phù hợp!"
+    },
+    "web": {
+      "invalidOldLogo": "Dữ liệu logo cũ không hợp lệ!",
+      "updated": "Cập nhật thông tin website thành công!"
+    },
+    "admin": {
+      "unknownSource": "Nguồn không tồn tại: {{sources}}",
+      "pagesOutOfRange": "Số trang phải trong khoảng 1-{{max}}",
+      "detailOutOfRange": "Số tin làm giàu phải trong khoảng 0-{{max}}",
+      "etlRunning": "Đang có một mẻ ETL chạy, vui lòng đợi hoàn tất!",
+      "etlStarted": "Đã bắt đầu thu thập dữ liệu, theo dõi ở /api/admin/etl/status"
+    },
+    "log": {
+      "received": "Đã ghi nhận!"
+    }
+  }
+}

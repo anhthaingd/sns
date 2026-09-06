@@ -1,0 +1,29 @@
+{
+  "messages": {
+    "title": "Tin nhắn",
+    "empty": "Chưa có tin nhắn nào",
+    "youPrefix": "Bạn:"
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "empty": "Chưa có thông báo nào"
+  },
+  "modal": {
+    "inputPlaceholder": "Nhập tin nhắn",
+    "send": "Gửi",
+    "close": "Đóng khung chat",
+    "loadingOlder": "Đang tải tin cũ…",
+    "videoCall": "Gọi video"
+  },
+  "video": {
+    "ended": "Cuộc gọi đã kết thúc",
+    "cancel": "Huỷ cuộc gọi",
+    "toggleMute": "Bật/tắt micro",
+    "toggleVideo": "Bật/tắt camera",
+    "answer": "Nghe máy",
+    "close": "Đóng",
+    "accept": "Chấp nhận",
+    "calling": "Đang gọi…",
+    "incoming": "{{name}} đang gọi:"
+  }
+}

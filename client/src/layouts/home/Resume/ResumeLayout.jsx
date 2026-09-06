@@ -12,7 +12,21 @@ import ResumeModal from '../../../components/modal/resume/ResumeModal';
 import { useGetResumeQuery, usePostResumeMutation } from '../../../services/redux/query/api/resumeApi';
 import { ModalContext } from '../../../context/ModalProvider';
 import useMutationToast from '../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
+
+// Cung thang voi `LANGUAGE_LEVELS` o backend (app/models/job.py). Thu tu tu
+// thap den cao, dung de sinh dropdown va de tang so khop dem duoc.
+const LANGUAGE_LEVELS = [
+  'none',
+  'basic',
+  'conversational',
+  'business',
+  'fluent',
+  'native',
+];
+
 function ResumeLayout() {
+  const { t } = useTranslation(['resume', 'common']);
   const { state, setVisibleModal } = useContext(ModalContext);
   const { data: resumeData, isSuccess: isSuccessResume } = useGetResumeQuery();
   const [
@@ -119,7 +133,7 @@ function ResumeLayout() {
       setVisibleModal({
         visibleToastModal: {
           type: 'error',
-          message: 'Chứng chỉ yêu cầu có tên và file dạng pdf!',
+          message: t('validate.certificateIncomplete'),
         },
       });
     } else {
@@ -132,7 +146,7 @@ function ResumeLayout() {
         return { name: '', certificate: null };
       });
     }
-  }, [certificate, form, setVisibleModal]);
+  }, [certificate, form, setVisibleModal, t]);
   const handleAddSkill = useCallback(() => {
     setForm({ ...form, skills: [...(form?.skills || []), skill] });
     setSkill(() => {
@@ -217,22 +231,22 @@ function ResumeLayout() {
     <Page>
       {state.visibleResumeModal && <ResumeModal />}
       <div className='flex flex-col gap-8' aria-disabled={isLoadingPost}>
-        <h1 className='text-center text-2xl font-bold'>Create your resume</h1>
+        <h1 className='text-center text-2xl font-bold'>{t('title')}</h1>
         <div className='bg-neutral-50 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 px-4 py-8 flex flex-col gap-6 rounded'>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Basic info</h2>
+            <h2 className='text-xl font-bold'>{t('section.basicInfo')}</h2>
             <div>
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='file'
                 accept='image/*,.jpeg,.jpg,.png,.webp'
-                placeholder='Upload your avatar name...'
+                placeholder={t('field.avatarName')}
                 onChange={(e) =>
                   setForm({ ...form, avatar: e.target.files?.[0] })
                 }
               />
               <p className='italic text-sm'>
-                (Only *.jpeg, *.webp and *.png images will be accepted)
+                {t('common:upload.imageHint')}
               </p>
               {form.avatar && (
                 <img
@@ -256,20 +270,20 @@ function ResumeLayout() {
             <input
               className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
               type='text'
-              placeholder='Enter your full name...'
+              placeholder={t('field.fullName')}
               value={form?.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             <input
               className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
               type='text'
-              placeholder='Enter your position that you apply for...'
+              placeholder={t('field.position')}
               value={form?.position}
               onChange={(e) => setForm({ ...form, position: e.target.value })}
             />
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Contact</h2>
+            <h2 className='text-xl font-bold'>{t('section.contact')}</h2>
             <div className='flex flex-col gap-4'>
               <div className='flex items-center gap-4'>
                 <label
@@ -298,7 +312,7 @@ function ResumeLayout() {
                 <input
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                   type='email'
-                  placeholder='Enter your email...'
+                  placeholder={t('field.email')}
                   required
                   value={form?.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -314,7 +328,7 @@ function ResumeLayout() {
                 <input
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                   type='text'
-                  placeholder='Enter your address...'
+                  placeholder={t('field.address')}
                   value={form?.address}
                   onChange={(e) =>
                     setForm({ ...form, address: e.target.value })
@@ -331,7 +345,7 @@ function ResumeLayout() {
                 <input
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                   type='number'
-                  placeholder='Enter your phone number...'
+                  placeholder={t('field.phone')}
                   value={form?.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
@@ -345,7 +359,7 @@ function ResumeLayout() {
                 </label>
                 <input
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
-                  placeholder='https://yourgithub.com'
+                  placeholder={t('field.github')}
                   pattern='https://.*'
                   value={form?.github}
                   onChange={(e) => setForm({ ...form, github: e.target.value })}
@@ -354,22 +368,22 @@ function ResumeLayout() {
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Objective</h2>
+            <h2 className='text-xl font-bold'>{t('section.objective')}</h2>
             <textarea
               className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none'
-              placeholder='Enter your objective...'
+              placeholder={t('field.objective')}
               rows={3}
               value={form?.objective}
               onChange={(e) => setForm({ ...form, objective: e.target.value })}
             />
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Experience</h2>
+            <h2 className='text-xl font-bold'>{t('section.experience')}</h2>
             <div className='flex flex-col gap-4'>
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter name company...'
+                placeholder={t('field.company')}
                 value={experience?.name}
                 onChange={(e) =>
                   setExperience({ ...experience, name: e.target.value })
@@ -377,13 +391,11 @@ function ResumeLayout() {
               />
               <div className='grid grid-cols-2 gap-4'>
                 <div>
-                  <label className='font-medium' htmlFor='start_time'>
-                    Start Time
-                  </label>
+                  <label className='font-medium' htmlFor='start_time'>{t('field.startTimeLabel')}</label>
                   <input
                     className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                     type='text'
-                    placeholder='Enter start time...'
+                    placeholder={t('field.startTime')}
                     value={experience?.startTime}
                     onChange={(e) =>
                       setExperience({
@@ -394,13 +406,11 @@ function ResumeLayout() {
                   />
                 </div>
                 <div>
-                  <label className='font-medium' htmlFor='end_time'>
-                    End Time
-                  </label>
+                  <label className='font-medium' htmlFor='end_time'>{t('field.endTimeLabel')}</label>
                   <input
                     className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                     type='text'
-                    placeholder='Enter end time...'
+                    placeholder={t('field.endTime')}
                     value={experience?.endTime}
                     onChange={(e) =>
                       setExperience({ ...experience, endTime: e.target.value })
@@ -411,7 +421,7 @@ function ResumeLayout() {
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter your position...'
+                placeholder={t('field.jobPosition')}
                 value={experience?.position}
                 onChange={(e) =>
                   setExperience({ ...experience, position: e.target.value })
@@ -420,7 +430,7 @@ function ResumeLayout() {
               <textarea
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none'
                 rows={3}
-                placeholder='Enter your description...'
+                placeholder={t('field.jobDescription')}
                 value={experience?.description}
                 onChange={(e) =>
                   setExperience({ ...experience, description: e.target.value })
@@ -435,7 +445,7 @@ function ResumeLayout() {
                         <div className='w-full flex justify-between items-center gap-4'>
                           <p className='text-lg font-bold'>{e?.name}</p>
                           <button
-                            aria-label='delete-skill'
+                            aria-label={t('actions.removeSkill')}
                             onClick={() =>
                               setForm({
                                 ...form,
@@ -452,11 +462,11 @@ function ResumeLayout() {
                           {e?.startTime} - {e?.endTime}
                         </p>
                         <p className='flex gap-2'>
-                          <span>Position:</span>
+                          <span>{t('label.position')}</span>
                           <span className='font-bold'>{e?.position}</span>
                         </p>
                         <p className='flex gap-2'>
-                          <span>Description</span>
+                          <span>{t('label.description')}</span>
                           <span className='font-medium'>{e?.description}</span>
                         </p>
                       </div>
@@ -467,18 +477,16 @@ function ResumeLayout() {
               <button
                 className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
                 onClick={handleAddExperience}
-              >
-                Add Experience
-              </button>
+              >{t('actions.addExperience')}</button>
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Education</h2>
+            <h2 className='text-xl font-bold'>{t('section.education')}</h2>
             <div className='flex flex-col gap-4'>
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter your College/School...'
+                placeholder={t('field.school')}
                 value={form?.educationName}
                 onChange={(e) =>
                   setForm({ ...form, educationName: e.target.value })
@@ -487,7 +495,7 @@ function ResumeLayout() {
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter your major...'
+                placeholder={t('field.major')}
                 value={form?.educationMajor}
                 onChange={(e) =>
                   setForm({ ...form, educationMajor: e.target.value })
@@ -496,7 +504,7 @@ function ResumeLayout() {
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter your completion time...'
+                placeholder={t('field.completionTime')}
                 value={form?.educationCompletion}
                 onChange={(e) =>
                   setForm({ ...form, educationCompletion: e.target.value })
@@ -505,7 +513,7 @@ function ResumeLayout() {
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter your GPA...'
+                placeholder={t('field.gpa')}
                 value={form?.educationGPA}
                 onChange={(e) =>
                   setForm({ ...form, educationGPA: e.target.value })
@@ -514,16 +522,11 @@ function ResumeLayout() {
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Mục tiêu nghề nghiệp</h2>
-            <p className='text-sm opacity-70'>
-              Dùng cho chức năng gợi ý công ty phù hợp. Để trống thì hệ thống tự
-              suy ra từ phần Languages, Experiences và Certificates của bạn.
-            </p>
+            <h2 className='text-xl font-bold'>{t('section.career')}</h2>
+            <p className='text-sm opacity-70'>{t('career.hint')}</p>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div className='flex flex-col gap-2'>
-                <label className='font-medium' htmlFor='japaneseLevel'>
-                  Trình độ tiếng Nhật
-                </label>
+                <label className='font-medium' htmlFor='japaneseLevel'>{t('career.japaneseLevel')}</label>
                 <select
                   id='japaneseLevel'
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
@@ -532,19 +535,16 @@ function ResumeLayout() {
                     setForm({ ...form, japaneseLevel: e.target.value })
                   }
                 >
-                  <option value=''>Để hệ thống tự suy ra</option>
-                  <option value='none'>Không biết tiếng Nhật</option>
-                  <option value='basic'>Cơ bản (N4-N5)</option>
-                  <option value='conversational'>Giao tiếp (N3)</option>
-                  <option value='business'>Nghiệp vụ (N2)</option>
-                  <option value='fluent'>Thành thạo (N1)</option>
-                  <option value='native'>Bản ngữ</option>
+                  <option value=''>{t('level.auto')}</option>
+                  {LANGUAGE_LEVELS.map((lv) => (
+                    <option key={lv} value={lv}>
+                      {t(`level.${lv}`)}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className='flex flex-col gap-2'>
-                <label className='font-medium' htmlFor='englishLevel'>
-                  Trình độ tiếng Anh
-                </label>
+                <label className='font-medium' htmlFor='englishLevel'>{t('career.englishLevel')}</label>
                 <select
                   id='englishLevel'
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
@@ -553,26 +553,23 @@ function ResumeLayout() {
                     setForm({ ...form, englishLevel: e.target.value })
                   }
                 >
-                  <option value=''>Để hệ thống tự suy ra</option>
-                  <option value='none'>Không dùng được tiếng Anh</option>
-                  <option value='basic'>Cơ bản</option>
-                  <option value='conversational'>Giao tiếp</option>
-                  <option value='business'>Nghiệp vụ</option>
-                  <option value='fluent'>Thành thạo</option>
-                  <option value='native'>Bản ngữ</option>
+                  <option value=''>{t('englishLevel.auto')}</option>
+                  {LANGUAGE_LEVELS.map((lv) => (
+                    <option key={lv} value={lv}>
+                      {t(`englishLevel.${lv}`)}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className='flex flex-col gap-2'>
-                <label className='font-medium' htmlFor='yearsOfExperience'>
-                  Số năm kinh nghiệm
-                </label>
+                <label className='font-medium' htmlFor='yearsOfExperience'>{t('career.years')}</label>
                 <input
                   id='yearsOfExperience'
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                   type='number'
                   min='0'
                   max='50'
-                  placeholder='Ví dụ: 3'
+                  placeholder={t('career.yearsPlaceholder')}
                   value={form?.yearsOfExperience}
                   onChange={(e) =>
                     setForm({ ...form, yearsOfExperience: e.target.value })
@@ -580,16 +577,14 @@ function ResumeLayout() {
                 />
               </div>
               <div className='flex flex-col gap-2'>
-                <label className='font-medium' htmlFor='desiredSalaryMin'>
-                  Lương mong muốn tối thiểu (yên/năm)
-                </label>
+                <label className='font-medium' htmlFor='desiredSalaryMin'>{t('career.salary')}</label>
                 <input
                   id='desiredSalaryMin'
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                   type='number'
                   min='0'
                   step='500000'
-                  placeholder='Ví dụ: 5000000 (500 man)'
+                  placeholder={t('career.salaryPlaceholder')}
                   value={form?.desiredSalaryMin}
                   onChange={(e) =>
                     setForm({ ...form, desiredSalaryMin: e.target.value })
@@ -597,14 +592,12 @@ function ResumeLayout() {
                 />
               </div>
               <div className='flex flex-col gap-2 md:col-span-2'>
-                <label className='font-medium' htmlFor='desiredLocations'>
-                  Khu vực mong muốn
-                </label>
+                <label className='font-medium' htmlFor='desiredLocations'>{t('career.locations')}</label>
                 <input
                   id='desiredLocations'
                   className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                   type='text'
-                  placeholder='Tokyo, Osaka, Fukuoka (phân tách bằng dấu phẩy)'
+                  placeholder={t('career.locationsPlaceholder')}
                   value={form?.desiredLocations}
                   onChange={(e) =>
                     setForm({ ...form, desiredLocations: e.target.value })
@@ -614,12 +607,12 @@ function ResumeLayout() {
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Certificates</h2>
+            <h2 className='text-xl font-bold'>{t('section.certificates')}</h2>
             <div className='flex flex-col gap-4'>
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter certificate name...'
+                placeholder={t('field.certificateName')}
                 value={certificate.name}
                 onChange={(e) =>
                   setCertificate({ ...certificate, name: e.target.value })
@@ -644,7 +637,7 @@ function ResumeLayout() {
                           <div>
                             <div className='flex justify-between'>
                               <p>
-                                Certificate:{' '}
+                                {t('label.certificate')}{' '}
                                 <span className='font-bold'>{c?.name}</span>
                               </p>
                               <button
@@ -659,7 +652,7 @@ function ResumeLayout() {
                                     };
                                   });
                                 }}
-                                aria-label='delete-certificate'
+                                aria-label={t('actions.removeCertificate')}
                               >
                                 <FaXmark className='text-lg' />
                               </button>
@@ -686,7 +679,7 @@ function ResumeLayout() {
                           <div>
                             <div className='flex justify-between'>
                               <p>
-                                Certificate:{' '}
+                                {t('label.certificate')}{' '}
                                 <span className='font-bold'>
                                   {form.certificatesName[index]}
                                 </span>
@@ -710,7 +703,7 @@ function ResumeLayout() {
                                     };
                                   });
                                 }}
-                                aria-label='delete-certificate'
+                                aria-label={t('actions.removeCertificate')}
                               >
                                 <FaXmark className='text-lg' />
                               </button>
@@ -730,16 +723,14 @@ function ResumeLayout() {
               className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
               onClick={handleAddCertificate}
               disabled={isLoadingPost}
-            >
-              Add Certificate
-            </button>
+            >{t('actions.addCertificate')}</button>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Skills</h2>
+            <h2 className='text-xl font-bold'>{t('section.skills')}</h2>
             <input
               className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
               type='text'
-              placeholder='Enter your skill...'
+              placeholder={t('field.skill')}
               value={skill}
               onChange={(e) => setSkill(e.target.value)}
             />
@@ -755,7 +746,7 @@ function ResumeLayout() {
                       <span>{s}</span>
                     </p>
                     <button
-                      aria-label='delete-skill'
+                      aria-label={t('actions.removeSkill')}
                       disabled={isLoadingPost}
                       onClick={() =>
                         setForm({
@@ -774,16 +765,14 @@ function ResumeLayout() {
               className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
               onClick={handleAddSkill}
               disabled={isLoadingPost}
-            >
-              Add Skill
-            </button>
+            >{t('actions.addSkill')}</button>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Languages</h2>
+            <h2 className='text-xl font-bold'>{t('section.languages')}</h2>
             <input
               className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
               type='text'
-              placeholder='Enter your language...'
+              placeholder={t('field.language')}
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             />
@@ -799,7 +788,7 @@ function ResumeLayout() {
                       <span>{l}</span>
                     </p>
                     <button
-                      aria-label='delete-language'
+                      aria-label={t('actions.removeLanguage')}
                       disabled={isLoadingPost}
                       onClick={() =>
                         setForm({
@@ -820,17 +809,15 @@ function ResumeLayout() {
               className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
               onClick={handleAddLanguage}
               disabled={isLoadingPost}
-            >
-              Add Language
-            </button>
+            >{t('actions.addLanguage')}</button>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>Projects</h2>
+            <h2 className='text-xl font-bold'>{t('section.projects')}</h2>
             <div className='flex flex-col gap-4'>
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter project name...'
+                placeholder={t('field.projectName')}
                 value={project.name}
                 onChange={(e) =>
                   setProject({ ...project, name: e.target.value })
@@ -839,7 +826,7 @@ function ResumeLayout() {
               <input
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
                 type='text'
-                placeholder='Enter tech stack...'
+                placeholder={t('field.projectTech')}
                 value={project.tech}
                 onChange={(e) =>
                   setProject({ ...project, tech: e.target.value })
@@ -847,7 +834,7 @@ function ResumeLayout() {
               />
               <textarea
                 className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none'
-                placeholder='Enter description...'
+                placeholder={t('field.projectDescription')}
                 rows={3}
                 value={project.description}
                 onChange={(e) =>
@@ -867,11 +854,11 @@ function ResumeLayout() {
                       <div className='w-full flex flex-col gap-2'>
                         <div className='w-full flex justify-between items-center gap-3'>
                           <p className='flex gap-2'>
-                            <span>Project name:</span>
+                            <span>{t('label.projectName')}</span>
                             <span className='font-bold'>{p?.name}</span>
                           </p>
                           <button
-                            aria-label='delete-project'
+                            aria-label={t('actions.removeProject')}
                             disabled={isLoadingPost}
                             onClick={() =>
                               setForm({
@@ -886,11 +873,11 @@ function ResumeLayout() {
                           </button>
                         </div>
                         <p className='flex gap-2'>
-                          <span>Tech:</span>
+                          <span>{t('label.tech')}</span>
                           <span className='font-bold'>{p?.tech}</span>
                         </p>
                         <p className='flex gap-2'>
-                          <span>Description</span>
+                          <span>{t('label.description')}</span>
                           <span className='font-bold'>{p?.description}</span>
                         </p>
                       </div>
@@ -903,25 +890,19 @@ function ResumeLayout() {
               className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
               onClick={handleAddProject}
               disabled={isLoadingPost}
-            >
-              Add Project
-            </button>
+            >{t('actions.addProject')}</button>
           </div>
           <div className='flex justify-center items-center gap-4'>
             <button
               className='bg-neutral-700 text-white px-4 py-2 font-bold hover:bg-neutral-800 dark:bg-neutral-200 dark:hover:bg-neutral-50 dark:text-neutral-700 transition-colors'
               onClick={handlePostResume}
               disabled={isLoadingPost}
-            >
-              Save
-            </button>
+            >{t('actions.save')}</button>
             <button
               className='px-4 py-2 bg-blue-500 hover:bg-blue-700 transition-colors text-white font-bold'
               disabled={isLoadingPost}
               onClick={() => setVisibleModal({ visibleResumeModal: form })}
-            >
-              DOWNLOAD/PREVIEW
-            </button>
+            >{t('actions.downloadPreview')}</button>
           </div>
         </div>
       </div>

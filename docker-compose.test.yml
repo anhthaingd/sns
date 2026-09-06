@@ -35,6 +35,10 @@ services:
       REDIS_URL: redis://redis:6379/0
     volumes:
       - ./server_python:/app
+      # tests/test_message_codes.py doi chieu danh muc ma cua backend voi file
+      # dich cua client. Khong mount thu muc nay thi cac test do bi skip, va
+      # them mot ma moi ma quen dich se khong ai biet.
+      - ./client/src/i18n/locales:/client/src/i18n/locales:ro
     working_dir: /app
     command: ["python", "-m", "pytest"]
 
@@ -48,6 +52,11 @@ services:
   e2e-tests:
     build:
       context: ./e2e
+    # Chromium dung /dev/shm lam bo nho cho tab. Mac dinh cua Docker la 64MB,
+    # va khi chay het bo test trong mot luot thi tab chet giua chung voi loi
+    # "Target crashed" — chay rieng tung test lai qua, nen rat de doc nham
+    # thanh loi cua ung dung.
+    shm_size: "1gb"
     depends_on:
       server:
         condition: service_healthy

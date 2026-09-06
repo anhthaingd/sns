@@ -11,8 +11,10 @@ import { useCreatePostMutation } from '../../../../../services/redux/query/api/p
 import { FetchDataContext } from '../../../../../context/FetchDataProvider';
 import { icons } from '../../../../../assets/icons';
 import useMutationToast from '../../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 
 function CreatePost({ channelId }) {
+  const { t } = useTranslation('post');
   const { user } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const imgRef = useRef();
@@ -82,9 +84,11 @@ function CreatePost({ channelId }) {
           <ReactQuill
             className='dark:text-neutral-300 h-full'
             modules={{ toolbar: false }}
-            placeholder={`What's on your mind, ${
-              user?.username?.split(' ')[user?.username?.split(' ').length - 1]
-            }?`}
+            placeholder={t('create.placeholder', {
+              name: user?.username?.split(' ')[
+                user?.username?.split(' ').length - 1
+              ],
+            })}
             value={form.content}
             onChange={(value) => setForm({ ...form, content: value })}
           />
@@ -94,17 +98,17 @@ function CreatePost({ channelId }) {
             <img
               src={URL.createObjectURL(form.images)}
               key={form.images.name}
-              alt='index'
+              alt={t('create.imageAlt', { index: 1 })}
               {...{ fetchPriority: 'low' }}
             />
           )}
         </div>
         <div className='p-4 border border-neutral-300 rounded-lg flex justify-between items-center'>
-          <p className='font-medium'>Add to your post</p>
+          <p className='font-medium'>{t('create.addToPost')}</p>
           <div className='flex justify-center items-center'>
             <button
               dangerouslySetInnerHTML={{ __html: icons.image_icon }}
-              aria-label='img-btn'
+              aria-label={t('create.addImage')}
               onClick={handleUploadImg}
             ></button>
             <input
@@ -120,9 +124,7 @@ function CreatePost({ channelId }) {
           className='py-4 text-base md:text-lg font-bold bg-neutral-700 dark:bg-neutral-300 text-white dark:text-neutral-700 rounded-lg'
           disabled={!form.channel || !form.content || isLoadingCreate}
           onClick={handleSubmit}
-        >
-          Post
-        </button>
+        >{t('create.submit')}</button>
       </div>
     </div>
   );

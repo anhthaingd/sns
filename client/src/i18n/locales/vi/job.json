@@ -1,0 +1,51 @@
+{
+  "title": "Việc làm tại Nhật Bản",
+  "searchPlaceholder": "Tìm theo chức danh, công ty, mô tả…",
+  "search": "Tìm",
+  "filter": {
+    "location": "Lọc theo địa điểm",
+    "anyLocation": "Mọi địa điểm",
+    "japanese": "Lọc theo tiếng Nhật",
+    "anyJapanese": "Mọi trình độ tiếng Nhật",
+    "salary": "Lọc theo lương",
+    "anySalary": "Mọi mức lương",
+    "from300": "Từ 300 man/năm",
+    "from500": "Từ 500 man/năm",
+    "from800": "Từ 800 man/năm",
+    "remoteOnly": "Chỉ việc remote"
+  },
+  "card": {
+    "remote": "Remote",
+    "gapLink": "Xem tôi còn thiếu gì cho vị trí này →"
+  },
+  "level": {
+    "none": "Không yêu cầu",
+    "basic": "Cơ bản (N4-N5)",
+    "conversational": "Giao tiếp (N3)",
+    "business": "Nghiệp vụ (N2)",
+    "fluent": "Thành thạo (N1)",
+    "native": "Bản ngữ"
+  },
+  "englishLevel": {
+    "none": "Không yêu cầu",
+    "basic": "Cơ bản",
+    "conversational": "Giao tiếp",
+    "business": "Nghiệp vụ",
+    "fluent": "Thành thạo",
+    "native": "Bản ngữ"
+  },
+  "salary": {
+    "undisclosed": "Chưa công bố",
+    "range": "{{minMan}} ~ {{maxMan}} man / năm",
+    "single": "{{minMan}} man / năm",
+    "label": "Lương"
+  },
+  "experience": {
+    "none": "Không cần kinh nghiệm",
+    "years": "{{years}}+ năm KN",
+    "label": "Kinh nghiệm"
+  },
+  "japaneseLabel": "Tiếng Nhật",
+  "empty": "Không tìm thấy việc làm nào khớp bộ lọc.",
+  "subtitle_other": "{{count}} tin tổng hợp từ GaijinPot, DaiJob, Nihongo Engineer, LinkedIn JP"
+}

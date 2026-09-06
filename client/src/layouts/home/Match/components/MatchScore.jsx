@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 
 // Thang mau theo diem de nhin la biet ngay, khong phai doc so.
 const colorOf = (score) => {
@@ -7,17 +8,19 @@ const colorOf = (score) => {
 };
 
 function MatchScore({ match }) {
+  const { t } = useTranslation('match');
+
   return (
     <div className='flex items-center gap-3'>
       <span className={`px-3 py-1 rounded-full font-bold ${colorOf(match.score)}`}>
         {match.score}
       </span>
       <div className='text-xs opacity-70 leading-tight'>
-        <p>Độ liên quan ngành nghề: {Math.round(match.semantic * 100)}%</p>
+        <p>{t('score.semantic', { percent: Math.round(match.semantic * 100) })}</p>
         <p>
-          Đáp ứng yêu cầu:{' '}
+          {t('score.requirement')}{' '}
           {match.requirementRatio === null
-            ? 'tin không nêu yêu cầu cụ thể'
+            ? t('score.noRequirement')
             : `${Math.round(match.requirementRatio * 100)}%`}
         </p>
       </div>

@@ -19,11 +19,11 @@ def to_object_id(value, field: str = "id") -> ObjectId:
     # nhiên. Nếu để lọt, một tham số thiếu sẽ lặng lẽ biến thành truy vấn theo
     # id không tồn tại (404 khó hiểu) thay vì báo sai dữ liệu đầu vào.
     if not isinstance(value, (str, bytes)) or not value:
-        raise ApiError(400, f"Giá trị '{field}' không hợp lệ!")
+        raise ApiError(400, code="common.invalidValue", params={"field": field})
     try:
         return ObjectId(value)
     except (InvalidId, TypeError) as err:
-        raise ApiError(400, f"Giá trị '{field}' không hợp lệ!") from err
+        raise ApiError(400, code="common.invalidValue", params={"field": field}) from err
 
 
 def to_object_id_or_none(value, field: str = "id") -> ObjectId | None:

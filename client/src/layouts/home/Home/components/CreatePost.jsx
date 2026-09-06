@@ -11,8 +11,10 @@ import { icons } from '../../../../assets/icons';
 import { useCreatePostMutation } from '../../../../services/redux/query/api/postsApi';
 import { useNavigate } from 'react-router-dom';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 
 function CreatePost() {
+  const { t } = useTranslation(['post', 'channel']);
   const { user, channels } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const imgRef = useRef();
@@ -57,9 +59,7 @@ function CreatePost() {
       className='border dark:border-none border-neutral-300 rounded-md dark:bg-neutral-800'
       aria-disabled={isLoadingCreate}
     >
-      <h1 className='py-4 text-center text-xl md:text-2xl font-bold'>
-        Create Post
-      </h1>
+      <h1 className='py-4 text-center text-xl md:text-2xl font-bold'>{t('create.submit')}</h1>
       <div className='border-t border-b border-neutral-300 p-4 flex flex-col gap-8'>
         <div className='flex items-center gap-4'>
           <div className='size-[40px] rounded-full overflow-hidden'>
@@ -88,7 +88,7 @@ function CreatePost() {
             id='channel'
             onChange={(e) => setForm({ ...form, channel: e.target.value })}
           >
-            <option value=''>Select your channel</option>
+            <option value=''>{t('create.selectChannel')}</option>
             {channels?.map((c) => {
               return (
                 <option key={c._id} value={c._id}>
@@ -98,16 +98,18 @@ function CreatePost() {
             })}
           </select>
           <span className='absolute -top-[20%] left-3 z-10 bg-white dark:bg-neutral-800 text-sm px-2'>
-            Channel
+            {t('channel:title')}
           </span>
         </div>
         <div className='rounded-lg overflow-hidden border border-neutral-300 h-[10vh]'>
           <ReactQuill
             className='dark:text-neutral-300 h-full'
             modules={{ toolbar: false }}
-            placeholder={`What's on your mind, ${
-              user?.username?.split(' ')[user?.username?.split(' ').length - 1]
-            }?`}
+            placeholder={t('create.placeholder', {
+              name: user?.username?.split(' ')[
+                user?.username?.split(' ').length - 1
+              ],
+            })}
             value={form.content}
             onChange={(value) => setForm({ ...form, content: value })}
           />
@@ -117,17 +119,17 @@ function CreatePost() {
             <img
               src={URL.createObjectURL(form.images)}
               key={form.images.name}
-              alt='index'
+              alt={t('create.imageAlt', { index: 1 })}
               {...{ fetchPriority: 'low' }}
             />
           )}
         </div>
         <div className='p-4 border border-neutral-300 rounded-lg flex justify-between items-center'>
-          <p className='font-medium'>Add to your post</p>
+          <p className='font-medium'>{t('create.addToPost')}</p>
           <div className='flex justify-center items-center'>
             <button
               dangerouslySetInnerHTML={{ __html: icons.image_icon }}
-              aria-label='img-btn'
+              aria-label={t('create.addImage')}
               onClick={handleUploadImg}
             ></button>
             <input
@@ -143,9 +145,7 @@ function CreatePost() {
           className='py-4 text-base md:text-lg font-bold bg-neutral-700 dark:bg-neutral-300 text-white dark:text-neutral-700 rounded-lg'
           disabled={!form.channel || !form.content}
           onClick={handleSubmit}
-        >
-          Post
-        </button>
+        >{t('create.submit')}</button>
       </div>
     </div>
   );

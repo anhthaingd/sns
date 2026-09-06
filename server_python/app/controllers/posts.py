@@ -166,13 +166,13 @@ async def get_posts_in_channel(channel_id: str, page: int = 1):
 async def get_post_details(post_id: str):
     post = await Post.get(to_object_id(post_id, "post_id"))
     if not post:
-        raise ApiError(404, "Không tìm thấy bài viết!")
+        raise ApiError(404, code="post.notFound")
     return ok(post=await _populate_post(post))
 
 
 async def create_post(decoded_user: dict, channel_id: str, content: str = None, files: dict = None):
     if not content or not channel_id:
-        raise ApiError(400, "Yêu cầu bài viết phải có nội dung và channelId!")
+        raise ApiError(400, code="post.contentAndChannelRequired")
 
     post_data = {
         "user": to_object_id(decoded_user["_id"], "user_id"),
@@ -185,7 +185,7 @@ async def create_post(decoded_user: dict, channel_id: str, content: str = None, 
         post_data["images"] = {"name": images[0]["filename"], "url": images[0]["path"]}
 
     await Post(**post_data).insert()
-    return ok(message="Tạo bài viết thành công!")
+    return ok(code="post.created")
 
 
 async def updated_post(
@@ -194,7 +194,7 @@ async def updated_post(
     try:
         parse_old_images = json.loads(old_images) if old_images else None
     except json.JSONDecodeError as err:
-        raise ApiError(400, "Dữ liệu ảnh cũ không hợp lệ!") from err
+        raise ApiError(400, code="post.invalidOldImages") from err
 
     post_oid = to_object_id(post_id, "post_id")
     correct_post = await Post.find_one(
@@ -205,7 +205,7 @@ async def updated_post(
         }
     )
     if not correct_post:
-        raise ApiError(403, "Bạn không thể sửa bài viết của người khác hoặc bài viết trong channel đã bị xóa!")
+        raise ApiError(403, code="post.cannotEditOthers")
 
     update_data = {"content": content, "updated_at": datetime.utcnow()}
 
@@ -216,25 +216,32 @@ async def updated_post(
         update_data["images"] = {"name": images[0]["filename"], "url": images[0]["path"]}
 
     await Post.find_one(Post.id == post_oid).update({"$set": update_data})
-    return ok(message="Cập nhật bài viết thành công")
+    return ok(code="post.updated")
 
 
-async def _find_post_in_channel(channel_id: str, post_id: str, not_found_message: str) -> Post:
+async def _find_post_in_channel(channel_id: str, post_id: str) -> Post:
+    """Tìm bài viết trong đúng channel, không thấy thì 404.
+
+    Trước đây hàm này nhận sẵn câu thông báo, và hai chỗ gọi truyền
+    `f"Không tìm thấy bài viết {post_id}!"` — tức là ném nguyên ObjectId ra
+    cho người dùng đọc, đồng thời sinh ra hai câu khác nhau cho cùng một tình
+    huống nên client không dịch được. Giờ chỉ còn một mã duy nhất.
+    """
     post = await Post.find_one(
         {"_id": to_object_id(post_id, "post_id"), "channel": to_object_id(channel_id, "channel_id")}
     )
     if not post:
-        raise ApiError(404, not_found_message)
+        raise ApiError(404, code="post.notFound")
     return post
 
 
 async def like_post(decoded_user: dict, channel_id: str, post_id: str):
     user_id = to_object_id(decoded_user["_id"], "user_id")
-    post = await _find_post_in_channel(channel_id, post_id, f"Không tìm thấy bài viết {post_id}!")
+    post = await _find_post_in_channel(channel_id, post_id)
 
     if user_id in post.liked:
         await Post.find_one(Post.id == post.id).update({"$pull": {"liked": user_id}})
-        return ok(message="Hủy thích bài viết thành công!")
+        return ok(code="post.unliked")
 
     if str(post.user) != decoded_user["_id"]:
         await Notification(
@@ -245,16 +252,16 @@ async def like_post(decoded_user: dict, channel_id: str, post_id: str):
         ).insert()
 
     await Post.find_one(Post.id == post.id).update({"$push": {"liked": user_id}})
-    return ok(message="Thích bài viết thành công!")
+    return ok(code="post.liked")
 
 
 async def book_mark_post(decoded_user: dict, channel_id: str, post_id: str):
     user_id = to_object_id(decoded_user["_id"], "user_id")
-    post = await _find_post_in_channel(channel_id, post_id, f"Không tìm thấy bài viết {post_id}!")
+    post = await _find_post_in_channel(channel_id, post_id)
 
     if user_id in post.book_marked:
         await Post.find_one(Post.id == post.id).update({"$pull": {"book_marked": user_id}})
-        return ok(message="Hủy lưu bài viết thành công!")
+        return ok(code="post.unsaved")
 
     if str(post.user) != decoded_user["_id"]:
         await Notification(
@@ -265,7 +272,7 @@ async def book_mark_post(decoded_user: dict, channel_id: str, post_id: str):
         ).insert()
 
     await Post.find_one(Post.id == post.id).update({"$push": {"book_marked": user_id}})
-    return ok(message="Lưu bài viết thành công!")
+    return ok(code="post.saved")
 
 
 async def get_book_mark(decoded_user: dict, page: int = 1):
@@ -277,10 +284,10 @@ async def get_book_mark(decoded_user: dict, page: int = 1):
 
 async def post_comment_post(decoded_user: dict, channel_id: str, post_id: str, content: str):
     if not content:
-        raise ApiError(400, "Không thể đăng bình luận trống!")
+        raise ApiError(400, code="post.emptyComment")
 
     user_id = to_object_id(decoded_user["_id"], "user_id")
-    post = await _find_post_in_channel(channel_id, post_id, "Không tìm thấy bài viết!")
+    post = await _find_post_in_channel(channel_id, post_id)
 
     comment = {"_id": ObjectId(), "user": user_id, "content": content, "created_at": datetime.utcnow()}
     await Post.find_one(Post.id == post.id).update({"$push": {"comments": comment}})
@@ -293,7 +300,7 @@ async def post_comment_post(decoded_user: dict, channel_id: str, post_id: str, c
             url=f"channels/{post.channel}/posts/{post.id}",
         ).insert()
 
-    return ok(message="Đăng bình luận thành công")
+    return ok(code="post.commented")
 
 
 async def delete_comment_post(decoded_user: dict, channel_id: str, post_id: str, comment_id: str):
@@ -301,26 +308,26 @@ async def delete_comment_post(decoded_user: dict, channel_id: str, post_id: str,
     await Post.find_one(
         {"_id": to_object_id(post_id, "post_id"), "channel": to_object_id(channel_id, "channel_id")}
     ).update({"$pull": {"comments": {"_id": to_object_id(comment_id, "commentId"), "user": user_id}}})
-    return ok(message="Xoá bình luận thành công!")
+    return ok(code="post.commentDeleted")
 
 
 async def delete_post(decoded_user: dict, channel_id: str, post_id: str):
     user_id = to_object_id(decoded_user["_id"], "user_id")
-    post = await _find_post_in_channel(channel_id, post_id, "Không tìm thấy bài viết!")
+    post = await _find_post_in_channel(channel_id, post_id)
     if post.user != user_id:
-        raise ApiError(403, "Bạn không thể xóa bài viết của người khác")
+        raise ApiError(403, code="post.cannotDeleteOthers")
 
     await post.delete()
     if post.images:
         await delete_file(post.images.get("url", ""))
-    return ok(message="Xóa bài viết thành công!")
+    return ok(code="post.deleted")
 
 
 async def delete_post_by_admin(decoded_user: dict, channel_id: str, post_id: str):
     require_admin(decoded_user, "Bạn không đủ quyền!")
 
-    post = await _find_post_in_channel(channel_id, post_id, "Không tìm thấy bài viết!")
+    post = await _find_post_in_channel(channel_id, post_id)
     await post.delete()
     if post.images:
         await delete_file(post.images.get("url", ""))
-    return ok(message="Xóa bài viết thành công!")
+    return ok(code="post.deleted")

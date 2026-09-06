@@ -32,6 +32,7 @@ viết cho người chưa quen lập trình web, giải thích từng khái ni�
 | [Luồng CV và việc làm](docs/06-luong-cv-va-viec-lam.md) | ETL: crawl → chuẩn hoá → 430 tin |
 | [Embedding và gợi ý công ty](docs/07-embedding-va-goi-y.md) | Phần AI: máy "hiểu" CV kiểu gì |
 | [Lỗi, log và kiểm thử](docs/08-loi-log-va-kiem-thu.md) | Có sự cố thì tra ở đâu |
+| [Đa ngôn ngữ](docs/09-da-ngon-ngu.md) | Giao diện Nhật · Việt · Anh: thêm chữ mới ở đâu |
 
 ---
 

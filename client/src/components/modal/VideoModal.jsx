@@ -9,8 +9,10 @@ import {
   FaVideoSlash,
 } from 'react-icons/fa6';
 import { SocketContext } from '../../context/SocketProvider';
+import { useTranslation } from 'react-i18next';
 
 function VideoModal() {
+  const { t } = useTranslation(['chat', 'common']);
   const { state } = useContext(ModalContext);
   const {
     call,
@@ -70,7 +72,7 @@ function VideoModal() {
     >
       <div className='bg-neutral-800 text-neutral-100 border border-neutral-600 w-3/5 h-[80vh] py-4 px-6 rounded-lg flex flex-col gap-[26px]'>
         <div className='w-full flex justify-end'>
-          <button aria-label='close-modal' onClick={() => leaveCall(receiver)}>
+          <button aria-label={t('video.close')} onClick={() => leaveCall(receiver)}>
             <FaXmark className='text-2xl' />
           </button>
         </div>
@@ -89,9 +91,9 @@ function VideoModal() {
                 </div>
                 <p className='text-lg font-bold'>{receiver?.username}</p>
                 {!callEnded ? (
-                  <p className='font-bold'>...Calling</p>
+                  <p className='font-bold'>{t('video.calling')}</p>
                 ) : (
-                  <p className='font-bold'>Call ended</p>
+                  <p className='font-bold'>{t('video.ended')}</p>
                 )}
               </div>
             )}
@@ -122,14 +124,14 @@ function VideoModal() {
               <>
                 <button
                   className='bg-red-500 text-white rounded-full p-3 flex justify-center items-center'
-                  aria-label='cancel'
+                  aria-label={t('video.cancel')}
                   onClick={() => leaveCall(receiver)}
                 >
                   <FaPhone className='text-2xl rotate-[135deg]' />
                 </button>
                 <button
                   className='bg-yellow-500 text-white rounded-full p-3 flex justify-center items-center'
-                  aria-label='toggle-mute'
+                  aria-label={t('video.toggleMute')}
                   onClick={toggleMute}
                 >
                   {isMuted ? (
@@ -140,7 +142,7 @@ function VideoModal() {
                 </button>
                 <button
                   className='bg-blue-500 text-white rounded-full p-3 flex justify-center items-center'
-                  aria-label='toggle-video'
+                  aria-label={t('video.toggleVideo')}
                   onClick={toggleVideo}
                 >
                   {isVideoOff ? (
@@ -152,15 +154,13 @@ function VideoModal() {
               </>
             )}
             {call?.isReceivingCall && !callAccepted && (
-              <h1>{call.from.username} is calling:</h1>
+              <h1>{t('video.incoming', { name: call.from.username })}</h1>
             )}
             {call?.isReceivingCall && !callAccepted && (
               <button
                 className='bg-green-500 text-white rounded-full p-3 flex justify-center items-center'
                 onClick={answerCall}
-              >
-                Answer
-              </button>
+              >{t('video.answer')}</button>
             )}
             {callEnded && (
               <div className='flex items-center gap-4'>
@@ -173,7 +173,7 @@ function VideoModal() {
                 </button> */}
                 {/* <button
                   className='bg-neutral-400 text-white rounded-full p-3 flex justify-center items-center'
-                  aria-label='close-modal'
+                  aria-label={t('video.close')}
                   onClick={() => setVisibleModal('visibleVideoModal')}
                 >
                   <FaXmark className='text-2xl' />

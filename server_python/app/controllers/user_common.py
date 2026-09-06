@@ -23,8 +23,6 @@ PAGE_SIZE = 10
 FOLLOW_PAGE_SIZE = 20
 BCRYPT_ROUNDS = 10
 
-USER_NOT_FOUND_MESSAGE = "Không tìm thấy người dùng!"
-
 
 def hash_password(raw: str) -> str:
     return _bcrypt.hashpw(raw.encode("utf-8"), _bcrypt.gensalt(BCRYPT_ROUNDS)).decode("utf-8")

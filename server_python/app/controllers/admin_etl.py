@@ -108,20 +108,20 @@ async def start_etl(decoded_user: dict, sources: list[str] | None, pages: int, d
 
     unknown = [s for s in (sources or []) if s not in SOURCES]
     if unknown:
-        raise ApiError(400, f"Nguồn không tồn tại: {', '.join(unknown)}")
+        raise ApiError(400, code="admin.unknownSource", params={"sources": ", ".join(unknown)})
     if not 1 <= pages <= MAX_PAGES:
-        raise ApiError(400, f"Số trang phải trong khoảng 1-{MAX_PAGES}")
+        raise ApiError(400, code="admin.pagesOutOfRange", params={"max": MAX_PAGES})
     if not 0 <= detail <= MAX_DETAIL:
-        raise ApiError(400, f"Số tin làm giàu phải trong khoảng 0-{MAX_DETAIL}")
+        raise ApiError(400, code="admin.detailOutOfRange", params={"max": MAX_DETAIL})
 
     if not await _acquire_lock():
-        raise ApiError(409, "Đang có một mẻ ETL chạy, vui lòng đợi hoàn tất!")
+        raise ApiError(409, code="admin.etlRunning")
 
     # `create_task` chứ không `await`: response trả ngay, tác vụ chạy tiếp.
     task = asyncio.create_task(_run_in_background(sources, pages, detail))
     _running_tasks.add(task)
     task.add_done_callback(_running_tasks.discard)
-    return ok(message="Đã bắt đầu thu thập dữ liệu, theo dõi ở /api/admin/etl/status")
+    return ok(code="admin.etlStarted")
 
 
 async def etl_status(decoded_user: dict):

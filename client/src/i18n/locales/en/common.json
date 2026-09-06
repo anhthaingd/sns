@@ -1,0 +1,60 @@
+{
+  "actions": {
+    "accept": "Accept",
+    "add": "Add",
+    "back": "Back",
+    "cancel": "Cancel",
+    "clearFilters": "Clear filters",
+    "close": "Close",
+    "closeModal": "Close",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "download": "Download",
+    "edit": "Edit",
+    "goHome": "Go to home",
+    "goToFeed": "Go to News Feed",
+    "loadMore": "Load more",
+    "next": "Next",
+    "preview": "Preview",
+    "previous": "Previous",
+    "reload": "Reload page",
+    "reset": "Reset",
+    "save": "Save",
+    "search": "Search",
+    "submit": "Submit",
+    "update": "Update",
+    "viewDetail": "View details"
+  },
+  "status": {
+    "loading": "Loading…",
+    "saving": "Saving…",
+    "empty": "No data yet",
+    "noResult": "No results found",
+    "loadingMore": "Loading more…",
+    "foundResults_one": "Found {{count}} result",
+    "foundResults_other": "Found {{count}} results"
+  },
+  "language": {
+    "switcherLabel": "Display language"
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "of"
+  },
+  "time": {
+    "ago": "{{value}} ago"
+  },
+  "footer": "Footer",
+  "confirm": {
+    "irreversible": "You will not be able to restore it after deletion.",
+    "areYouSure": "Are you sure about your action?"
+  },
+  "notFound": {
+    "title": "This content isn't available right now",
+    "description": "When this happens, it's usually because the owner only shared it with a small group of people, changed who can see it, or it's been deleted.",
+    "imageAlt": "Page not found"
+  },
+  "upload": {
+    "imageHint": "(Only *.jpeg, *.webp and *.png images will be accepted)"
+  }
+}

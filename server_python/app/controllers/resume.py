@@ -147,7 +147,7 @@ async def post_resume(
         resume = Resume(**resume_data)
         await resume.insert()
         await _refresh_match_profile(resume)
-        return ok(message="Lưu CV thành công!")
+        return ok(code="resume.saved")
 
     if parse_old_certificates:
         for removed in _filter_different_elements(parse_old_certificates, parse_edit_certificates):
@@ -174,4 +174,4 @@ async def post_resume(
     updated = await Resume.find_one(Resume.user == user_id)
     if updated is not None:
         await _refresh_match_profile(updated)
-    return ok(message="Lưu CV thành công!")
+    return ok(code="resume.saved")

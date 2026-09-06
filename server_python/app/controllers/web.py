@@ -29,7 +29,7 @@ async def update_web(
     try:
         parse_old_logo = json.loads(old_logo) if old_logo else None
     except json.JSONDecodeError as err:
-        raise ApiError(400, "Dữ liệu logo cũ không hợp lệ!") from err
+        raise ApiError(400, code="web.invalidOldLogo") from err
 
     update_data = {
         "website_name": website_name,
@@ -45,4 +45,4 @@ async def update_web(
         update_data["logo"] = {"name": images[0]["filename"], "url": images[0]["path"]}
 
     await Web.find_one(Web.id == to_object_id(web_id, "web_id")).update({"$set": update_data})
-    return ok(message="Cập nhật thông tin website thành công!")
+    return ok(code="web.updated")

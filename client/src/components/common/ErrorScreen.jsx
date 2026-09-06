@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useRouteError, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { logger } from '../../services/logger';
 
 /**
@@ -13,6 +14,7 @@ import { logger } from '../../services/logger';
  * Được gắn làm `errorElement` của route gốc nên nó bắt lỗi của mọi route con.
  */
 function ErrorScreen() {
+  const { t } = useTranslation(['error', 'common']);
   const error = useRouteError();
   const navigate = useNavigate();
 
@@ -26,16 +28,18 @@ function ErrorScreen() {
   return (
     <section className='w-full min-h-screen flex items-center justify-center p-4 dark:bg-neutral-900'>
       <div className='w-full max-w-lg flex flex-col gap-4 text-center dark:text-neutral-100'>
-        <h1 className='text-2xl font-bold'>Trang gặp sự cố</h1>
+        <h1 className='text-2xl font-bold'>{t('ui.title')}</h1>
         <p className='text-neutral-600 dark:text-neutral-400'>
-          Đã có lỗi xảy ra khi hiển thị nội dung. Sự cố đã được ghi nhận, bạn
-          thử tải lại trang giúp nhé.
+          {t('ui.description')}
         </p>
 
         {/* Chi tiết kỹ thuật chỉ hiện lúc phát triển — người dùng cuối không
             cần, mà stack trace còn có thể lộ đường dẫn nội bộ. */}
         {import.meta.env.DEV && error && (
-          <pre className='text-left text-xs overflow-auto max-h-60 p-3 rounded bg-neutral-100 dark:bg-neutral-800'>
+          <pre
+            aria-label={t('ui.technicalDetails')}
+            className='text-left text-xs overflow-auto max-h-60 p-3 rounded bg-neutral-100 dark:bg-neutral-800'
+          >
             {error?.stack || error?.message || String(error)}
           </pre>
         )}
@@ -45,13 +49,13 @@ function ErrorScreen() {
             className='px-4 py-2 rounded font-bold bg-blue-500 text-white hover:bg-blue-700 transition-colors'
             onClick={() => window.location.reload()}
           >
-            Tải lại trang
+            {t('common:actions.reload')}
           </button>
           <button
             className='px-4 py-2 rounded font-bold border border-neutral-300 dark:border-neutral-700'
             onClick={() => navigate('/')}
           >
-            Về trang chủ
+            {t('common:actions.goHome')}
           </button>
         </div>
       </div>

@@ -1,0 +1,29 @@
+{
+  "messages": {
+    "title": "メッセージ",
+    "empty": "まだメッセージがありません",
+    "youPrefix": "あなた:"
+  },
+  "notifications": {
+    "title": "お知らせ",
+    "empty": "まだお知らせがありません"
+  },
+  "modal": {
+    "inputPlaceholder": "メッセージを入力",
+    "send": "送信",
+    "close": "チャットを閉じる",
+    "loadingOlder": "以前のメッセージを読み込んでいます…",
+    "videoCall": "ビデオ通話"
+  },
+  "video": {
+    "ended": "通話が終了しました",
+    "cancel": "通話をキャンセル",
+    "toggleMute": "ミュートを切り替え",
+    "toggleVideo": "カメラを切り替え",
+    "answer": "応答する",
+    "close": "閉じる",
+    "accept": "応答",
+    "calling": "発信中…",
+    "incoming": "{{name}}さんから着信中:"
+  }
+}

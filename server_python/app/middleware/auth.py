@@ -7,10 +7,6 @@ from app.errors import ApiError
 from app.services.token_store import is_revoked
 from app.utils.token import decode_access_token
 
-MISSING_TOKEN_MESSAGE = "Token không tồn tại"
-REVOKED_TOKEN_MESSAGE = "Token đã hết hạn hoặc không hợp lệ."
-INVALID_TOKEN_MESSAGE = "Token không chính xác!"
-
 
 def extract_bearer_token(authorization: str | None) -> str | None:
     if not authorization:
@@ -24,19 +20,19 @@ def extract_bearer_token(authorization: str | None) -> str | None:
 async def get_current_user(authorization: str = Header(default=None)) -> dict:
     token = extract_bearer_token(authorization)
     if not token:
-        raise ApiError(401, MISSING_TOKEN_MESSAGE)
+        raise ApiError(401, code="auth.missingToken")
 
     try:
         decoded = decode_access_token(token)
     except jwt.ExpiredSignatureError as err:
         # 401 (không phải 403) để client biết cần gọi /api/users/refresh rồi
         # thử lại, thay vì đá người dùng ra màn hình đăng nhập.
-        raise ApiError(401, REVOKED_TOKEN_MESSAGE) from err
+        raise ApiError(401, code="auth.invalidOrExpiredToken") from err
     except jwt.PyJWTError as err:
-        raise ApiError(403, INVALID_TOKEN_MESSAGE) from err
+        raise ApiError(403, code="auth.invalidToken") from err
 
     # Thu hồi tra theo `jti` trong Redis -> đăng xuất sống sót qua restart.
     if await is_revoked(decoded.get("jti", "")):
-        raise ApiError(401, REVOKED_TOKEN_MESSAGE)
+        raise ApiError(401, code="auth.invalidOrExpiredToken")
 
     return decoded

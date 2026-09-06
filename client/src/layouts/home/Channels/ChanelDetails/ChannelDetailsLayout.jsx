@@ -8,11 +8,13 @@ import Loading from '../../../../components/ui/Loading';
 import CreatePost from './components/CreatePost';
 import ListsPost from './components/ListsPost';
 import Page from '../../../Page';
-import { format } from 'date-fns';
+import { formatShortDate } from '../../../../services/utils/format';
 import { ModalContext } from '../../../../context/ModalProvider';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 
 function ChannelDetailsLayout() {
+  const { t } = useTranslation(['channel', 'common']);
   const navigate = useNavigate();
   const { setVisibleModal } = useContext(ModalContext);
   const { id } = useParams();
@@ -92,18 +94,15 @@ function ChannelDetailsLayout() {
                   </div>
                 </div>
                 <div className='col-span-1 flex flex-col gap-4'>
-                  <p className='font-bold'>Created Day</p>
+                  <p className='font-bold'>{t('detail.createdDay')}</p>
                   <p>
-                    {format(
-                      new Date(channelData?.channel?.created_at),
-                      'dd/MM/yyyy'
-                    )}
+                    {formatShortDate(channelData?.channel?.created_at)}
                   </p>
                 </div>
                 <div className='col-span-1 flex flex-col gap-4'>
                   <div className='flex items-center gap-2'>
                     <HiUserGroup className='text-2xl' />
-                    <p className='font-bold'>Joined</p>
+                    <p className='font-bold'>{t('detail.joined')}</p>
                   </div>
                   <div>
                     <button
@@ -111,8 +110,10 @@ function ChannelDetailsLayout() {
                       onClick={() =>
                         setVisibleModal({
                           visibleConfirmModal: {
-                            question: `Are you sure you want to leave channel ${channelData?.channel?.name}?`,
-                            description: 'Are you sure about your actions?',
+                            question: t('confirm.leave', {
+                              name: channelData?.channel?.name,
+                            }),
+                            description: t('common:confirm.areYouSure'),
                             loading: isLoadingJoin,
                             acceptFunc: () =>
                               joinChannel(channelData?.channel?._id),
@@ -121,7 +122,7 @@ function ChannelDetailsLayout() {
                       }
                     >
                       <IoLogOutOutline className='text-2xl' />
-                      <span className='font-bold'>Leave channel</span>
+                      <span className='font-bold'>{t('detail.leave')}</span>
                     </button>
                   </div>
                 </div>

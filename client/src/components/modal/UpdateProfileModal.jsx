@@ -13,7 +13,9 @@ import useClickOutside from '../../hooks/useClickOutside';
 import { useUpdateUserMutation } from '../../services/redux/query/api/usersApi';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import useMutationToast from '../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 function UpdateProfileModal() {
+  const { t } = useTranslation(['user', 'common']);
   const { user } = useContext(FetchDataContext);
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
@@ -130,10 +132,10 @@ function UpdateProfileModal() {
           onSubmit={handleSubmit}
         >
           <div className='px-4 py-4 sm:py-6 flex justify-between items-center gap-4 bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-100'>
-            <h1 className='text-xl sm:text-2xl font-bold'>Update Profile</h1>
+            <h1 className='text-xl sm:text-2xl font-bold'>{t('update.title')}</h1>
             <button
               type='button'
-              aria-label='close-modal'
+              aria-label={t('common:actions.closeModal')}
               onClick={() => setVisibleModal('visibleUpdateProfileModal')}
             >
               <FaXmark className='text-2xl sm:text-3xl' />
@@ -144,9 +146,7 @@ function UpdateProfileModal() {
               <label
                 htmlFor='avatar'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Avatar
-              </label>
+              >{t('field.avatar')}</label>
               <div className='col-span-8 sm:col-span-4 flex flex-col gap-4'>
                 <div className='border-2 border-dotted border-neutral-300 rounded-lg'>
                   <div
@@ -155,9 +155,9 @@ function UpdateProfileModal() {
                     onClick={() => handleUploadImg('avatar')}
                   >
                     <IoCloudUploadOutline className='text-2xl text-blue-500' />
-                    <p className='font-bold'>Upload your image here</p>
+                    <p className='font-bold'>{t('update.uploadHere')}</p>
                     <p className='italic text-sm'>
-                      (Only *.jpeg, *.webp and *.png images will be accepted)
+                      {t('common:upload.imageHint')}
                     </p>
                   </div>
                   <input
@@ -191,7 +191,7 @@ function UpdateProfileModal() {
                     />
                     <button
                       className='absolute top-1 right-1 border border-red-500 text-red-500 rounded-full p-1'
-                      aria-label='remove-img'
+                      aria-label={t('update.removeImage')}
                       type='button'
                       onClick={() =>
                         setForm({
@@ -210,9 +210,7 @@ function UpdateProfileModal() {
               <label
                 htmlFor='cover_bg'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Cover Background
-              </label>
+              >{t('field.coverBackground')}</label>
               <div className='col-span-8 sm:col-span-4 flex flex-col gap-4'>
                 <div className='border-2 border-dotted border-neutral-300 rounded-lg'>
                   <div
@@ -221,9 +219,9 @@ function UpdateProfileModal() {
                     onClick={() => handleUploadImg('cover')}
                   >
                     <IoCloudUploadOutline className='text-2xl text-blue-500' />
-                    <p className='font-bold'>Upload your image here</p>
+                    <p className='font-bold'>{t('update.uploadHere')}</p>
                     <p className='italic text-sm'>
-                      (Only *.jpeg, *.webp and *.png images will be accepted)
+                      {t('common:upload.imageHint')}
                     </p>
                   </div>
                   <input
@@ -259,7 +257,7 @@ function UpdateProfileModal() {
                     />
                     <button
                       className='absolute top-1 right-1 border border-red-500 text-red-500 rounded-full p-1'
-                      aria-label='remove-img'
+                      aria-label={t('update.removeImage')}
                       type='button'
                       onClick={() =>
                         setForm({
@@ -278,16 +276,14 @@ function UpdateProfileModal() {
               <label
                 htmlFor='username'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Username
-              </label>
+              >{t('field.username')}</label>
               <div className='col-span-8 sm:col-span-4'>
                 <input
                   id='username'
                   name='username'
                   className='block w-full h-12 border px-3 py-1 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200'
                   type='text'
-                  placeholder='Enter your new username...'
+                  placeholder={t('update.usernamePlaceholder')}
                   value={form.username}
                   onChange={(e) =>
                     setForm({ ...form, username: e.target.value })
@@ -299,16 +295,14 @@ function UpdateProfileModal() {
               <label
                 htmlFor='password'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Password
-              </label>
+              >{t('field.password')}</label>
               <div className='col-span-8 sm:col-span-4'>
                 <input
                   id='password'
                   name='password'
                   className='block w-full h-12 border px-3 py-1 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200'
                   type='password'
-                  placeholder='Enter your new password...'
+                  placeholder={t('update.passwordPlaceholder')}
                   value={form.newPassword}
                   onChange={(e) =>
                     setForm({ ...form, newPassword: e.target.value })
@@ -320,15 +314,13 @@ function UpdateProfileModal() {
               <label
                 htmlFor='intro'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Intro
-              </label>
+              >{t('field.intro')}</label>
               <div className='col-span-8 sm:col-span-4'>
                 <textarea
                   id='intro'
                   name='intro'
                   className='block w-full h-12 border px-3 py-2 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200 focus:outline-none'
-                  placeholder='Enter your new intro...'
+                  placeholder={t('update.introPlaceholder')}
                   rows={10}
                   value={form.intro}
                   onChange={(e) => setForm({ ...form, intro: e.target.value })}
@@ -339,16 +331,14 @@ function UpdateProfileModal() {
               <label
                 htmlFor='address'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Address
-              </label>
+              >{t('field.address')}</label>
               <div className='col-span-8 sm:col-span-4'>
                 <input
                   id='address'
                   name='address'
                   className='block w-full h-12 border px-3 py-1 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200'
                   type='address'
-                  placeholder='Enter your new address...'
+                  placeholder={t('update.addressPlaceholder')}
                   value={form.address}
                   onChange={(e) =>
                     setForm({ ...form, address: e.target.value })
@@ -361,15 +351,11 @@ function UpdateProfileModal() {
                 type='button'
                 className='border border-neutral-700 rounded px-4 py-2 hover:border-red-300 hover:text-red-400 transition-colors'
                 onClick={() => setVisibleModal('visibleUpdateProfileModal')}
-              >
-                Cancel
-              </button>
+              >{t('common:actions.cancel')}</button>
               <button
                 type='submit'
                 className='bg-neutral-700 text-white rounded px-4 py-2 hover:bg-blue-500 transition-colors'
-              >
-                Update Profile
-              </button>
+              >{t('update.title')}</button>
             </div>
           </div>
         </form>

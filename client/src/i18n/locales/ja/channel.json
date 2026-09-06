@@ -1,0 +1,51 @@
+{
+  "title": "チャンネル",
+  "empty": "まだチャンネルがありません",
+  "searchPlaceholder": "チャンネルを検索…",
+  "add": {
+    "title": "チャンネルを作成",
+    "namePlaceholder": "チャンネル名を入力",
+    "introPlaceholder": "チャンネルの紹介を入力",
+    "uploadHere": "ここに画像をアップロード",
+    "removeImage": "画像を削除"
+  },
+  "update": {
+    "title": "チャンネルを編集"
+  },
+  "detail": {
+    "createdDay": "作成日",
+    "joined": "参加中",
+    "leave": "チャンネルから退出",
+    "join": "参加する",
+    "visit": "開く"
+  },
+  "members": {
+    "title": "メンバー",
+    "close": "メンバー一覧を閉じる",
+    "view": "メンバーを見る",
+    "removeUser": "メンバーを削除",
+    "columns": {
+      "no": "No.",
+      "username": "ユーザー名",
+      "avatar": "アバター",
+      "email": "メールアドレス",
+      "role": "権限",
+      "actions": "操作"
+    }
+  },
+  "actions": {
+    "update": "チャンネルを編集",
+    "delete": "チャンネルを削除"
+  },
+  "confirm": {
+    "delete": "チャンネル「{{name}}」を削除してよろしいですか？",
+    "leave": "チャンネル「{{name}}」から退出してよろしいですか？",
+    "removeMember": "{{name}}さんをチャンネルから外してよろしいですか？"
+  },
+  "field": {
+    "background": "背景画像",
+    "name": "名前",
+    "intro": "紹介"
+  },
+  "memberCount_other": "メンバー {{count}}人"
+}

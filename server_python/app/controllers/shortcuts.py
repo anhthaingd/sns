@@ -31,7 +31,7 @@ async def update_shortcut(decoded_user: dict, channel_id: str):
 
     is_join = await Channel.find_one({"_id": channel_oid, "members": user_id})
     if not is_join:
-        raise ApiError(403, "Bạn chưa gia nhập channel này!")
+        raise ApiError(403, code="channel.notJoinedShortcut")
 
     existed = await Shortcut.find_one({"user": user_id, "channel": channel_oid})
     if existed:

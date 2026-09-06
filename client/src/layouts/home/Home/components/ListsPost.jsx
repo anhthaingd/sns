@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useGetPostsQuery } from '../../../../services/redux/query/api/postsApi';
 import SinglePost from '../../../../components/ui/SinglePost';
 import useObserver from '../../../../hooks/useObserver';
+import { useTranslation } from 'react-i18next';
 
 function ListsPost() {
+  const { t } = useTranslation('common');
   const [changeData, setChangeData] = useState(false);
   const [posts, setPosts] = useState([]);
   const [hasMore, setHasMore] = useState(true);
@@ -58,9 +60,7 @@ function ListsPost() {
     <div className='flex flex-col gap-8 mt-8 text-neutral-700 dark:text-neutral-300'>
       {renderedPosts}
       {hasMore && (
-        <p className='text-center' ref={itemRef}>
-          Loading more...
-        </p>
+        <p className='text-center' ref={itemRef}>{t('status.loadingMore')}</p>
       )}
     </div>
   );

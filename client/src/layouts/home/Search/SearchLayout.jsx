@@ -3,9 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import Page from '../../Page';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
 import useQueryString from '../../../hooks/useQueryString';
+import { useTranslation } from 'react-i18next';
 const Users = lazy(() => import('./components/Users'));
 const Posts = lazy(() => import('./components/Posts'));
 function SearchLayout() {
+  const { t } = useTranslation(['user', 'post']);
   const [searchParams] = useSearchParams();
   const curTab = useMemo(() => {
     return searchParams.get('tab') ? searchParams.get('tab') : 'users';
@@ -30,7 +32,7 @@ function SearchLayout() {
       <div className='flex flex-col gap-8'>
         {curTab !== 'recruitment' && (
           <>
-            <h1 className='text-2xl font-bold'>Search</h1>
+            <h1 className='text-2xl font-bold'>{t('search.title')}</h1>
             <div className='relative w-full flex items-center'>
               <FaMagnifyingGlass
                 className='absolute top-1/2 right-6 -translate-y-1/2  cursor-pointer text-2xl'
@@ -40,7 +42,7 @@ function SearchLayout() {
                 ref={searchInputRef}
                 className='w-full py-4 px-8 rounded bg-neutral-100 dark:bg-neutral-800 md:text-lg'
                 type='text'
-                placeholder='Search...'
+                placeholder={t('search.placeholder')}
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -52,15 +54,11 @@ function SearchLayout() {
           <button
             className={`${curTab === 'users' ? 'text-blue-500' : ''}`}
             onClick={() => createQueryString('tab', 'users')}
-          >
-            Users
-          </button>
+          >{t('search.people')}</button>
           <button
             className={`${curTab === 'posts' ? 'text-blue-500' : ''}`}
             onClick={() => createQueryString('tab', 'posts')}
-          >
-            Posts
-          </button>
+          >{t('post:plural')}</button>
         </div>
         <Suspense>
           <div>

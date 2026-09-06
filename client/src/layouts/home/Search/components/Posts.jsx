@@ -3,9 +3,12 @@ import { FetchDataContext } from '../../../../context/FetchDataProvider';
 import { useGetPostsQuery } from '../../../../services/redux/query/api/postsApi';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { formatDistance } from 'date-fns';
+import { currentDateLocale } from '../../../../i18n/dateLocale';
 import Pagination from '../../../../components/ui/Pagination';
+import { useTranslation } from 'react-i18next';
 
 function Posts({ searchValue }) {
+  const { t } = useTranslation(['post', 'common']);
   const { updateShortcut } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -16,11 +19,10 @@ function Posts({ searchValue }) {
   return (
     <div className='p-4 rounded'>
       <div className='flex justify-between items-center gap-4'>
-        <h1 className='text-xl md:text-2xl font-bold dark:text-white'>Post</h1>
+        <h1 className='text-xl md:text-2xl font-bold dark:text-white'>{t('title')}</h1>
         {isSuccessPosts && (
           <p className='text-medium text-lg'>
-            Found {postsData?.totalPosts}{' '}
-            {postsData?.totalPosts > 1 ? 'Results' : 'Result'}
+            {t('common:status.foundResults', { count: postsData?.totalPosts || 0 })}
           </p>
         )}
       </div>
@@ -71,6 +73,7 @@ function Posts({ searchValue }) {
                               new Date(Date.now()),
                               {
                                 addSuffix: true,
+                                locale: currentDateLocale(),
                               }
                             )}
                           </p>
@@ -92,12 +95,10 @@ function Posts({ searchValue }) {
                   )}
                   <div className='w-full flex justify-between'>
                     <p className='text-lg font-medium'>
-                      {p?.liked?.length}{' '}
-                      {p?.liked?.length > 1 ? 'likes' : 'like'}
+                      {t('count.like', { count: p?.liked?.length || 0 })}
                     </p>
                     <p className='text-lg font-medium'>
-                      {p?.comments?.length}{' '}
-                      {p?.comments?.length > 1 ? 'comments' : 'comment'}
+                      {t('count.comment', { count: p?.comments?.length || 0 })}
                     </p>
                   </div>
                 </article>
@@ -114,7 +115,7 @@ function Posts({ searchValue }) {
       )}
       {isSuccessPosts && postsData?.posts?.length === 0 && (
         <div className='my-8'>
-          <p className='text-xl font-bold text-center'>No Post Yet!</p>
+          <p className='text-xl font-bold text-center'>{t('empty')}</p>
         </div>
       )}
     </div>

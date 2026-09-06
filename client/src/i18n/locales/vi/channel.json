@@ -1,0 +1,51 @@
+{
+  "title": "Channel",
+  "empty": "Chưa có channel nào",
+  "searchPlaceholder": "Tìm channel…",
+  "add": {
+    "title": "Tạo channel",
+    "namePlaceholder": "Nhập tên channel…",
+    "introPlaceholder": "Nhập giới thiệu channel…",
+    "uploadHere": "Tải ảnh lên tại đây",
+    "removeImage": "Xoá ảnh"
+  },
+  "update": {
+    "title": "Sửa channel"
+  },
+  "detail": {
+    "createdDay": "Ngày tạo",
+    "joined": "Đã tham gia",
+    "leave": "Rời channel",
+    "join": "Tham gia",
+    "visit": "Vào xem"
+  },
+  "members": {
+    "title": "Thành viên",
+    "close": "Đóng danh sách thành viên",
+    "view": "Xem thành viên",
+    "removeUser": "Gỡ thành viên",
+    "columns": {
+      "no": "STT",
+      "username": "Tên người dùng",
+      "avatar": "Ảnh đại diện",
+      "email": "Email",
+      "role": "Vai trò",
+      "actions": "Thao tác"
+    }
+  },
+  "actions": {
+    "update": "Sửa channel",
+    "delete": "Xoá channel"
+  },
+  "confirm": {
+    "delete": "Bạn chắc chắn muốn xoá channel {{name}}?",
+    "leave": "Bạn chắc chắn muốn rời channel {{name}}?",
+    "removeMember": "Bạn chắc chắn muốn gỡ {{name}} khỏi channel?"
+  },
+  "field": {
+    "background": "Ảnh nền",
+    "name": "Tên",
+    "intro": "Giới thiệu"
+  },
+  "memberCount_other": "{{count}} thành viên"
+}

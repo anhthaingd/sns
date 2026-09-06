@@ -11,8 +11,10 @@ import useQueryString from '../../../../hooks/useQueryString';
 import { FetchDataContext } from '../../../../context/FetchDataProvider';
 import Pagination from '../../../../components/ui/Pagination';
 import useMutationToast from '../../../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 
 function ChannelListLayout() {
+  const { t } = useTranslation(['channel', 'common']);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, updateShortcut } = useContext(FetchDataContext);
@@ -71,8 +73,7 @@ function ChannelListLayout() {
               <div className='flex flex-col gap-1'>
                 <p className='font-bold md:text-lg'>{c?.name}</p>
                 <p className='font-medium'>
-                  {c?.members?.length}{' '}
-                  {c?.members?.length > 1 ? 'members' : 'member'}
+                  {t('memberCount', { count: c?.members?.length || 0 })}
                 </p>
               </div>
               <button
@@ -83,14 +84,16 @@ function ChannelListLayout() {
                 } transition colors`}
                 onClick={() => handleRedirect(c)}
               >
-                {checkJoinMember(c) ? 'Visit' : 'Join'}
+                {checkJoinMember(c) ? t('detail.visit') : t('detail.join')}
               </button>
             </div>
           </article>
         );
       })
     );
-  }, [isSuccessChannels, channelsData, user]);
+  // `t` trong mảng phụ thuộc: đổi ngôn ngữ -> react-i18next trả `t` mới; thiếu
+  // nó thì danh sách đã memo hoá giữ chữ của ngôn ngữ cũ.
+  }, [isSuccessChannels, channelsData, user, t]);
   useMutationToast({
     data: joinData,
     error: errorJoin,
@@ -103,27 +106,23 @@ function ChannelListLayout() {
         className='border border-neutral-300 dark:border-neutral-700 rounded-lg p-4 flex flex-col gap-8'
         aria-disabled={isLoadingJoin}
       >
-        <h1 className='text-xl md:text-2xl font-bold'>Channels</h1>
+        <h1 className='text-xl md:text-2xl font-bold'>{t('title')}</h1>
         <div className='w-full flex justify-end items-center gap-2'>
           <input
             className='px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded dark:bg-neutral-800'
             type='text'
-            placeholder='Search channels...'
+            placeholder={t('searchPlaceholder')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
           />
           <button
             className='px-4 py-2 font-bold bg-neutral-700 text-white rounded'
             onClick={deleteQueryString}
-          >
-            Reset
-          </button>
+          >{t('common:actions.reset')}</button>
           <button
             className='px-4 py-2 font-bold bg-blue-500 rounded text-neutral-100'
             onClick={() => createQueryString('search', searchValue)}
-          >
-            Search
-          </button>
+          >{t('common:actions.search')}</button>
         </div>
         <div>
           {isSuccessChannels && channelsData?.channels?.length > 0 && (
@@ -131,7 +130,7 @@ function ChannelListLayout() {
           )}
           {isSuccessChannels && channelsData?.channels?.length === 0 && (
             <div className='w-full flex justify-center items-center text-lg md:text-xl font-bold'>
-              <p>No Channel Yet!</p>
+              <p>{t('empty')}</p>
             </div>
           )}
           {isSuccessChannels && channelsData?.totalPage > 1 && (

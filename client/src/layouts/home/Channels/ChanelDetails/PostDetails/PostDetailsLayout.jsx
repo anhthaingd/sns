@@ -4,7 +4,9 @@ import Loading from '../../../../../components/ui/Loading';
 import NotFoundLayout from '../../../../notfound/NotFoundLayout';
 import SinglePost from '../../../../../components/ui/SinglePost';
 import { FaArrowLeft } from 'react-icons/fa6';
+import { useTranslation } from 'react-i18next';
 function PostDetailsLayout() {
+  const { t } = useTranslation('common');
   const { id } = useParams();
   const navigate = useNavigate();
   const {
@@ -25,7 +27,7 @@ function PostDetailsLayout() {
         <>
           <button
             className='absolute top-16 left-4'
-            aria-label='back-btn'
+            aria-label={t('actions.back')}
             onClick={() =>
               navigate(`/channels/${postData?.post?.channel?._id}`)
             }

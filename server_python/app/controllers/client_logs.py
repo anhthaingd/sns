@@ -43,4 +43,4 @@ async def record_client_log(body: ClientLogRequest, ip: str, user_agent: str | N
         f" | stack={_one_line(body.stack, 2000)}" if body.stack else "",
     )
     # Trả về nhanh và không tiết lộ gì: client chỉ cần biết là đã nhận.
-    return ok(message="Đã ghi nhận!")
+    return ok(code="log.received")

@@ -1,0 +1,41 @@
+{
+  "title": "投稿",
+  "plural": "投稿",
+  "empty": "まだ投稿がありません",
+  "create": {
+    "placeholder": "{{name}}さん、いまどうしていますか？",
+    "selectChannel": "チャンネルを選択",
+    "addToPost": "投稿に追加",
+    "addImage": "画像を追加",
+    "submit": "投稿する",
+    "imageAlt": "添付画像{{index}}"
+  },
+  "update": {
+    "title": "投稿を編集",
+    "uploadHere": "ここに画像をアップロード",
+    "images": "画像",
+    "content": "本文"
+  },
+  "actions": {
+    "like": "いいね",
+    "comment": "コメント",
+    "save": "保存",
+    "edit": "編集",
+    "delete": "削除",
+    "selectAll": "すべて選択",
+    "sendComment": "コメントを送信",
+    "deleteComment": "コメントを削除",
+    "commentAs": "{{name}}としてコメント"
+  },
+  "bookmark": {
+    "empty": "まだブックマークがありません",
+    "toggle": "ブックマーク"
+  },
+  "confirm": {
+    "delete": "この投稿を削除してよろしいですか？"
+  },
+  "count": {
+    "like_other": "いいね {{count}}件",
+    "comment_other": "コメント {{count}}件"
+  }
+}

@@ -12,7 +12,9 @@ import { ModalContext } from '../../context/ModalProvider';
 import useClickOutside from '../../hooks/useClickOutside';
 import { useUpdateChannelMutation } from '../../services/redux/query/api/channelsApi';
 import useMutationToast from '../../hooks/useMutationToast';
+import { useTranslation } from 'react-i18next';
 function UpdateChannelModal() {
+  const { t } = useTranslation(['channel', 'common']);
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
   const imgRef = useRef();
@@ -97,10 +99,10 @@ function UpdateChannelModal() {
           onSubmit={handleSubmit}
         >
           <div className='px-4 py-4 sm:py-6 flex justify-between items-center gap-4 bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-100'>
-            <h1 className='text-xl sm:text-2xl font-bold'>Update Channel</h1>
+            <h1 className='text-xl sm:text-2xl font-bold'>{t('update.title')}</h1>
             <button
               type='button'
-              aria-label='close-modal'
+              aria-label={t('common:actions.closeModal')}
               onClick={() => setVisibleModal('visibleUpdateChannelModal')}
             >
               <FaXmark className='text-2xl sm:text-3xl' />
@@ -111,9 +113,7 @@ function UpdateChannelModal() {
               <label
                 htmlFor='background'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Background
-              </label>
+              >{t('field.background')}</label>
               <div className='col-span-8 sm:col-span-4 flex flex-col gap-4'>
                 <div className='border-2 border-dotted border-neutral-300 rounded-lg'>
                   <div
@@ -122,9 +122,9 @@ function UpdateChannelModal() {
                     onClick={handleUploadImg}
                   >
                     <IoCloudUploadOutline className='text-2xl text-blue-500' />
-                    <p className='font-bold'>Upload your image here</p>
+                    <p className='font-bold'>{t('add.uploadHere')}</p>
                     <p className='italic text-sm'>
-                      (Only *.jpeg, *.webp and *.png images will be accepted)
+                      {t('common:upload.imageHint')}
                     </p>
                   </div>
                   <input
@@ -157,7 +157,7 @@ function UpdateChannelModal() {
                     />
                     <button
                       className='absolute top-1 right-1 border border-red-500 text-red-500 rounded-full p-1'
-                      aria-label='remove-img'
+                      aria-label={t('add.removeImage')}
                       type='button'
                       onClick={() =>
                         setForm({
@@ -176,16 +176,14 @@ function UpdateChannelModal() {
               <label
                 htmlFor='name'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Name
-              </label>
+              >{t('field.name')}</label>
               <div className='col-span-8 sm:col-span-4'>
                 <input
                   id='name'
                   name='name'
                   className='block w-full h-12 border px-3 py-1 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200'
                   type='text'
-                  placeholder='Enter Channel name...'
+                  placeholder={t('add.namePlaceholder')}
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -195,15 +193,13 @@ function UpdateChannelModal() {
               <label
                 htmlFor='intro'
                 className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >
-                Intro
-              </label>
+              >{t('field.intro')}</label>
               <div className='col-span-8 sm:col-span-4'>
                 <textarea
                   id='intro'
                   name='name'
                   className='block w-full h-12 border p-3 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200'
-                  placeholder='Enter channel intro...'
+                  placeholder={t('add.introPlaceholder')}
                   value={form.intro}
                   onChange={(e) => setForm({ ...form, intro: e.target.value })}
                   rows={5}
@@ -215,15 +211,11 @@ function UpdateChannelModal() {
                 type='button'
                 className='border border-neutral-700 rounded px-4 py-2 hover:border-red-300 hover:text-red-400 transition-colors'
                 onClick={() => setVisibleModal('visibleUpdateChannelModal')}
-              >
-                Cancel
-              </button>
+              >{t('common:actions.cancel')}</button>
               <button
                 type='submit'
                 className='bg-neutral-700 text-white rounded px-4 py-2 hover:bg-blue-500 transition-colors'
-              >
-                Update Channel
-              </button>
+              >{t('update.title')}</button>
             </div>
           </div>
         </form>

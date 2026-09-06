@@ -109,7 +109,11 @@ Hai chi tiết bảo mật rất dễ bị bỏ qua, dự án này đã xử lý
 **Cái bẫy 1 — thông báo lỗi tiết lộ thông tin.**
 
 ```python
-INVALID_CREDENTIALS_MESSAGE = "Email hoặc mật khẩu không đúng!"
+# app/messages.py
+"auth.invalidCredentials": "Email hoặc mật khẩu không đúng!",
+
+# app/controllers/auth.py — cả email lạ lẫn sai mật khẩu đều ném đúng mã này
+raise ApiError(401, code="auth.invalidCredentials")
 ```
 
 Một thông báo **duy nhất** cho mọi trường hợp. Bản cũ trả *"Tài khoản chưa được
