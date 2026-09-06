@@ -18,5 +18,6 @@
   "medianUnknown": "not enough salary data (n={{sample}})",
   "caveat": "A median salary is shown only for groups with at least {{min}} posts that state a salary — below that the number is an anecdote, not a statistic.",
   "finding": "Japanese opens up the NUMBER of opportunities; SALARY is driven by skills. In this dataset, posts demanding high Japanese are mostly teaching and service roles rather than engineering, so a higher Japanese level does not automatically come with higher pay.",
-  "empty": "No job data yet. Run the ETL first."
+  "empty": "No job data yet. Run the ETL first.",
+  "loadFailed": "Could not load the market data."
 }

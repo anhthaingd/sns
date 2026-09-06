@@ -25,5 +25,6 @@
     "empty": "Chọn ít nhất một mục ở trên để xem kết quả kết hợp."
   },
   "disclaimer": "Đây là số tin bạn qua được VÒNG LỌC ĐIỀU KIỆN, không phải số tin chắc chắn trúng tuyển.",
-  "needResume": "Bạn cần tạo CV trước khi dùng chức năng này."
+  "loadFailed": "Không tải được dữ liệu mô phỏng.",
+  "createResume": "Tạo CV ngay"
 }

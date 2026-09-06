@@ -25,5 +25,6 @@
     "empty": "Select at least one item above to see the combined result."
   },
   "disclaimer": "This is how many posts you CLEAR THE REQUIREMENTS for — not how many you would be hired for.",
-  "needResume": "Create a CV first to use this feature."
+  "loadFailed": "Could not load the simulation data.",
+  "createResume": "Create a CV"
 }

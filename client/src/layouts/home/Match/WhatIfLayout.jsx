@@ -1,6 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Page from '../../Page';
+import Loading from '../../../components/ui/Loading';
+import { serverMessage } from '../../../services/utils/serverMessage';
 import {
   useGetWhatIfQuery,
   useSimulateWhatIfMutation,
@@ -12,7 +15,7 @@ const actionKey = (a) => `${a.kind}:${a.value}`;
 
 function WhatIfLayout() {
   const { t } = useTranslation(['whatif', 'job', 'common']);
-  const { data, isSuccess, isError } = useGetWhatIfQuery();
+  const { data, isSuccess, isLoading, isError, error } = useGetWhatIfQuery();
   const [simulate, { data: combined }] = useSimulateWhatIfMutation();
   const [selected, setSelected] = useState([]);
 
@@ -84,10 +87,21 @@ function WhatIfLayout() {
     [data, selected, t, actionLabel, toggle]
   );
 
+  if (isLoading) return <Loading />;
+
+  // Hiện CÂU LỖI THẬT từ máy chủ chứ không viết cứng "bạn cần tạo CV": mất
+  // mạng hay lỗi 500 cũng vào nhánh này, mà nói "bạn cần tạo CV" khi người ta
+  // đã có CV thì họ đi tìm sai chỗ. Chưa có CV thì backend trả mã
+  // `match.noResume` và câu chữ đúng tự hiện ra.
   if (isError) {
     return (
       <Page>
-        <p className='p-4'>{t('needResume')}</p>
+        <section className='p-8 rounded-lg border border-neutral-300 dark:border-neutral-700 flex flex-col items-center gap-4'>
+          <p className='font-bold'>{serverMessage(t, error?.data, 'loadFailed')}</p>
+          <Link to='/resume' className='px-4 py-2 rounded bg-blue-500 text-neutral-50'>
+            {t('createResume')}
+          </Link>
+        </section>
       </Page>
     );
   }

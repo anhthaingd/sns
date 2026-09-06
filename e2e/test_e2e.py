@@ -368,13 +368,17 @@ async def test_whatif_recalculates_when_an_option_is_picked(page):
 
 
 async def test_whatif_needs_a_resume_first(page):
-    """Chưa có CV thì phải nói rõ, không hiện màn hình trống."""
+    """Chưa có CV thì phải nói rõ, và nói bằng CÂU CHỮ CỦA BACKEND.
+
+    Chờ đúng bản dịch của mã `match.noResume` là kiểm luôn cả đường
+    mã-lỗi-về-bản-dịch, thay vì kiểm một câu viết cứng ở frontend.
+    """
     email = unique_email("whatif-nocv")
     await register_via_ui(page, email)
     await login_via_ui(page, email)
 
     await page.goto(f"{APP_URL}/match/whatif", wait_until="domcontentloaded")
-    await page.get_by_text(tr("whatif", "needResume")).wait_for(timeout=30000)
+    await page.get_by_text(tr("error", "server.match.noResume")).wait_for(timeout=30000)
 
 
 async def test_market_page_shows_the_sample_size_next_to_every_median(page):

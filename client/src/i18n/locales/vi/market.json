@@ -18,5 +18,6 @@
   "medianUnknown": "chưa đủ dữ liệu lương (n={{sample}})",
   "caveat": "Chỉ hiện trung vị lương khi nhóm có từ {{min}} tin ghi lương trở lên — dưới ngưỡng đó con số là giai thoại, không phải số liệu.",
   "finding": "Tiếng Nhật mở ra SỐ LƯỢNG cơ hội; MỨC LƯƠNG lại do kỹ năng quyết định. Trong kho tin này, nhóm đòi tiếng Nhật cao phần lớn là giảng dạy và dịch vụ chứ không phải kỹ thuật — nên trình độ tiếng Nhật cao hơn không tự động đi kèm lương cao hơn.",
-  "empty": "Chưa có dữ liệu việc làm. Chạy ETL trước."
+  "empty": "Chưa có dữ liệu việc làm. Chạy ETL trước.",
+  "loadFailed": "Không tải được số liệu thị trường."
 }

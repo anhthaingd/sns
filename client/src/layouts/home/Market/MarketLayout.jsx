@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Page from '../../Page';
+import Loading from '../../../components/ui/Loading';
+import { serverMessage } from '../../../services/utils/serverMessage';
 import BarChart from '../../../components/ui/BarChart';
 import { useGetJobMarketQuery } from '../../../services/redux/query/api/jobsApi';
 import { formatSalary } from '../../../services/utils/jobFormat';
@@ -8,7 +10,7 @@ const OTHER = '__other__';
 
 function MarketLayout() {
   const { t } = useTranslation(['market', 'job', 'common']);
-  const { data, isSuccess } = useGetJobMarketQuery();
+  const { data, isSuccess, isLoading, isError, error } = useGetJobMarketQuery();
 
   // Trung vị chỉ có khi nhóm đủ lớn — backend đã trả `null` dưới ngưỡng, ở đây
   // chỉ diễn đạt lại. Cỡ mẫu LUÔN hiện, kể cả khi không có trung vị.
@@ -22,7 +24,18 @@ function MarketLayout() {
         : t('medianUnknown', { sample: row.salarySample })
     }`;
 
-  if (!isSuccess) {
+  // Ba trạng thái khác nhau, ba câu khác nhau. Gộp chung thành "chưa có dữ
+  // liệu, chạy ETL trước" là nói sai: lúc đang tải thì dữ liệu đang trên
+  // đường về, còn lúc lỗi mạng thì chạy ETL không cứu được gì.
+  if (isLoading) return <Loading />;
+  if (isError) {
+    return (
+      <Page>
+        <p className='p-4'>{serverMessage(t, error?.data, 'loadFailed')}</p>
+      </Page>
+    );
+  }
+  if (!isSuccess || data.totalJobs === 0) {
     return (
       <Page>
         <p className='p-4'>{t('empty')}</p>
