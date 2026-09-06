@@ -126,9 +126,7 @@ def candidate_actions(jobs: list, resume: ResumeMatchView) -> list[Action]:
 
     current_years = resume.years_of_experience or 0
     actions += [
-        Action("years", current_years + step)
-        for step in YEAR_STEPS
-        if current_years + step <= MAX_SIMULATED_YEARS
+        Action("years", current_years + step) for step in YEAR_STEPS if current_years + step <= MAX_SIMULATED_YEARS
     ]
     return actions
 
