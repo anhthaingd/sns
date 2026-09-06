@@ -16,6 +16,7 @@ const CompanyGapLayout = lazy(() =>
   import('../../layouts/home/Match/CompanyGapLayout')
 );
 const WhatIfLayout = lazy(() => import('../../layouts/home/Match/WhatIfLayout'));
+const MarketLayout = lazy(() => import('../../layouts/home/Market/MarketLayout'));
 const SearchLayout = lazy(() =>
   import('../../layouts/home/Search/SearchLayout')
 );
@@ -121,6 +122,14 @@ const routes = [
             ),
           },
         ],
+      },
+      {
+        path: 'market',
+        element: (
+          <ProtectedRoute>
+            <MarketLayout />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'search',

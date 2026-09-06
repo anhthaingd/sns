@@ -21,6 +21,10 @@ export const jobsApi = api.injectEndpoints({
     getCompanyDetails: builder.query({
       query: (id) => `companies/${id}`,
     }),
+    getJobMarket: builder.query({
+      query: () => 'jobs/market',
+      providesTags: ['jobs'],
+    }),
   }),
 });
 
@@ -30,4 +34,5 @@ export const {
   useGetJobDetailsQuery,
   useGetCompaniesQuery,
   useGetCompanyDetailsQuery,
+  useGetJobMarketQuery,
 } = jobsApi;

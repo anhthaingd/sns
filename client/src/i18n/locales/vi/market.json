@@ -1,0 +1,22 @@
+{
+  "title": "Bản đồ thị trường việc làm",
+  "intro": "Tổng hợp trên {{total}} tin tuyển dụng đang hoạt động.",
+  "skills": {
+    "title": "Kỹ năng được săn nhiều nhất",
+    "other": "Ngoài ra còn {{distinct}} kỹ năng lẻ khác, tổng {{jobs}} lượt yêu cầu — mỗi kỹ năng dưới ngưỡng nên không tách riêng."
+  },
+  "japanese": {
+    "title": "Yêu cầu tiếng Nhật",
+    "unstated": "Tin không ghi rõ"
+  },
+  "prefectures": {
+    "title": "Nơi làm việc"
+  },
+  "jobs_one": "{{count}} tin",
+  "jobs_other": "{{count}} tin",
+  "median": "trung vị {{salary}} · n={{sample}}",
+  "medianUnknown": "chưa đủ dữ liệu lương (n={{sample}})",
+  "caveat": "Chỉ hiện trung vị lương khi nhóm có từ {{min}} tin ghi lương trở lên — dưới ngưỡng đó con số là giai thoại, không phải số liệu.",
+  "finding": "Tiếng Nhật mở ra SỐ LƯỢNG cơ hội; MỨC LƯƠNG lại do kỹ năng quyết định. Trong kho tin này, nhóm đòi tiếng Nhật cao phần lớn là giảng dạy và dịch vụ chứ không phải kỹ thuật — nên trình độ tiếng Nhật cao hơn không tự động đi kèm lương cao hơn.",
+  "empty": "Chưa có dữ liệu việc làm. Chạy ETL trước."
+}
