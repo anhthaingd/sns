@@ -5,6 +5,7 @@ Test quan trọng nhất trong file này là `test_deltas_do_not_add_up`: nó pi
 lại, chứ không phải một bảng tra sẵn.
 """
 
+import pytest
 from app.models.job import JobMatchView
 from app.models.resume import ResumeMatchView
 from app.services.whatif import Action, apply_actions, candidate_actions, qualified_job_ids, simulate
@@ -40,6 +41,32 @@ def test_applying_a_japanese_level_replaces_it():
     after = apply_actions(resume, [Action(kind="japanese", value="business")])
     assert after.japanese_level == "business"
     assert resume.japanese_level == "basic"
+
+
+def test_applying_two_language_levels_keeps_the_higher_one():
+    """Tick cả N2 lẫn N1 thì kết quả phải là N1, và KHÔNG phụ thuộc thứ tự gửi lên.
+
+    Bản đầu ghi đè tuần tự nên cùng một lựa chọn của người dùng cho hai kết quả
+    khác nhau tuỳ thứ tự phần tử trong mảng (đo được: +68 so với +64).
+    """
+    resume = make_resume(japanese_level="basic")
+    up = [Action("japanese", "business"), Action("japanese", "fluent")]
+
+    assert apply_actions(resume, up).japanese_level == "fluent"
+    assert apply_actions(resume, list(reversed(up))).japanese_level == "fluent"
+
+
+def test_applying_a_lower_level_never_downgrades_the_resume():
+    """Mô phỏng là "nếu tôi HỌC THÊM"; không có phương án nào làm CV kém đi."""
+    resume = make_resume(japanese_level="fluent", english_level="business")
+    after = apply_actions(resume, [Action("japanese", "basic"), Action("english", "none")])
+    assert after.japanese_level == "fluent"
+    assert after.english_level == "business"
+
+
+def test_applying_fewer_years_never_downgrades_the_resume():
+    after = apply_actions(make_resume(years_of_experience=5), [Action("years", 2)])
+    assert after.years_of_experience == 5
 
 
 def test_applying_years_replaces_the_number():
@@ -99,6 +126,52 @@ def test_deltas_do_not_add_up():
     assert (both - base) != (only_japanese - base) + (only_skill - base)
 
 
+def test_combining_can_open_MORE_than_the_sum_of_the_parts():
+    """Chiều bất ngờ: kết hợp cho nhiều hơn tổng lẻ.
+
+    Đo trên dữ liệu thật: "lên N2" mở thêm 64 tin, "học Sales" mở thêm 42 tin,
+    tổng lẻ là 106 — nhưng làm cả hai mở thêm **116** tin. Vì có những tin đòi
+    CÙNG LÚC cả hai thứ: bù riêng từng cái thì cái còn lại vẫn chặn, nên chúng
+    không được tính vào lợi ích lẻ nào cả.
+
+    Bản thiết kế ban đầu đoán sai chiều (tưởng kết hợp luôn NHỎ hơn tổng lẻ).
+    Test này pin lại chiều đúng để câu chữ trên giao diện không nói sai.
+    """
+    jobs = [
+        make_job(required_japanese="business"),  # chỉ cần tiếng Nhật
+        make_job(required_skills=["Go"]),  # chỉ cần kỹ năng
+        make_job(required_japanese="business", required_skills=["Go"]),  # cần CẢ HAI
+    ]
+    resume = make_resume(japanese_level="basic", skills_normalized=["Python"])
+
+    base = len(qualified_job_ids(jobs, resume))
+    only_jp = len(qualified_job_ids(jobs, apply_actions(resume, [Action("japanese", "business")]))) - base
+    only_go = len(qualified_job_ids(jobs, apply_actions(resume, [Action("skill", "Go")]))) - base
+    both = (
+        len(qualified_job_ids(jobs, apply_actions(resume, [Action("japanese", "business"), Action("skill", "Go")])))
+        - base
+    )
+
+    assert (only_jp, only_go) == (1, 1)
+    assert both == 3, "tin đòi cả hai điều kiện chỉ mở ra khi bù cả hai"
+    assert both > only_jp + only_go
+
+
+def test_combining_can_open_FEWER_than_the_sum_of_the_parts():
+    """Chiều còn lại: hai phương án cùng mở một tin thì không cộng dồn."""
+    jobs = [make_job(required_skills=["Go", "Rust"])]
+    resume = make_resume(skills_normalized=[])
+
+    base = len(qualified_job_ids(jobs, resume))
+    only_go = len(qualified_job_ids(jobs, apply_actions(resume, [Action("skill", "Go")]))) - base
+    only_rust = len(qualified_job_ids(jobs, apply_actions(resume, [Action("skill", "Rust")]))) - base
+    both = len(qualified_job_ids(jobs, apply_actions(resume, [Action("skill", "Go"), Action("skill", "Rust")]))) - base
+
+    assert (only_go, only_rust) == (1, 1)
+    assert both == 1, "cùng một tin, không được đếm hai lần"
+    assert both < only_go + only_rust
+
+
 # ---------------------------------------------------------------------------
 # Sinh phương án
 # ---------------------------------------------------------------------------
@@ -156,3 +229,74 @@ def test_simulate_with_no_action_is_the_baseline():
     outcome = simulate(jobs, resume, [])
     assert outcome["deltaJobs"] == 0
     assert outcome["qualifiedJobs"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Qua API thật
+# ---------------------------------------------------------------------------
+
+
+async def test_whatif_requires_authentication(client):
+    assert (await client.get("/api/match/whatif")).status_code == 401
+
+
+async def test_whatif_requires_a_resume(client, user, has_jobs):
+    """Không có CV thì không có gì để mô phỏng — phải nói rõ, không trả rỗng."""
+    r = await client.get("/api/match/whatif", headers=user.headers)
+    assert r.status_code == 404
+    assert r.json()["code"] == "match.noResume"
+
+
+async def test_whatif_lists_suggestions_sorted_by_benefit(client, user_with_resume, has_jobs):
+    r = await client.get("/api/match/whatif", headers=user_with_resume.headers)
+    assert r.status_code == 200, r.text
+    body = r.json()
+
+    assert body["totalJobs"] > 0
+    assert "qualifiedJobs" in body["baseline"]
+    deltas = [s["deltaJobs"] for s in body["suggestions"]]
+    assert deltas == sorted(deltas, reverse=True), "phải xếp giảm dần theo lợi ích"
+
+
+async def test_whatif_matches_the_qualified_count_of_the_match_page(client, user_with_resume, has_jobs):
+    """Hai màn hình phải nói cùng một con số về cùng một CV.
+
+    Nếu lệch nghĩa là mô phỏng đã dùng một bộ luật khác — đúng loại lỗi không ai
+    phát hiện cho tới lúc demo.
+    """
+    whatif = (await client.get("/api/match/whatif", headers=user_with_resume.headers)).json()
+    page = (
+        await client.get("/api/match/companies", params={"qualifiedOnly": True}, headers=user_with_resume.headers)
+    ).json()
+    assert whatif["baseline"]["qualifiedCompanies"] == page["totalCompanies"]
+
+
+async def test_whatif_combination_is_not_the_sum_of_its_parts(client, user_with_resume, has_jobs):
+    """Kiểm trên dữ liệu thật đúng tính chất đã pin ở test logic thuần."""
+    body = (await client.get("/api/match/whatif", headers=user_with_resume.headers)).json()
+    two = [s for s in body["suggestions"] if s["deltaJobs"] > 0][:2]
+    if len(two) < 2:
+        pytest.skip("CV mẫu không có đủ 2 phương án sinh lợi để so sánh")
+
+    r = await client.post(
+        "/api/match/whatif",
+        json={"actions": [{"kind": s["kind"], "value": s["value"]} for s in two]},
+        headers=user_with_resume.headers,
+    )
+    assert r.status_code == 200, r.text
+    combined = r.json()
+    assert combined["sumOfIndividualDeltas"] == sum(s["deltaJobs"] for s in two)
+    # KHÔNG khẳng định lớn hơn hay nhỏ hơn: cả hai chiều đều xảy ra được, xem
+    # hai test logic thuần ở trên. Bất biến luôn đúng là kết hợp không bao giờ
+    # tệ hơn phương án lẻ tốt nhất — bù thêm một thứ không làm mất cơ hội nào.
+    assert combined["combined"]["deltaJobs"] >= max(s["deltaJobs"] for s in two)
+
+
+async def test_whatif_rejects_an_unknown_action_kind(client, user_with_resume, has_jobs):
+    r = await client.post(
+        "/api/match/whatif",
+        json={"actions": [{"kind": "salary", "value": 999}]},
+        headers=user_with_resume.headers,
+    )
+    assert r.status_code == 400
+    assert r.json()["code"] == "whatif.unknownAction"

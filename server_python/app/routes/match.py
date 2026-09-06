@@ -1,7 +1,14 @@
 from fastapi import APIRouter, Body, Depends, Query
 
 from app.controllers.admin_etl import etl_status, start_etl
-from app.controllers.match import company_gap, job_gap, match_companies, match_jobs
+from app.controllers.match import (
+    company_gap,
+    job_gap,
+    match_companies,
+    match_jobs,
+    whatif_simulate,
+    whatif_suggestions,
+)
 from app.middleware.auth import get_current_user
 from app.schemas.responses import (
     ERROR_RESPONSES,
@@ -11,6 +18,8 @@ from app.schemas.responses import (
     GapResponse,
     JobMatchResponse,
     MessageResponse,
+    WhatIfSimulateResponse,
+    WhatIfSuggestionsResponse,
 )
 
 router = APIRouter(tags=["match"], responses=ERROR_RESPONSES)
@@ -38,6 +47,19 @@ async def route_job_gap(job_id: str, decoded=Depends(get_current_user)):
 @router.get("/api/match/companies/{company_id}/gap", response_model=CompanyGapResponse)
 async def route_company_gap(company_id: str, decoded=Depends(get_current_user)):
     return await company_gap(decoded, company_id)
+
+
+@router.get("/api/match/whatif", response_model=WhatIfSuggestionsResponse)
+async def route_whatif(decoded=Depends(get_current_user)):
+    return await whatif_suggestions(decoded)
+
+
+@router.post("/api/match/whatif", response_model=WhatIfSimulateResponse)
+async def route_whatif_simulate(
+    actions: list[dict] | None = Body(default=None, embed=True),
+    decoded=Depends(get_current_user),
+):
+    return await whatif_simulate(decoded, actions)
 
 
 # --- Quản trị dữ liệu -------------------------------------------------------

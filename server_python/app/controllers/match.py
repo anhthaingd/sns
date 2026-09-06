@@ -21,6 +21,7 @@ from app.models.job import Job, JobMatchView
 from app.models.resume import Resume
 from app.services.job_index import job_index
 from app.services.matching import evaluate
+from app.services.whatif import Action, simulate, suggestions
 from app.utils.ids import to_object_id
 from app.utils.loaders import load_by_ids
 from app.utils.responses import ok
@@ -236,4 +237,50 @@ async def company_gap(decoded_user: dict, company_id: str):
         bestMatch=best_result.to_dict(),
         positions=[{"job": _job_summary(j), "match": r.to_dict()} for j, r in scored[:10]],
         combinedGaps=combined,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Chức năng 3 — bù chỗ nào thì mở ra nhiều cơ hội nhất
+# ---------------------------------------------------------------------------
+
+VALID_ACTION_KINDS = {"skill", "japanese", "english", "years"}
+
+
+async def _active_jobs() -> list[JobMatchView]:
+    return await Job.find({"is_active": True}, projection_model=JobMatchView).limit(MAX_JOBS_SCORED).to_list()
+
+
+async def whatif_suggestions(decoded_user: dict):
+    """Xếp các phương án theo số tin mở thêm được.
+
+    Cố ý KHÔNG gọi `job_index.similarities`: số tin đủ điều kiện là thuần luật,
+    và việc nó không phụ thuộc embedder là một tính chất cần giữ, không phải
+    chuyện tình cờ.
+    """
+    resume = await _require_resume(decoded_user)
+    return ok(**suggestions(await _active_jobs(), resume))
+
+
+async def whatif_simulate(decoded_user: dict, raw_actions: list[dict] | None):
+    """Áp dụng ĐỒNG THỜI một tổ hợp phương án do người dùng chọn."""
+    resume = await _require_resume(decoded_user)
+
+    actions = []
+    for item in raw_actions or []:
+        kind = (item or {}).get("kind")
+        if kind not in VALID_ACTION_KINDS:
+            raise ApiError(400, code="whatif.unknownAction")
+        actions.append(Action(kind=kind, value=item.get("value")))
+
+    jobs = await _active_jobs()
+    combined = simulate(jobs, resume, actions)
+
+    # Tổng lợi ích lẻ, để giao diện giải thích được vì sao con số kết hợp nhỏ hơn.
+    individual = sum(simulate(jobs, resume, [a])["deltaJobs"] for a in actions)
+
+    return ok(
+        baseline={"qualifiedJobs": combined["qualifiedJobs"] - combined["deltaJobs"]},
+        combined=combined,
+        sumOfIndividualDeltas=individual,
     )

@@ -47,18 +47,34 @@ class Action:
         return {"kind": self.kind, "value": self.value}
 
 
+def _higher_level(current: str | None, candidate: str) -> str:
+    """Bậc cao hơn trong hai bậc ngôn ngữ.
+
+    Mô phỏng chỉ trả lời câu hỏi "nếu tôi HỌC THÊM", nên không phương án nào
+    được phép làm CV kém đi. Bậc lạ (không có trong thang) coi như thấp nhất.
+    """
+    rank = {level: index for index, level in enumerate(LANGUAGE_LEVELS)}
+    return candidate if rank.get(candidate, -1) > rank.get(current, -1) else (current or candidate)
+
+
 def apply_actions(resume: ResumeMatchView, actions: list[Action]) -> ResumeMatchView:
-    """Bản sao của CV đã áp dụng các phương án. KHÔNG sửa bản gốc."""
+    """Bản sao của CV đã áp dụng các phương án. KHÔNG sửa bản gốc.
+
+    Gộp bằng phép LẤY MỨC CAO HƠN chứ không ghi đè tuần tự. Ghi đè khiến kết
+    quả phụ thuộc thứ tự phần tử trong mảng: tick cùng lúc "lên N2" và "lên N1"
+    cho ra +64 hay +68 tuỳ thứ tự client gửi lên — cùng một lựa chọn của người
+    dùng mà hai con số khác nhau.
+    """
     draft = resume.model_copy(deep=True)
     for action in actions:
         if action.kind == "skill":
             draft.skills_normalized = [*(draft.skills_normalized or []), str(action.value)]
         elif action.kind == "japanese":
-            draft.japanese_level = str(action.value)
+            draft.japanese_level = _higher_level(draft.japanese_level, str(action.value))
         elif action.kind == "english":
-            draft.english_level = str(action.value)
+            draft.english_level = _higher_level(draft.english_level, str(action.value))
         elif action.kind == "years":
-            draft.years_of_experience = int(action.value)
+            draft.years_of_experience = max(draft.years_of_experience or 0, int(action.value))
     return draft
 
 

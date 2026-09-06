@@ -114,6 +114,9 @@
       "postSaved": "{{username}} saved your post.",
       "postCommented": "{{username}} commented on your post.",
       "removedFromChannel": "You were removed from the channel {{channel}}."
+    },
+    "whatif": {
+      "unknownAction": "That simulation option is not valid."
     }
   }
 }

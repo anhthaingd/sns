@@ -212,6 +212,18 @@ class CompanyGapResponse(ApiEnvelope):
     combinedGaps: list[dict[str, Any]]
 
 
+class WhatIfSuggestionsResponse(ApiEnvelope):
+    totalJobs: int
+    baseline: dict[str, Any]
+    suggestions: list[dict[str, Any]]
+
+
+class WhatIfSimulateResponse(ApiEnvelope):
+    baseline: dict[str, Any]
+    combined: dict[str, Any]
+    sumOfIndividualDeltas: int
+
+
 # --- Quản trị ---------------------------------------------------------------
 
 

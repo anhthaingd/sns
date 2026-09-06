@@ -114,6 +114,9 @@
       "postSaved": "{{username}}さんがあなたの投稿を保存しました。",
       "postCommented": "{{username}}さんがあなたの投稿にコメントしました。",
       "removedFromChannel": "チャンネル「{{channel}}」から削除されました。"
+    },
+    "whatif": {
+      "unknownAction": "シミュレーションの種類が正しくありません。"
     }
   }
 }
