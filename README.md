@@ -464,7 +464,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 Không cần cài gì trên máy. Stack phải đang chạy (`docker compose up -d`).
 
 ```bash
-# Test API (329 test: auth/refresh token, rate limit, phan quyen, post, channel,
+# Test API (334 test: auth/refresh token, rate limit, phan quyen, post, channel,
 # chat + phan trang, upload, socket, ETL/parser (chay offline tren HTML da luu),
 # loi cham diem CV, API viec lam & goi y, dem so query chong N+1, hop dong
 # response, va doi chieu ma thong bao cua backend voi ban dich cua client)

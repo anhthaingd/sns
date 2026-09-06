@@ -163,3 +163,34 @@ async def test_match_companies_scores_hundreds_of_jobs_with_few_queries(
     total = len(counter.commands)
     assert total >= 2, "listener không ghi được lệnh nào — phép đo không đáng tin"
     assert total <= 6, f"GET /api/match/companies dùng {total} lệnh đọc để chấm {body['totalCompanies']} công ty"
+
+
+async def test_whatif_scores_every_job_many_times_with_few_queries(
+    client, inprocess_app, count_reads, user_with_resume, has_jobs
+):
+    """Mô phỏng chấm 430 tin × 13 phương án nhưng chỉ được đọc DB đúng vài lần.
+
+    Đây là chỗ dễ hỏng nhất về hiệu năng: chỉ cần một `Company.get()` hay
+    `Job.get()` lọt vào vòng lặp chấm điểm là thành hàng nghìn truy vấn mà
+    trang vẫn chạy đúng, chỉ chậm dần cho tới khi không mở nổi.
+    """
+    with count_reads() as counter:
+        r = await inprocess_app.get("/api/match/whatif", headers=user_with_resume.headers)
+    assert r.status_code == 200, r.text
+    assert r.json()["suggestions"]
+
+    total = len(counter.commands)
+    assert total >= 2, "listener không ghi được lệnh nào — phép đo không đáng tin"
+    assert total <= 5, f"GET /api/match/whatif dùng {total} lệnh đọc — có truy vấn lọt vào vòng lặp?"
+
+
+async def test_market_aggregates_in_a_fixed_number_of_queries(client, inprocess_app, count_reads, user, has_jobs):
+    """Thống kê phải gộp bằng aggregation, không phải đếm từng kỹ năng một."""
+    with count_reads() as counter:
+        r = await inprocess_app.get("/api/jobs/market", headers=user.headers)
+    assert r.status_code == 200, r.text
+    assert r.json()["skills"]
+
+    total = len(counter.commands)
+    assert total >= 2, "listener không ghi được lệnh nào — phép đo không đáng tin"
+    assert total <= 8, f"GET /api/jobs/market dùng {total} lệnh đọc — đếm từng nhóm một?"

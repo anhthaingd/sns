@@ -255,3 +255,60 @@ async def test_gap_item_shape(client, user_with_resume, db, has_jobs):
     for gap in r.json()["match"]["gaps"]:
         assert_keys(gap, {"kind", "message", "required", "current", "blocking"}, "một mục thiếu sót")
         assert isinstance(gap["blocking"], bool)
+
+
+async def test_market_contract(client, user, has_jobs):
+    r = await client.get("/api/jobs/market", headers=user.headers)
+    assert_keys(
+        r.json(),
+        ENVELOPE | {"totalJobs", "minGroupSize", "skills", "japanese", "prefectures"},
+        "GET /api/jobs/market",
+    )
+    body = r.json()
+    assert_keys(body["skills"][0], {"skill", "jobs", "salaryMedian", "salarySample"}, "market.skills[]")
+    assert_keys(body["japanese"][0], {"level", "jobs", "salaryMedian", "salarySample"}, "market.japanese[]")
+    assert_keys(
+        body["prefectures"][0],
+        {"prefecture", "jobs", "salaryMedian", "salarySample"},
+        "market.prefectures[]",
+    )
+
+
+async def test_whatif_contract(client, user_with_resume, has_jobs):
+    r = await client.get("/api/match/whatif", headers=user_with_resume.headers)
+    body = r.json()
+    assert_keys(body, ENVELOPE | {"totalJobs", "baseline", "suggestions"}, "GET /api/match/whatif")
+    assert_keys(body["baseline"], {"qualifiedJobs", "qualifiedCompanies"}, "whatif.baseline")
+    assert_keys(
+        body["suggestions"][0],
+        {
+            "kind",
+            "value",
+            "qualifiedJobs",
+            "qualifiedCompanies",
+            "deltaJobs",
+            "openedSalaryMedian",
+            "openedSalarySample",
+        },
+        "whatif.suggestions[]",
+    )
+
+    r = await client.post(
+        "/api/match/whatif",
+        json={"actions": [{"kind": "japanese", "value": "business"}]},
+        headers=user_with_resume.headers,
+    )
+    body = r.json()
+    assert_keys(body, ENVELOPE | {"baseline", "combined", "sumOfIndividualDeltas"}, "POST /api/match/whatif")
+    assert_keys(body["combined"], {"actions", "qualifiedJobs", "deltaJobs"}, "whatif.combined")
+
+
+async def test_whatif_never_returns_vectors_or_personal_data(client, user_with_resume, has_jobs):
+    """Response chỉ gồm con số và mã thô — không kéo theo CV hay vector.
+
+    Mô phỏng đọc CV của người dùng và duyệt toàn bộ kho tin, nên đây đúng chỗ
+    dễ vô tình trả cả hồ sơ ra ngoài.
+    """
+    raw = (await client.get("/api/match/whatif", headers=user_with_resume.headers)).text
+    for forbidden in ("embedding", "search_text", "skills_normalized", "email"):
+        assert forbidden not in raw, f"response chứa `{forbidden}`"
