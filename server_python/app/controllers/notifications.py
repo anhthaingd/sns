@@ -28,6 +28,8 @@ async def get_notifications(decoded_user: dict, page: int = 1):
             "_id": str(n.id),
             "user": str(n.user),
             "notification": n.notification,
+            "code": n.code,
+            "params": n.params,
             "url": n.url,
             "created_at": n.created_at.isoformat() if n.created_at else None,
             "isRead": n.isRead,

@@ -108,6 +108,12 @@
     },
     "log": {
       "received": "Recorded."
+    },
+    "notification": {
+      "postLiked": "{{username}} liked your post.",
+      "postSaved": "{{username}} saved your post.",
+      "postCommented": "{{username}} commented on your post.",
+      "removedFromChannel": "You were removed from the channel {{channel}}."
     }
   }
 }

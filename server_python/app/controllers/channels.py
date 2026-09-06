@@ -2,6 +2,7 @@ import json
 import math
 
 from app.errors import ApiError
+from app.messages import message_for
 from app.models.channel import Channel
 from app.models.notification import Notification
 from app.models.post import Post
@@ -153,7 +154,9 @@ async def remove_user_from_channel(decoded_user: dict, channel_id: str, user_id_
         await Notification(
             user=target_oid,
             seeder=to_object_id(decoded_user["_id"], "user_id"),
-            notification=f"Admin đã xóa bạn ra khỏi channel {channel.name}!",
+            code="notification.removedFromChannel",
+            params={"channel": channel.name},
+            notification=message_for("notification.removedFromChannel", {"channel": channel.name}),
             url=None,
         ).insert()
 

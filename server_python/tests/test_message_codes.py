@@ -30,7 +30,7 @@ def _python_files() -> list[Path]:
 # `Gap`/`Met` trong matching.py cũng có trường `code`, nhưng mã của chúng nằm ở
 # namespace `match` phía client chứ không phải danh mục thông báo — nên chỉ soi
 # đúng hai hàm sinh ra response.
-MESSAGE_CALLERS = {"ApiError", "ok"}
+MESSAGE_CALLERS = {"ApiError", "ok", "Notification"}
 
 
 def _code_literals() -> set[str]:
@@ -263,3 +263,30 @@ def test_client_has_a_label_for_every_language_level(lang):
     }
     missing = [f"{name}.{level}" for name, table in tables.items() for level in LANGUAGE_LEVELS if level not in table]
     assert not missing, f"[{lang}] thiếu nhãn: {missing}"
+
+
+# ---------------------------------------------------------------------------
+# Thông báo trong chuông — cũng là câu chữ do backend sinh ra
+# ---------------------------------------------------------------------------
+
+
+def test_every_notification_has_a_code():
+    """`Notification(notification="...")` là câu chữ cứng nằm LẠI trong DB.
+
+    Khác với toast: toast hiện ra rồi mất, còn thông báo thì được lưu. Một câu
+    tiếng Anh ghi vào DB hôm nay sẽ còn hiện giữa giao diện tiếng Nhật nhiều
+    tháng sau, và không phép dịch nào cứu được nữa — nên chỗ này phải chặn ngay
+    lúc viết code.
+    """
+    offenders = []
+    for path in _python_files():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+                continue
+            if node.func.id != "Notification":
+                continue
+            if any(kw.arg == "code" for kw in node.keywords):
+                continue
+            offenders.append(f"{path.relative_to(APP_DIR)}:{node.lineno} trong {_enclosing_function(tree, node)}()")
+    assert not offenders, "Notification thiếu `code=`: " + ", ".join(offenders)

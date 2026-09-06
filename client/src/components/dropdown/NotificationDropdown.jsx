@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useGetNotificationsQuery, useReadNotificationMutation } from '../../services/redux/query/api/notificationsApi';
+import { notificationText } from '../../services/utils/notificationText';
 import { formatDistance } from 'date-fns';
 import { currentDateLocale } from '../../i18n/dateLocale';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +9,7 @@ import useObserver from '../../hooks/useObserver';
 import { useTranslation } from 'react-i18next';
 
 function NotificationDropdown({ setNotReadNotifications }) {
-  const { t } = useTranslation(['chat', 'common']);
+  const { t } = useTranslation(['chat', 'common', 'error']);
   const { state, closeAllDropdown } = useContext(DropdownContext);
   const navigate = useNavigate();
   const [hasMore, setHasMore] = useState(true);
@@ -120,7 +121,7 @@ function NotificationDropdown({ setNotReadNotifications }) {
               </div>
               <div className='w-5/6 text-base flex items-center gap-2'>
                 <div className='w-5/6 flex flex-col gap-2'>
-                  <p>{n.notification}</p>
+                  <p>{notificationText(t, n)}</p>
                   <p className={`text-sm ${n.isRead ? '' : 'text-blue-500'}`}>
                     {formatDistance(
                       new Date(n?.created_at),

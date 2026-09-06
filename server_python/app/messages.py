@@ -97,6 +97,11 @@ MESSAGES: dict[str, str] = {
     "channel.updated": "Cập nhật channel thành công!",
     "channel.deleted": "Xóa channel thành công!",
     "channel.userRemoved": "Đã xóa người dùng khỏi channel!",
+    # --- Thông báo trong chuông ---
+    "notification.postLiked": "{username} vừa thích bài viết của bạn!",
+    "notification.postSaved": "{username} vừa lưu bài viết của bạn!",
+    "notification.postCommented": "{username} vừa bình luận bài viết của bạn!",
+    "notification.removedFromChannel": "Bạn đã bị xóa khỏi channel {channel}!",
     # --- hội thoại ---------------------------------------------------------
     "chat.conversationNotFound": "Không tìm thấy hội thoại!",
     # --- việc làm & doanh nghiệp ------------------------------------------

@@ -108,6 +108,12 @@
     },
     "log": {
       "received": "Đã ghi nhận!"
+    },
+    "notification": {
+      "postLiked": "{{username}} vừa thích bài viết của bạn!",
+      "postSaved": "{{username}} vừa lưu bài viết của bạn!",
+      "postCommented": "{{username}} vừa bình luận bài viết của bạn!",
+      "removedFromChannel": "Bạn đã bị xóa khỏi channel {{channel}}!"
     }
   }
 }

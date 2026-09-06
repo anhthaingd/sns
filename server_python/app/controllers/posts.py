@@ -5,6 +5,7 @@ from datetime import datetime
 from bson import ObjectId
 
 from app.errors import ApiError
+from app.messages import message_for
 from app.models.channel import Channel
 from app.models.notification import Notification
 from app.models.post import Post
@@ -247,7 +248,9 @@ async def like_post(decoded_user: dict, channel_id: str, post_id: str):
         await Notification(
             user=post.user,
             seeder=user_id,
-            notification=f"{decoded_user.get('username', '')} just liked your post!",
+            code="notification.postLiked",
+            params={"username": decoded_user.get("username", "")},
+            notification=message_for("notification.postLiked", {"username": decoded_user.get("username", "")}),
             url=f"channels/{post.channel}/posts/{post.id}",
         ).insert()
 
@@ -267,7 +270,9 @@ async def book_mark_post(decoded_user: dict, channel_id: str, post_id: str):
         await Notification(
             user=post.user,
             seeder=user_id,
-            notification=f"{decoded_user.get('username', '')} just saved your post!",
+            code="notification.postSaved",
+            params={"username": decoded_user.get("username", "")},
+            notification=message_for("notification.postSaved", {"username": decoded_user.get("username", "")}),
             url=None,
         ).insert()
 
@@ -296,7 +301,9 @@ async def post_comment_post(decoded_user: dict, channel_id: str, post_id: str, c
         await Notification(
             user=post.user,
             seeder=user_id,
-            notification=f"{decoded_user.get('username', '')} just commented your post!",
+            code="notification.postCommented",
+            params={"username": decoded_user.get("username", "")},
+            notification=message_for("notification.postCommented", {"username": decoded_user.get("username", "")}),
             url=f"channels/{post.channel}/posts/{post.id}",
         ).insert()
 
