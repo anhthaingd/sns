@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useGetUsersByAdminQuery } from '../../../../services/redux/query/usersQuery';
+import { useMemo, useState } from 'react';
+import { useGetUsersByAdminQuery } from '../../../../services/redux/query/api/usersApi';
 import { useSearchParams } from 'react-router-dom';
 import { formatDate } from '../../../../services/utils/format';
 import Table from '../../../../components/ui/Table';

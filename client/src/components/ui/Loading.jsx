@@ -1,5 +1,5 @@
 import React from 'react';
-const Loading = React.memo(() => {
+const Loading = React.memo(function Loading() {
   const loadingItems = [];
   for (let i = 0; i < 3; i++) {
     loadingItems.push(<div key={i} className='circle'></div>);

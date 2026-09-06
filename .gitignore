@@ -4,6 +4,9 @@
 # Node
 node_modules/
 
+# Ban build cua frontend (CI tu build lai, khong commit)
+client/dist/
+
 # Editor / MongoDB extension scratch
 *.mongodb.js
 .DS_Store

@@ -1,5 +1,5 @@
 import Modal from '@/modal';
-import React, {
+import {
   useCallback,
   useContext,
   useEffect,
@@ -10,7 +10,8 @@ import { IoCloudUploadOutline } from 'react-icons/io5';
 import { FaXmark } from 'react-icons/fa6';
 import { ModalContext } from '../../context/ModalProvider';
 import useClickOutside from '../../hooks/useClickOutside';
-import { useCreateChannelMutation } from '../../services/redux/query/usersQuery';
+import { useCreateChannelMutation } from '../../services/redux/query/api/channelsApi';
+import useMutationToast from '../../hooks/useMutationToast';
 function AddChannelModal() {
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
@@ -59,24 +60,12 @@ function AddChannelModal() {
       });
     }
   }, [state.visibleAddChannelModal]);
-  useEffect(() => {
-    if (isSuccessPost && postData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: postData?.message,
-        },
-      });
-    }
-    if (isErrorPost && errorPost) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorPost?.data?.message,
-        },
-      });
-    }
-  }, [isSuccessPost, postData, isErrorPost, errorPost, setVisibleModal]);
+  useMutationToast({
+    data: postData,
+    error: errorPost,
+    isSuccess: isSuccessPost,
+    isError: isErrorPost,
+  });
   return (
     <Modal>
       <section

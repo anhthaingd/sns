@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { FetchDataContext } from '../context/FetchDataProvider';
 import { Navigate } from 'react-router-dom';
 import { getAccessToken } from '../services/utils/token';

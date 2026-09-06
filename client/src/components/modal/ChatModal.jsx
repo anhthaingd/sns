@@ -8,7 +8,7 @@ import { socket } from '../../context/SocketProvider';
 
 // Cuộn tới trong khoảng này tính từ đầu danh sách thì coi như "muốn xem tin cũ".
 const LOAD_MORE_SCROLL_THRESHOLD_PX = 24;
-import { useLazyGetChatQuery } from '../../services/redux/query/usersQuery';
+import { useLazyGetChatQuery } from '../../services/redux/query/api/chatApi';
 function ChatModal() {
   const { user, refetchMessages } = useContext(FetchDataContext);
   const navigate = useNavigate();

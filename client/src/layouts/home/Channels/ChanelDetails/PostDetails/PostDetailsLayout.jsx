@@ -1,6 +1,5 @@
-import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetPostDetailsQuery } from '../../../../../services/redux/query/usersQuery';
+import { useGetPostDetailsQuery } from '../../../../../services/redux/query/api/postsApi';
 import Loading from '../../../../../components/ui/Loading';
 import NotFoundLayout from '../../../../notfound/NotFoundLayout';
 import SinglePost from '../../../../../components/ui/SinglePost';

@@ -1,4 +1,3 @@
-import React from 'react';
 import Page from '../../Page';
 import CreatePost from './components/CreatePost';
 import ListsPost from './components/ListsPost';

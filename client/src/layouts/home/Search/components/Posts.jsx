@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { FetchDataContext } from '../../../../context/FetchDataProvider';
-import { useGetPostsQuery } from '../../../../services/redux/query/usersQuery';
+import { useGetPostsQuery } from '../../../../services/redux/query/api/postsApi';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { formatDistance } from 'date-fns';
+import Pagination from '../../../../components/ui/Pagination';
 
 function Posts({ searchValue }) {
   const { updateShortcut } = useContext(FetchDataContext);
@@ -77,15 +78,18 @@ function Posts({ searchValue }) {
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <img
-                      className='w-full h-full object-contain'
-                      src={`${import.meta.env.VITE_BACKEND_URL}/${
-                        p?.images[0]?.url
-                      }`}
-                      alt={p?.images[0]?.name}
-                    />
-                  </div>
+                  {/* `images` là một object {name, url} hoặc null — KHÔNG phải
+                      mảng. Bản cũ viết `p?.images[0]` nên mọi bài không có ảnh
+                      (358/374 bài trong DB) làm sập cả trang tìm kiếm. */}
+                  {p?.images?.url && (
+                    <div>
+                      <img
+                        className='w-full h-full object-contain'
+                        src={`${import.meta.env.VITE_BACKEND_URL}/${p.images.url}`}
+                        alt={p.images.name || ''}
+                      />
+                    </div>
+                  )}
                   <div className='w-full flex justify-between'>
                     <p className='text-lg font-medium'>
                       {p?.liked?.length}{' '}

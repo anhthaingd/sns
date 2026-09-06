@@ -1,24 +1,19 @@
-import React, {
+import {
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
 import Page from '../../../Page';
-import {
-  useGetAllChannelsQuery,
-  useJoinChannelMutation,
-} from '../../../../services/redux/query/usersQuery';
+import { useGetAllChannelsQuery, useJoinChannelMutation } from '../../../../services/redux/query/api/channelsApi';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import useQueryString from '../../../../hooks/useQueryString';
 import { FetchDataContext } from '../../../../context/FetchDataProvider';
 import Pagination from '../../../../components/ui/Pagination';
-import { ModalContext } from '../../../../context/ModalProvider';
+import useMutationToast from '../../../../hooks/useMutationToast';
 
 function ChannelListLayout() {
   const navigate = useNavigate();
-  const { setVisibleModal } = useContext(ModalContext);
   const [searchParams] = useSearchParams();
   const { user, updateShortcut } = useContext(FetchDataContext);
   const [createQueryString, deleteQueryString] = useQueryString();
@@ -96,24 +91,12 @@ function ChannelListLayout() {
       })
     );
   }, [isSuccessChannels, channelsData, user]);
-  useEffect(() => {
-    if (isSuccessJoin && joinData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: joinData?.message,
-        },
-      });
-    }
-    if (isErrorJoin && errorJoin) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorJoin?.data?.message,
-        },
-      });
-    }
-  }, [isSuccessChannels, joinData, isErrorJoin, errorJoin, setVisibleModal]);
+  useMutationToast({
+    data: joinData,
+    error: errorJoin,
+    isSuccess: isSuccessJoin,
+    isError: isErrorJoin,
+  });
   return (
     <Page>
       <div

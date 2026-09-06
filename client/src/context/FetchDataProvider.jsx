@@ -1,11 +1,8 @@
-import React, { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  useGetChannelsByUserQuery,
-  useGetNewestMessageQuery,
-  useGetUserQuery,
-  useUpdateShortcutMutation,
-} from '../services/redux/query/usersQuery';
+import { useGetChannelsByUserQuery, useUpdateShortcutMutation } from '../services/redux/query/api/channelsApi';
+import { useGetNewestMessageQuery } from '../services/redux/query/api/chatApi';
+import { useGetUserQuery } from '../services/redux/query/api/usersApi';
 import {
   getToken,
   getUser,
@@ -45,8 +42,8 @@ export const FetchDataProvider = ({ children }) => {
   useEffect(() => {
     if (isSuccessUser && userData) {
       dispatch(setUser(userData?.user));
-      setFollowers([...userData?.followers]);
-      setFollowing([...userData?.following]);
+      setFollowers([...(userData?.followers || [])]);
+      setFollowing([...(userData?.following || [])]);
       setErrorData(false);
     }
     if (isErrorUser) {
@@ -73,7 +70,7 @@ export const FetchDataProvider = ({ children }) => {
   }, [isSuccessWeb, webData]);
   useEffect(() => {
     if (isSuccessChannels && channelsData) {
-      setChannels([...channelsData?.channels]);
+      setChannels([...(channelsData?.channels || [])]);
     }
   }, [isSuccessChannels && channelsData]);
   return (

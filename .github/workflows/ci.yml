@@ -30,6 +30,41 @@ jobs:
       - name: ruff format --check
         run: ruff format --check server_python/app server_python/scripts server_python/tests embedder e2e --config server_python/pyproject.toml
 
+  # Frontend truoc day KHONG duoc CI kiem gi ca: 10.000 dong JSX, khong lint,
+  # khong build. Hau qua do duoc: mot bien `Pagination` chua import va mot cho
+  # `p?.images[0]` doc sai kieu du lieu da nam trong nhanh main, lam sap ca
+  # trang tim kiem — ESLint bao dung ca hai cho tu lau ma khong ai chay.
+  lint-client:
+    name: Lint + build (frontend)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      # `npm ci` chu khong phai `npm install`: cai dung theo lock file.
+      - name: Cai dependency
+        run: npm ci
+
+      # `--max-warnings 37` la con so canh bao hien tai (toan bo la
+      # react-hooks/exhaustive-deps). Sua mang phu thuoc co the doi hanh vi
+      # runtime nen phai sua tung cho co kiem chung, khong sua hang loat. Chot
+      # o day de con so chi duoc GIAM: them canh bao moi la CI do.
+      - name: ESLint
+        run: npm run lint
+
+      # Container dang chay bang `npm run dev`, nen neu khong build o day thi
+      # khong ai biet ban production co dung duoc hay khong.
+      - name: Build production
+        run: npm run build
+
   test:
     name: Test (API + E2E)
     runs-on: ubuntu-latest

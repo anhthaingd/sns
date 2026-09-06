@@ -1,8 +1,5 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import {
-  useGetNotificationsQuery,
-  useReadNotificationMutation,
-} from '../../services/redux/query/usersQuery';
+import { useCallback, useContext, useEffect, useState } from 'react';
+import { useGetNotificationsQuery, useReadNotificationMutation } from '../../services/redux/query/api/notificationsApi';
 import { formatDistance } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { DropdownContext } from '../../context/NotificationProvider';
@@ -35,12 +32,12 @@ function NotificationDropdown({ setNotReadNotifications }) {
       if (isSuccessNotifications && notificationsData) {
         setNotifications((prevNotifications) => {
           if (curPage === 1) {
-            return [...notificationsData?.notifications];
+            return [...(notificationsData?.notifications || [])];
           } else {
             return [
               ...new Set([
                 ...prevNotifications,
-                ...notificationsData?.notifications,
+                ...(notificationsData?.notifications || []),
               ]),
             ];
           }

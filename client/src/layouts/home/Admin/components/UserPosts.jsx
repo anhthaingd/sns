@@ -1,9 +1,6 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import {
-  useDeletePostByAdminMutation,
-  useGetAllChannelsQuery,
-  useGetPostsByAdminQuery,
-} from '../../../../services/redux/query/usersQuery';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { useGetAllChannelsQuery } from '../../../../services/redux/query/api/channelsApi';
+import { useDeletePostByAdminMutation, useGetPostsByAdminQuery } from '../../../../services/redux/query/api/postsApi';
 import { useSearchParams } from 'react-router-dom';
 import Table from '../../../../components/ui/Table';
 import { formatDate } from '../../../../services/utils/format';
@@ -12,6 +9,7 @@ import { ModalContext } from '../../../../context/ModalProvider';
 import UpdatePostModal from '../../../../components/modal/UpdatePostModal';
 import { FetchDataContext } from '../../../../context/FetchDataProvider';
 import useObserver from '../../../../hooks/useObserver';
+import useMutationToast from '../../../../hooks/useMutationToast';
 
 function UserPosts() {
   const { user } = useContext(FetchDataContext);
@@ -143,30 +141,12 @@ function UserPosts() {
     isLoadingDelete,
   ]);
 
-  useEffect(() => {
-    if (isSuccessDelete && deleteData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: deleteData?.message,
-        },
-      });
-    }
-    if (isErrorDelete && errorDelete) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorDelete?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessDelete,
-    deleteData,
-    isErrorDelete,
-    errorDelete,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: deleteData,
+    error: errorDelete,
+    isSuccess: isSuccessDelete,
+    isError: isErrorDelete,
+  });
   return (
     <div aria-disabled={isLoadingDelete}>
       <UpdatePostModal />

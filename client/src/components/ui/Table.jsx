@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import ReactPaginate from 'react-paginate';
 import { TbChevronLeft, TbChevronRight } from 'react-icons/tb';
 import useQueryString from '../../hooks/useQueryString';

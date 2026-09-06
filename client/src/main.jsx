@@ -8,6 +8,11 @@ import { Provider } from 'react-redux';
 import { store } from './services/redux/store.js';
 import { FetchDataProvider } from './context/FetchDataProvider.jsx';
 import { SocketProvider } from './context/SocketProvider.jsx';
+import { installGlobalErrorHandlers } from './services/logger.js';
+
+// Bắt lỗi nằm ngoài cây React (handler DOM, promise bị bỏ rơi) — ErrorBoundary
+// của React không nhìn thấy những lỗi đó.
+installGlobalErrorHandlers();
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>

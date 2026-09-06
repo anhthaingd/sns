@@ -1,5 +1,5 @@
 import Modal from '@/modal';
-import React, {
+import {
   useCallback,
   useContext,
   useEffect,
@@ -11,8 +11,9 @@ import ReactQuill from 'react-quill';
 import { FaXmark } from 'react-icons/fa6';
 import { ModalContext } from '../../context/ModalProvider';
 import useClickOutside from '../../hooks/useClickOutside';
-import { useUpdatePostMutation } from '../../services/redux/query/usersQuery';
+import { useUpdatePostMutation } from '../../services/redux/query/api/postsApi';
 import { FetchDataContext } from '../../context/FetchDataProvider';
+import useMutationToast from '../../hooks/useMutationToast';
 function UpdatePostModal() {
   const { user } = useContext(FetchDataContext);
   const { state, setVisibleModal } = useContext(ModalContext);
@@ -78,30 +79,12 @@ function UpdatePostModal() {
     },
     [updatePost, form, user]
   );
-  useEffect(() => {
-    if (isSuccessUpdate && updateData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: updateData?.message,
-        },
-      });
-    }
-    if (isErrorUpdate && errorUpdate) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorUpdate?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessUpdate,
-    updateData,
-    isErrorUpdate,
-    errorUpdate,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: updateData,
+    error: errorUpdate,
+    isSuccess: isSuccessUpdate,
+    isError: isErrorUpdate,
+  });
   return (
     <Modal>
       <section

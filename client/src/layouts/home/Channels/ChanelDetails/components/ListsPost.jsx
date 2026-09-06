@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useGetPostsInChannelQuery } from '../../../../../services/redux/query/usersQuery';
+import { useEffect, useMemo, useState } from 'react';
+import { useGetPostsInChannelQuery } from '../../../../../services/redux/query/api/postsApi';
 import SinglePost from '../../../../../components/ui/SinglePost';
 import useObserver from '../../../../../hooks/useObserver';
 function ListsPost({ channelId }) {

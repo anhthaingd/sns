@@ -1,14 +1,12 @@
-import React, { useContext, useEffect, useMemo } from 'react';
-import {
-  useDeletePostMutation,
-  useGetPostsByUserQuery,
-} from '../../../../services/redux/query/usersQuery';
+import { useContext, useMemo } from 'react';
+import { useDeletePostMutation, useGetPostsByUserQuery } from '../../../../services/redux/query/api/postsApi';
 import { useSearchParams } from 'react-router-dom';
 import Table from '../../../../components/ui/Table';
 import { formatDate } from '../../../../services/utils/format';
 import { FaRegTrashCan, FaRegPenToSquare } from 'react-icons/fa6';
 import { ModalContext } from '../../../../context/ModalProvider';
 import UpdatePostModal from '../../../../components/modal/UpdatePostModal';
+import useMutationToast from '../../../../hooks/useMutationToast';
 
 function Posts() {
   const [searchParams] = useSearchParams();
@@ -94,30 +92,12 @@ function Posts() {
       })
     );
   });
-  useEffect(() => {
-    if (isSuccessDelete && deleteData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: deleteData?.message,
-        },
-      });
-    }
-    if (isErrorDelete && errorDelete) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorDelete?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessDelete,
-    deleteData,
-    isErrorDelete,
-    errorDelete,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: deleteData,
+    error: errorDelete,
+    isSuccess: isSuccessDelete,
+    isError: isErrorDelete,
+  });
   return (
     <div aria-disabled={isLoadingDelete}>
       <UpdatePostModal />

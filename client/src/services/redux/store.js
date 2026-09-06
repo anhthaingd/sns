@@ -1,13 +1,19 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { userApi } from './query/usersQuery';
+import { api } from './query/api/baseApi';
 import userSlice from './slice/userSlice';
 import { webApi } from './query/webQuery';
+import { rtkQueryErrorLogger } from './middleware/errorLogger';
 export const store = configureStore({
   reducer: {
     user: userSlice,
-    [userApi.reducerPath]: userApi.reducer,
+    [api.reducerPath]: api.reducer,
     [webApi.reducerPath]: webApi.reducer,
   },
   middleware: (getDefaultMiddleWare) =>
-    getDefaultMiddleWare().concat(userApi.middleware, webApi.middleware),
+    getDefaultMiddleWare().concat(
+      api.middleware,
+      webApi.middleware,
+      // Đứng SAU middleware của RTK Query để thấy được action rejected.
+      rtkQueryErrorLogger
+    ),
 });

@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Thang mau theo diem de nhin la biet ngay, khong phai doc so.
 const colorOf = (score) => {

@@ -1,8 +1,7 @@
-import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Page from '../../Page';
 import Loading from '../../../components/ui/Loading';
-import { useGetJobGapQuery } from '../../../services/redux/query/usersQuery';
+import { useGetJobGapQuery } from '../../../services/redux/query/api/matchApi';
 import GapList from './components/GapList';
 import MatchScore from './components/MatchScore';
 import { LEVEL_LABELS, formatSalary } from '../Recruitment/components/JobCard';

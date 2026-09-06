@@ -1,4 +1,4 @@
-import React, {
+import {
   useCallback,
   useContext,
   useEffect,
@@ -19,7 +19,7 @@ import { FetchDataContext } from '../../context/FetchDataProvider';
 import NotificationDropdown from '../dropdown/NotificationDropdown';
 import { DropdownContext } from '../../context/NotificationProvider';
 import SearchUsersDropdown from '../dropdown/SearchUsersDropdown';
-import { useLogoutUserMutation } from '../../services/redux/query/usersQuery';
+import { useLogoutUserMutation } from '../../services/redux/query/api/usersApi';
 import { getWebInfo, removeUser } from '../../services/redux/slice/userSlice';
 import { useNavigate } from 'react-router-dom';
 import { scrollElement } from '../../services/utils/scrollElement';

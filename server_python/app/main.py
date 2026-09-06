@@ -12,6 +12,7 @@ from app.config.settings import CORS_ORIGINS, PORT, REDIS_URL, UPLOAD_ROOT
 from app.errors import CatchAllErrorMiddleware, register_error_handlers
 from app.routes.channels import router as channels_router
 from app.routes.chat import router as chat_router
+from app.routes.client_logs import router as client_logs_router
 from app.routes.jobs import router as jobs_router
 from app.routes.match import router as match_router
 from app.routes.notifications import router as notifications_router
@@ -88,6 +89,7 @@ app.include_router(shortcuts_router)
 app.include_router(web_router)
 app.include_router(jobs_router)
 app.include_router(match_router)
+app.include_router(client_logs_router)
 
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 (UPLOAD_ROOT / "uploads").mkdir(exist_ok=True)

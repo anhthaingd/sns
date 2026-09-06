@@ -1,13 +1,11 @@
-import React, { useContext, useEffect, useMemo } from 'react';
-import {
-  useDeleteFollowingMutation,
-  useGetFollowingQuery,
-} from '../../../../services/redux/query/usersQuery';
+import { useContext, useMemo } from 'react';
+import { useDeleteFollowingMutation, useGetFollowingQuery } from '../../../../services/redux/query/api/usersApi';
 import { useSearchParams } from 'react-router-dom';
 import Table from '../../../../components/ui/Table';
 import { FaRegTrashCan } from 'react-icons/fa6';
 import { ModalContext } from '../../../../context/ModalProvider';
 import UpdatePostModal from '../../../../components/modal/UpdatePostModal';
+import useMutationToast from '../../../../hooks/useMutationToast';
 
 function Following() {
   const [searchParams] = useSearchParams();
@@ -79,30 +77,12 @@ function Following() {
       })
     );
   });
-  useEffect(() => {
-    if (isSuccessDelete && deleteData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: deleteData?.message,
-        },
-      });
-    }
-    if (isErrorDelete && errorDelete) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorDelete?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessDelete,
-    deleteData,
-    isErrorDelete,
-    errorDelete,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: deleteData,
+    error: errorDelete,
+    isSuccess: isSuccessDelete,
+    isError: isErrorDelete,
+  });
   return (
     <div aria-disabled={isLoadingDelete}>
       <UpdatePostModal />

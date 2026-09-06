@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import Page from '../../Page';
 import {
   FaCakeCandles,
@@ -9,11 +9,9 @@ import {
   FaXmark,
 } from 'react-icons/fa6';
 import ResumeModal from '../../../components/modal/resume/ResumeModal';
-import {
-  useGetResumeQuery,
-  usePostResumeMutation,
-} from '../../../services/redux/query/usersQuery';
+import { useGetResumeQuery, usePostResumeMutation } from '../../../services/redux/query/api/resumeApi';
 import { ModalContext } from '../../../context/ModalProvider';
+import useMutationToast from '../../../hooks/useMutationToast';
 function ResumeLayout() {
   const { state, setVisibleModal } = useContext(ModalContext);
   const { data: resumeData, isSuccess: isSuccessResume } = useGetResumeQuery();
@@ -111,7 +109,7 @@ function ResumeLayout() {
     }
   }, [isSuccessResume, resumeData]);
   const handleAddExperience = useCallback(() => {
-    setForm({ ...form, experiences: [...form?.experiences, experience] });
+    setForm({ ...form, experiences: [...(form?.experiences || []), experience] });
     setExperience(() => {
       return { name: '', startTime: '', endTime: '' };
     });
@@ -136,19 +134,19 @@ function ResumeLayout() {
     }
   }, [certificate, form, setVisibleModal]);
   const handleAddSkill = useCallback(() => {
-    setForm({ ...form, skills: [...form?.skills, skill] });
+    setForm({ ...form, skills: [...(form?.skills || []), skill] });
     setSkill(() => {
       return '';
     });
   }, [skill, form]);
   const handleAddLanguage = useCallback(() => {
-    setForm({ ...form, languages: [...form?.languages, language] });
+    setForm({ ...form, languages: [...(form?.languages || []), language] });
     setLanguage(() => {
       return '';
     });
   }, [language, form]);
   const handleAddProject = useCallback(() => {
-    setForm({ ...form, projects: [...form?.projects, project] });
+    setForm({ ...form, projects: [...(form?.projects || []), project] });
     setProject(() => {
       return { name: '', tech: '', description: '' };
     });
@@ -209,24 +207,12 @@ function ResumeLayout() {
     await postResume(formData);
   }, [postData, form]);
   console.log(form.certificates);
-  useEffect(() => {
-    if (isSuccessPost && postData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: postData?.message,
-        },
-      });
-    }
-    if (isErrorPost && errorPost) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorPost?.data?.message,
-        },
-      });
-    }
-  }, [isSuccessPost, postData, isErrorPost, errorPost, setVisibleModal]);
+  useMutationToast({
+    data: postData,
+    error: errorPost,
+    isSuccess: isSuccessPost,
+    isError: isErrorPost,
+  });
   return (
     <Page>
       {state.visibleResumeModal && <ResumeModal />}

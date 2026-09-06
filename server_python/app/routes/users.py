@@ -7,21 +7,29 @@ from app.config.settings import (
     REGISTER_RATE_LIMIT_MAX,
     REGISTER_RATE_LIMIT_WINDOW_SECONDS,
 )
-from app.controllers.users import (
+
+# Controller đã tách theo mối quan tâm, nhưng ROUTER thì cố ý vẫn là một file:
+# thứ tự khai báo ở đây có ý nghĩa. `/api/users/refresh` phải được khai báo
+# TRƯỚC `/api/users/{user_id}`, nếu không FastAPI sẽ khớp "refresh" thành một
+# user_id. Tách thành nhiều router là mất quyền kiểm soát thứ tự đó.
+from app.controllers.auth import (
+    login_user,
+    logout_user,
+    refresh_access_token,
+    register_user,
+)
+from app.controllers.follows import (
     following_user,
     get_followers,
     get_following,
-    get_resume,
+    remove_followers,
+    remove_following,
+)
+from app.controllers.resume import get_resume, post_resume
+from app.controllers.users import (
     get_user_by_token,
     get_user_details,
     get_users_by_admin,
-    login_user,
-    logout_user,
-    post_resume,
-    refresh_access_token,
-    register_user,
-    remove_followers,
-    remove_following,
     search_users,
     update_user,
 )

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
 import { FaAnglesLeft, FaAnglesRight } from 'react-icons/fa6';
 import useQueryString from '../../hooks/useQueryString';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { FaCircleCheck, FaTriangleExclamation, FaCircleInfo } from 'react-icons/fa6';
 
 /**

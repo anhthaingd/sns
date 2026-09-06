@@ -1,4 +1,3 @@
-import React from 'react';
 import imgNotFound from '../../assets/permissions_dark_mode.svg';
 import { useNavigate } from 'react-router-dom';
 function NotFoundLayout() {
@@ -14,11 +13,11 @@ function NotFoundLayout() {
           />
         </div>
         <h1 className='text-center font-bold text-lg sm:text-xl'>
-          This content isn't available right now
+          This content isn&apos;t available right now
         </h1>
         <p className='text-center'>
-          When this happens, it's usually because the owner only shared it with
-          a small group of people, changed who can see it or it's been deleted.
+          When this happens, it&apos;s usually because the owner only shared it with
+          a small group of people, changed who can see it or it&apos;s been deleted.
         </p>
         <button
           className='px-4 py-2 rounded bg-blue-500 text-neutral-100 font-bold'

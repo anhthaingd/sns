@@ -1,5 +1,6 @@
 from beanie import Document, PydanticObjectId
 from pydantic import BaseModel, Field
+from pymongo import ASCENDING, IndexModel
 
 # Cùng thang với `LANGUAGE_LEVELS` trong app/models/job.py để so sánh trực tiếp
 # được giữa "CV có gì" và "tin yêu cầu gì".
@@ -54,6 +55,18 @@ class Resume(Document):
 
     class Settings:
         name = "resumes"
+        indexes = [
+            # Mọi request /api/resume và /api/match/* đều tra CV theo user.
+            # Không có index thì mỗi lần gọi là một lần quét toàn bộ collection
+            # (đo được: quét 253 bản ghi để lấy đúng 1).
+            #
+            # CỐ Ý KHÔNG đặt `unique` dù mỗi tài khoản chỉ nên có một CV:
+            # Beanie tạo index lúc khởi động, nên chỉ cần một DB nào đó lỡ có
+            # hai CV trùng user là backend không khởi động nổi. Đánh đổi giữa
+            # "dữ liệu trùng" (vô hại, `find_one` vẫn chạy) và "app không lên"
+            # thì chọn vế đầu.
+            IndexModel([("user", ASCENDING)], name="user_idx"),
+        ]
 
 
 class ResumeMatchView(BaseModel):

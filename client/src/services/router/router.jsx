@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import App from '../../App';
+import ErrorScreen from '../../components/common/ErrorScreen';
 import { lazy } from 'react';
 const ProtectedRoute = lazy(() => import('../../auth/ProtectedRoute'));
 const HomeLayout = lazy(() => import('../../layouts/home/Home/HomeLayout'));
@@ -54,6 +55,10 @@ const routes = [
   {
     path: '/',
     element: <App />,
+    // Bắt lỗi render của MỌI route con. Thiếu dòng này thì một lỗi nhỏ ở
+    // component con sẽ thay cả trang bằng màn hình lỗi mặc định của React
+    // Router, và không có bản ghi nào gửi về backend.
+    errorElement: <ErrorScreen />,
     children: [
       {
         index: true,

@@ -1,9 +1,6 @@
-import React, { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  useGetChannelDetailsQuery,
-  useJoinChannelMutation,
-} from '../../../../services/redux/query/usersQuery';
+import { useGetChannelDetailsQuery, useJoinChannelMutation } from '../../../../services/redux/query/api/channelsApi';
 import { HiUserGroup } from 'react-icons/hi';
 import { IoLogOutOutline } from 'react-icons/io5';
 import NotFoundLayout from '../../../notfound/NotFoundLayout';
@@ -13,6 +10,7 @@ import ListsPost from './components/ListsPost';
 import Page from '../../../Page';
 import { format } from 'date-fns';
 import { ModalContext } from '../../../../context/ModalProvider';
+import useMutationToast from '../../../../hooks/useMutationToast';
 
 function ChannelDetailsLayout() {
   const navigate = useNavigate();
@@ -38,33 +36,11 @@ function ChannelDetailsLayout() {
     },
   ] = useJoinChannelMutation();
 
-  useEffect(() => {
-    if (isSuccessJoin && joinData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: joinData?.message,
-        },
-      });
-      navigate('/', { replace: true });
-    }
-    if (isErrorJoin && errorJoin) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorJoin?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessJoin,
-    joinData,
-    isErrorJoin,
-    errorJoin,
-    setVisibleModal,
-    navigate,
-  ]);
-
+  useMutationToast(
+    { data: joinData, error: errorJoin, isSuccess: isSuccessJoin, isError: isErrorJoin },
+    // Rời channel xong thì trang này không còn gì để xem nữa.
+    { onSuccess: () => navigate('/', { replace: true }) }
+  );
   if (isLoadingChannel) return <Loading />;
   if (isErrorChannel && errorChannel) return <NotFoundLayout />;
 

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useGetPostsQuery } from '../../../../services/redux/query/usersQuery';
+import { useEffect, useMemo, useState } from 'react';
+import { useGetPostsQuery } from '../../../../services/redux/query/api/postsApi';
 import SinglePost from '../../../../components/ui/SinglePost';
 import useObserver from '../../../../hooks/useObserver';
 

@@ -1,8 +1,5 @@
-import React, { useContext, useMemo } from 'react';
-import {
-  useBookMarkPostMutation,
-  useGetBookMarksQuery,
-} from '../../../services/redux/query/usersQuery';
+import { useContext, useMemo } from 'react';
+import { useBookMarkPostMutation, useGetBookMarksQuery } from '../../../services/redux/query/api/postsApi';
 import { FetchDataContext } from '../../../context/FetchDataProvider';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Page from '../../Page';

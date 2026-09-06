@@ -1,22 +1,20 @@
-import React, {
+import {
   useCallback,
   useContext,
-  useEffect,
   useRef,
   useState,
 } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { useNavigate } from 'react-router-dom';
-import { useCreatePostMutation } from '../../../../../services/redux/query/usersQuery';
+import { useCreatePostMutation } from '../../../../../services/redux/query/api/postsApi';
 import { FetchDataContext } from '../../../../../context/FetchDataProvider';
-import { ModalContext } from '../../../../../context/ModalProvider';
 import { icons } from '../../../../../assets/icons';
+import useMutationToast from '../../../../../hooks/useMutationToast';
 
 function CreatePost({ channelId }) {
   const { user } = useContext(FetchDataContext);
   const navigate = useNavigate();
-  const { setVisibleModal } = useContext(ModalContext);
   const imgRef = useRef();
   const [
     createPost,
@@ -50,25 +48,10 @@ function CreatePost({ channelId }) {
       await createPost({ channelId: form.channel, body: formData });
     }
   }, [createPost, form]);
-  useEffect(() => {
-    if (isSuccessCreate && createData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: createData?.message,
-        },
-      });
-      setForm({ channel: channelId, content: '', images: null });
-    }
-    if (isErrorCreate && errorCreate) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorCreate?.data?.message,
-        },
-      });
-    }
-  }, [isSuccessCreate, createData, isErrorCreate, errorCreate]);
+  useMutationToast(
+    { data: createData, error: errorCreate, isSuccess: isSuccessCreate, isError: isErrorCreate },
+    { onSuccess: () => setForm({ channel: channelId, content: '', images: null }) }
+  );
   return (
     <div
       className='rounded-md bg-neutral-100 dark:bg-neutral-800'

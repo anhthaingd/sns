@@ -1,13 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Page from '../../Page';
 import Pagination from '../../../components/ui/Pagination';
 import Loading from '../../../components/ui/Loading';
 import NotFoundItem from '../../../components/ui/NotFoundItem';
-import {
-  useGetJobFiltersQuery,
-  useGetJobsQuery,
-} from '../../../services/redux/query/usersQuery';
+import { useGetJobFiltersQuery, useGetJobsQuery } from '../../../services/redux/query/api/jobsApi';
 import JobCard, { LEVEL_LABELS } from './components/JobCard';
 
 /**

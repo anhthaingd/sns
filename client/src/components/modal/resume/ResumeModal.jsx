@@ -1,5 +1,5 @@
 import Modal from '@/modal';
-import React, { useContext, useMemo, useRef, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { FaXmark } from 'react-icons/fa6';
 import { ModalContext } from '../../../context/ModalProvider';
 import useClickOutside from '../../../hooks/useClickOutside';

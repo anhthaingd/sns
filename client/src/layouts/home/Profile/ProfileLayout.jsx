@@ -1,11 +1,8 @@
-import React, { Suspense, lazy, useContext } from 'react';
+import { Suspense, lazy, useContext } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import Page from '../../Page';
-import {
-  useFollowingUserMutation,
-  useGetPostsFromAnotherUserQuery,
-  useGetUserDetailsQuery,
-} from '../../../services/redux/query/usersQuery';
+import { useGetPostsFromAnotherUserQuery } from '../../../services/redux/query/api/postsApi';
+import { useFollowingUserMutation, useGetUserDetailsQuery } from '../../../services/redux/query/api/usersApi';
 import { FaPen } from 'react-icons/fa6';
 import NotFoundLayout from '../../notfound/NotFoundLayout';
 import { FetchDataContext } from '../../../context/FetchDataProvider';

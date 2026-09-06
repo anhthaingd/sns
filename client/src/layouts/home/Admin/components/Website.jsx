@@ -1,6 +1,5 @@
-import React, {
+import {
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -8,9 +7,8 @@ import React, {
 import { useUpdateWebMutation } from '../../../../services/redux/query/webQuery';
 import { useSelector } from 'react-redux';
 import { getWebInfo } from '../../../../services/redux/slice/userSlice';
-import { ModalContext } from '../../../../context/ModalProvider';
+import useMutationToast from '../../../../hooks/useMutationToast';
 function Website() {
-  const { setVisibleModal } = useContext(ModalContext);
   const webInfo = useSelector(getWebInfo);
   const [form, setForm] = useState({
     _id: '',
@@ -104,30 +102,12 @@ function Website() {
     [updateWeb, form, selectedFileLogo]
   );
   console.log(form);
-  useEffect(() => {
-    if (isSuccessUpdate && updateData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: updateData?.message,
-        },
-      });
-    }
-    if (isErrorUpdate && errorUpdate) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorUpdate?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessUpdate,
-    updateData,
-    isErrorUpdate,
-    errorUpdate,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: updateData,
+    error: errorUpdate,
+    isSuccess: isSuccessUpdate,
+    isError: isErrorUpdate,
+  });
   return (
     <section className='bg-neutral-100 dark:bg-neutral-800 rounded-lg p-4 md:p-6 mb-16'>
       <form onSubmit={handleSubmit}>

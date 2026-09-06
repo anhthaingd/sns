@@ -1,4 +1,4 @@
-import React, {
+import {
   useCallback,
   useContext,
   useEffect,
@@ -9,7 +9,7 @@ import { formatDistanceStrict } from 'date-fns';
 import { DropdownContext } from '../../context/NotificationProvider';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { ModalContext } from '../../context/ModalProvider';
-import { useReadMessageMutation } from '../../services/redux/query/usersQuery';
+import { useReadMessageMutation } from '../../services/redux/query/api/chatApi';
 
 function MessagesDropdown() {
   const { user, newestMessages, refetchMessages } =

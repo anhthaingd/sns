@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useGetSearchUsersQuery } from '../../services/redux/query/usersQuery';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useGetSearchUsersQuery } from '../../services/redux/query/api/usersApi';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from '../../hooks/useDebounce';
 import useObserver from '../../hooks/useObserver';

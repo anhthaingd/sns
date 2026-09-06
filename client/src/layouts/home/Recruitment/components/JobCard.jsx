@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaLocationDot, FaYenSign, FaHouseLaptop } from 'react-icons/fa6';
 

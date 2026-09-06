@@ -1,17 +1,16 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import bgImg from '@/assets/pexels-photo-4881619.webp';
 import { validateEmail } from '../../services/utils/validate';
-import { ModalContext } from '../../context/ModalProvider';
-import { useRegisterUserMutation } from '../../services/redux/query/usersQuery';
+import { useRegisterUserMutation } from '../../services/redux/query/api/usersApi';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { getWebInfo } from '../../services/redux/slice/userSlice';
+import useMutationToast from '../../hooks/useMutationToast';
 function RegisterLayout() {
   const navigate = useNavigate();
   const webInfo = useSelector(getWebInfo);
   const { user } = useContext(FetchDataContext);
-  const { setVisibleModal } = useContext(ModalContext);
   const [
     register,
     {
@@ -42,31 +41,12 @@ function RegisterLayout() {
     },
     [isValidate, form, register]
   );
-  useEffect(() => {
-    if (isSuccessRegister && registerData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: registerData?.message,
-        },
-      });
-    }
-
-    if (isErrorRegister && errorRegister) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorRegister?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessRegister,
-    registerData,
-    isErrorRegister,
-    errorRegister,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: registerData,
+    error: errorRegister,
+    isSuccess: isSuccessRegister,
+    isError: isErrorRegister,
+  });
   useEffect(() => {
     if (user !== null) {
       return navigate('/', { replace: true });
@@ -96,7 +76,7 @@ function RegisterLayout() {
               />
               {isValidate && !form.username && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Username can't be null!
+                  Username can&apos;t be null!
                 </p>
               )}
             </div>
@@ -124,7 +104,7 @@ function RegisterLayout() {
               />
               {isValidate && !form.password && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Password cant't be null
+                  Password cant&apos;t be null
                 </p>
               )}
             </div>
@@ -174,7 +154,7 @@ function RegisterLayout() {
               {webInfo?.website_name}
             </h1>
             <p className='text-neutral-100 font-bold italic'>
-              " {webInfo?.website_quotes_register} "
+              &quot; {webInfo?.website_quotes_register} &quot;
             </p>
           </div>
         </div>

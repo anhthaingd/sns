@@ -68,6 +68,13 @@ REGISTER_RATE_LIMIT_WINDOW_SECONDS = _int_env("REGISTER_RATE_LIMIT_WINDOW_SECOND
 REFRESH_RATE_LIMIT_MAX = _int_env("REFRESH_RATE_LIMIT_MAX", 120)
 REFRESH_RATE_LIMIT_WINDOW_SECONDS = _int_env("REFRESH_RATE_LIMIT_WINDOW_SECONDS", 15 * 60)
 
+# Log lỗi từ trình duyệt gửi lên (POST /api/client_logs). Endpoint này KHÔNG
+# yêu cầu đăng nhập — lỗi có thể xảy ra ngay ở màn hình đăng nhập — nên giới
+# hạn theo IP là chốt chặn duy nhất chống spam. Phía client cũng tự chặn: gộp
+# trùng trong 30 giây và tối đa 50 bản ghi mỗi phiên.
+CLIENT_LOG_RATE_LIMIT_MAX = _int_env("CLIENT_LOG_RATE_LIMIT_MAX", 60)
+CLIENT_LOG_RATE_LIMIT_WINDOW_SECONDS = _int_env("CLIENT_LOG_RATE_LIMIT_WINDOW_SECONDS", 60)
+
 # Chỉ bật khi backend thật sự nằm sau reverse proxy (nginx, Cloudflare...).
 # Nếu bật mà KHÔNG có proxy, ai cũng tự đặt được header `X-Forwarded-For` và
 # qua mặt giới hạn theo IP chỉ bằng cách đổi giá trị header mỗi lần gọi.

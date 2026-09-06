@@ -23,7 +23,7 @@ export const userSlice = createSlice({
     setWebInfo: (state, action) => {
       state.webInfo = action.payload;
     },
-    removeUser: (state, _) => {
+    removeUser: (state) => {
       state.user = null;
       state.token = null;
       deleteLocalStorage('social_app_token');

@@ -3,7 +3,8 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ModalContext } from '../../context/ModalProvider';
 import { FaXmark, FaRegTrashCan } from 'react-icons/fa6';
 import useClickOutside from '../../hooks/useClickOutside';
-import { useDeleteUserFromChannelMutation } from '../../services/redux/query/usersQuery';
+import { useDeleteUserFromChannelMutation } from '../../services/redux/query/api/channelsApi';
+import useMutationToast from '../../hooks/useMutationToast';
 function ListMembersModal() {
   const { state, setVisibleModal } = useContext(ModalContext);
   const [modalRef, clickOutside] = useClickOutside();
@@ -20,7 +21,7 @@ function ListMembersModal() {
   ] = useDeleteUserFromChannelMutation();
   useEffect(() => {
     if (state.visibleListMembersModal) {
-      setMembers([...state.visibleListMembersModal?.members]);
+      setMembers([...(state.visibleListMembersModal?.members || [])]);
     }
   }, [state.visibleListMembersModal]);
   const closeModal = useCallback(() => {
@@ -76,30 +77,12 @@ function ListMembersModal() {
       );
     });
   }, [members]);
-  useEffect(() => {
-    if (isSuccessDelete && deleteData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: deleteData?.message,
-        },
-      });
-    }
-    if (isErrorDelete && errorDelete) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorDelete?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessDelete,
-    deleteData,
-    isErrorDelete,
-    errorDelete,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: deleteData,
+    error: errorDelete,
+    isSuccess: isSuccessDelete,
+    isError: isErrorDelete,
+  });
   return (
     <Modal>
       <section

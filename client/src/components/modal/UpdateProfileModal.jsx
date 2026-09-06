@@ -1,5 +1,5 @@
 import Modal from '@/modal';
-import React, {
+import {
   useCallback,
   useContext,
   useEffect,
@@ -10,8 +10,9 @@ import { IoCloudUploadOutline } from 'react-icons/io5';
 import { FaXmark } from 'react-icons/fa6';
 import { ModalContext } from '../../context/ModalProvider';
 import useClickOutside from '../../hooks/useClickOutside';
-import { useUpdateUserMutation } from '../../services/redux/query/usersQuery';
+import { useUpdateUserMutation } from '../../services/redux/query/api/usersApi';
 import { FetchDataContext } from '../../context/FetchDataProvider';
+import useMutationToast from '../../hooks/useMutationToast';
 function UpdateProfileModal() {
   const { user } = useContext(FetchDataContext);
   const { state, setVisibleModal } = useContext(ModalContext);
@@ -105,30 +106,12 @@ function UpdateProfileModal() {
     },
     [updateUser, form, user]
   );
-  useEffect(() => {
-    if (isSuccessUpdate && updateData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: updateData?.message,
-        },
-      });
-    }
-    if (isErrorUpdate && errorUpdate) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorUpdate?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessUpdate,
-    updateData,
-    isErrorUpdate,
-    errorUpdate,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: updateData,
+    error: errorUpdate,
+    isSuccess: isSuccessUpdate,
+    isError: isErrorUpdate,
+  });
   return (
     <Modal>
       <section

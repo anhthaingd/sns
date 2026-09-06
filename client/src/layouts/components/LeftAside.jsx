@@ -1,9 +1,9 @@
-import React, { useCallback, useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { icons } from '../../assets/icons';
 import { useNavigate } from 'react-router-dom';
 import { scrollElement } from '../../services/utils/scrollElement';
-import { useGetShortcutsQuery } from '../../services/redux/query/usersQuery';
+import { useGetShortcutsQuery } from '../../services/redux/query/api/channelsApi';
 
 function LeftAside() {
   const { user, updateShortcut } = useContext(FetchDataContext);
@@ -121,7 +121,7 @@ function LeftAside() {
         )}
       </div>
       <div className='flex flex-col gap-4'>
-        <p>Your channel's shortcuts</p>
+        <p>Your channel&apos;s shortcuts</p>
         <div>
           {isSuccessShortcuts &&
             shortcutsData?.shortcuts?.map((s) => {

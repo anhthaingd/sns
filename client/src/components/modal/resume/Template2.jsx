@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import {
   FaCakeCandles,
@@ -15,12 +15,9 @@ function Template2({ resume }) {
     content: () => componentRef.current,
     documentTitle: `${resume?.name}-CV-${resume?.position}`,
   });
-  const splitName = useMemo(() => {
-    return (
-      resume.name.split(' ')[0].split('')[0],
-      resume.name.split(' ')[resume.name.split(' ').length - 1].split('')[0]
-    );
-  }, [resume]);
+  // Đã xoá `splitName`: không chỗ nào dùng, và bản thân nó cũng sai — toán tử
+  // phẩy khiến biểu thức chỉ trả về vế cuối, còn `resume.name` không có `?.`
+  // nên CV chưa điền tên là ném TypeError ngay khi mở bản in.
   return (
     <>
       <div
@@ -87,7 +84,7 @@ function Template2({ resume }) {
                 <p className='font-medium'>{resume?.phone}</p>
               </div>
             )}
-            {resume.github && (
+            {resume?.github && (
               <div className='flex items-center gap-2'>
                 <FaGithub />
                 <a
@@ -109,13 +106,15 @@ function Template2({ resume }) {
               {resume?.skills?.map((s, index) => {
                 return (
                   <li className='font-medium text-base' key={index}>
-                    s
+                    {/* Bản cũ viết `s` chứ không phải `{s}` nên mục Kỹ năng in
+                        ra một cột toàn chữ "s". Mục Ngôn ngữ bên dưới y hệt. */}
+                    {s}
                   </li>
                 );
               })}
             </ul>
           </div>
-          {resume?.languages.length > 0 && (
+          {resume?.languages?.length > 0 && (
             <div>
               <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>
                 Languages
@@ -124,14 +123,14 @@ function Template2({ resume }) {
                 {resume?.languages?.map((l, index) => {
                   return (
                     <li className='font-medium text-base' key={index}>
-                      l
+                      {l}
                     </li>
                   );
                 })}
               </ul>
             </div>
           )}
-          {resume?.oldCertificates.length > 0 && (
+          {resume?.oldCertificates?.length > 0 && (
             <div>
               <h2 className='pb-2 border-b border-neutral-500 uppercase tracking-[2px] text-lg font-bold'>
                 Certificates

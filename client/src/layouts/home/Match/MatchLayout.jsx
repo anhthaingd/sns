@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import Page from '../../Page';
 import Pagination from '../../../components/ui/Pagination';
 import Loading from '../../../components/ui/Loading';
 import NotFoundItem from '../../../components/ui/NotFoundItem';
-import { useGetMatchedCompaniesQuery } from '../../../services/redux/query/usersQuery';
+import { useGetMatchedCompaniesQuery } from '../../../services/redux/query/api/matchApi';
 import MatchScore from './components/MatchScore';
 import { formatSalary } from '../Recruitment/components/JobCard';
 

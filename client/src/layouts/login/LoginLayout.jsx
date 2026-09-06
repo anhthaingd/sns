@@ -1,18 +1,17 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import bgImg from '@/assets/pexels-photo-3228727.webp';
 import { validateEmail } from '../../services/utils/validate';
-import { useLoginUserMutation } from '../../services/redux/query/usersQuery';
-import { ModalContext } from '../../context/ModalProvider';
+import { useLoginUserMutation } from '../../services/redux/query/api/usersApi';
 import { getWebInfo, setToken } from '../../services/redux/slice/userSlice';
 import { FetchDataContext } from '../../context/FetchDataProvider';
+import useMutationToast from '../../hooks/useMutationToast';
 function LoginLayout() {
   const webInfo = useSelector(getWebInfo);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useContext(FetchDataContext);
-  const { setVisibleModal } = useContext(ModalContext);
   const [
     login,
     {
@@ -40,27 +39,15 @@ function LoginLayout() {
     },
     [isValidate, form, login]
   );
-  useEffect(() => {
-    if (isSuccessLogin && loginData) {
-      dispatch(setToken(loginData?.accessToken));
+  useMutationToast(
+    { data: loginData, error: errorLogin, isSuccess: isSuccessLogin, isError: isErrorLogin },
+    {
+      // Đăng nhập xong là chuyển sang trang chủ ngay, toast thành công chỉ kịp
+      // loé lên rồi mất cùng trang cũ.
+      showSuccess: false,
+      onSuccess: (data) => dispatch(setToken(data?.accessToken)),
     }
-
-    if (isErrorLogin && errorLogin) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorLogin?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessLogin,
-    loginData,
-    isErrorLogin,
-    errorLogin,
-    dispatch,
-    setVisibleModal,
-  ]);
+  );
   useEffect(() => {
     if (user !== null) {
       return navigate('/', { replace: true });
@@ -82,7 +69,7 @@ function LoginLayout() {
               {webInfo?.website_name}
             </h1>
             <p className='text-neutral-100 font-bold italic'>
-              " {webInfo?.website_quotes_login} "
+              &quot; {webInfo?.website_quotes_login} &quot;
             </p>
           </div>
         </div>
@@ -118,7 +105,7 @@ function LoginLayout() {
               />
               {isValidate && !form.password && (
                 <p className='font-bold text-red-500 text-sm'>
-                  Password cant't be null
+                  Password cant&apos;t be null
                 </p>
               )}
             </div>
@@ -130,7 +117,7 @@ function LoginLayout() {
             Login
           </button>
           <div className='flex items-center gap-2'>
-            <p className='font-bold'>Don't have an account?</p>
+            <p className='font-bold'>Don&apos;t have an account?</p>
             <button
               className='text-violet-500 font-bold'
               type='button'

@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useContext, useState } from 'react';
+import { Suspense, lazy, useContext, useState } from 'react';
 import Page from '../../Page';
 import { FetchDataContext } from '../../../context/FetchDataProvider';
 import NotFoundLayout from '../../notfound/NotFoundLayout';

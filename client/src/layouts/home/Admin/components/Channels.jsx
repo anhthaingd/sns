@@ -1,15 +1,11 @@
-import React, {
+import {
   Suspense,
   lazy,
   useContext,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
-import {
-  useDeleteChannelMutation,
-  useGetAllChannelsQuery,
-} from '../../../../services/redux/query/usersQuery';
+import { useDeleteChannelMutation, useGetAllChannelsQuery } from '../../../../services/redux/query/api/channelsApi';
 import { useSearchParams } from 'react-router-dom';
 import Table from '../../../../components/ui/Table';
 import NotFoundItem from '../../../../components/ui/NotFoundItem';
@@ -22,6 +18,7 @@ import {
   FaRegEye,
 } from 'react-icons/fa6';
 import { ModalContext } from '../../../../context/ModalProvider';
+import useMutationToast from '../../../../hooks/useMutationToast';
 const AddChannelModal = lazy(() =>
   import('../../../../components/modal/AddChannelModal')
 );
@@ -122,30 +119,12 @@ function Channels() {
       })
     );
   }, [isSuccessChannels, channelsData]);
-  useEffect(() => {
-    if (isSuccessDelete && deleteData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: deleteData?.message,
-        },
-      });
-    }
-    if (isErrorDelete && errorDelete) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorDelete?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessDelete,
-    deleteData,
-    isErrorDelete,
-    errorDelete,
-    setVisibleModal,
-  ]);
+  useMutationToast({
+    data: deleteData,
+    error: errorDelete,
+    isSuccess: isSuccessDelete,
+    isError: isErrorDelete,
+  });
   return (
     <>
       <Suspense>

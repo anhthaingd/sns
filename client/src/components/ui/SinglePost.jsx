@@ -1,6 +1,6 @@
 import { formatDistance, formatDistanceStrict } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import React, {
+import {
   Suspense,
   lazy,
   useCallback,
@@ -22,14 +22,9 @@ import {
   IoEllipsisHorizontal,
 } from 'react-icons/io5';
 import { FetchDataContext } from '../../context/FetchDataProvider';
-import {
-  useBookMarkPostMutation,
-  useCommentPostMutation,
-  useDeleteCommentPostMutation,
-  useDeletePostMutation,
-  useLikePostMutation,
-} from '../../services/redux/query/usersQuery';
+import { useBookMarkPostMutation, useCommentPostMutation, useDeleteCommentPostMutation, useDeletePostMutation, useLikePostMutation } from '../../services/redux/query/api/postsApi';
 import { ModalContext } from '../../context/ModalProvider';
+import useMutationToast from '../../hooks/useMutationToast';
 const UpdatePostModal = lazy(() => import('../modal/UpdatePostModal'));
 function SinglePost({ post, changeData }) {
   const navigate = useNavigate();
@@ -95,57 +90,27 @@ function SinglePost({ post, changeData }) {
       content: commentRef?.current?.textContent,
     });
   }, [postComment, commentRef, channel, _id]);
-  useEffect(() => {
-    if (isSuccessDelete && dataDelete) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: dataDelete?.message,
-        },
-      });
+  useMutationToast({
+    data: dataDelete,
+    error: errorDelete,
+    isSuccess: isSuccessDelete,
+    isError: isErrorDelete,
+  });
+  useMutationToast(
+    {
+      data: postCommentData,
+      error: errorPostComment,
+      isSuccess: isSuccessPostComment,
+      isError: isErrorPostComment,
+    },
+    {
+      // Bản cũ xoá ô nhập ở NGOÀI nhánh thành công, nên gửi bình luận thất bại
+      // cũng mất luôn nội dung vừa gõ. Giờ chỉ xoá khi đã gửi được.
+      onSuccess: () => {
+        if (commentRef.current) commentRef.current.textContent = '';
+      },
     }
-    if (isErrorDelete && errorDelete) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorDelete?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessDelete,
-    dataDelete,
-    isErrorDelete,
-    errorDelete,
-    setVisibleModal,
-  ]);
-  useEffect(() => {
-    if (isSuccessPostComment && postCommentData) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'success',
-          message: postCommentData?.message,
-        },
-      });
-    }
-    if (commentRef.current) {
-      commentRef.current.textContent = '';
-    }
-    if (isErrorPostComment && errorPostComment) {
-      setVisibleModal({
-        visibleToastModal: {
-          type: 'error',
-          message: errorPostComment?.data?.message,
-        },
-      });
-    }
-  }, [
-    isSuccessPostComment,
-    postCommentData,
-    isErrorPostComment,
-    errorPostComment,
-    setVisibleModal,
-  ]);
+  );
   useEffect(() => {
     if (
       isSuccessLikePost ||
@@ -257,13 +222,17 @@ function SinglePost({ post, changeData }) {
           </div>
         </div>
         <div dangerouslySetInnerHTML={{ __html: content }}></div>
-        <div>
-          <img
-            className='w-full h-full object-contain'
-            src={`${import.meta.env.VITE_BACKEND_URL}/${images?.url}`}
-            alt={images?.name}
-          />
-        </div>
+        {/* Bài không có ảnh thì bỏ hẳn thẻ img: để nguyên sẽ thành
+            `.../undefined` -> 404 -> biểu tượng ảnh vỡ trên mọi bài. */}
+        {images?.url && (
+          <div>
+            <img
+              className='w-full h-full object-contain'
+              src={`${import.meta.env.VITE_BACKEND_URL}/${images.url}`}
+              alt={images.name || ''}
+            />
+          </div>
+        )}
         <div className='w-full flex justify-between'>
           <p className='text-lg font-medium'>
             {liked?.length} {liked?.length > 1 ? 'likes' : 'like'}

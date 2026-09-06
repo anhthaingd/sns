@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Page from '../../Page';
 import { FaMagnifyingGlass } from 'react-icons/fa6';
@@ -6,7 +6,7 @@ import useQueryString from '../../../hooks/useQueryString';
 const Users = lazy(() => import('./components/Users'));
 const Posts = lazy(() => import('./components/Posts'));
 function SearchLayout() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const curTab = useMemo(() => {
     return searchParams.get('tab') ? searchParams.get('tab') : 'users';
   }, [searchParams]);

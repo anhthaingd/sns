@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { useGetSearchUsersQuery } from '../../../../services/redux/query/usersQuery';
+import { useContext } from 'react';
+import { useGetSearchUsersQuery } from '../../../../services/redux/query/api/usersApi';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Pagination from '../../../../components/ui/Pagination';
 import { ModalContext } from '../../../../context/ModalProvider';
