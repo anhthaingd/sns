@@ -197,11 +197,11 @@ lớp chặn:
 ├───────────────────────────────────────────────────────────────┤
 │ Test API — gọi thật vào máy chủ đang chạy                     │
 │ tests/test_auth.py, test_posts.py, test_jobs_api.py, …         │
-│ → 272 test, khoảng 30 giây                                     │
+│ → 329 test, khoảng 30 giây                                     │
 ├───────────────────────────────────────────────────────────────┤
 │ Test E2E — mở trình duyệt thật, bấm chuột thật                │
 │ e2e/test_e2e.py                                                │
-│ → 11 test, khoảng 50 giây                                      │
+│ → 15 test, khoảng 50 giây                                      │
 └───────────────────────────────────────────────────────────────┘
 ```
 
@@ -242,7 +242,7 @@ File `.github/workflows/ci.yml`, gồm ba việc:
 |---|---|
 | **Lint backend** | `ruff check` + `ruff format --check` |
 | **Lint + build frontend** | `npm ci` → `npm run lint` → `npm run build` |
-| **Test** | Dựng cả 5 container → nạp dữ liệu mẫu → 272 test API + 11 test E2E |
+| **Test** | Dựng cả 5 container → nạp dữ liệu mẫu → 329 test API + 15 test E2E |
 
 ### Vì sao phần frontend mới được thêm vào
 
@@ -294,8 +294,8 @@ CI được cấu hình tự lưu ảnh màn hình khi test E2E thất bại
 | `client/src/components/common/ErrorScreen.jsx` | Màn hình khi trang gặp sự cố |
 | `client/src/hooks/useMutationToast.jsx` | Thông báo sau khi lưu/xoá, kèm ghi log |
 | `.github/workflows/ci.yml` | Cấu hình kiểm tự động |
-| `server_python/tests/` | 272 test API |
-| `e2e/test_e2e.py` | 11 test giao diện |
+| `server_python/tests/` | 329 test API |
+| `e2e/test_e2e.py` | 15 test giao diện |
 
 ---
 

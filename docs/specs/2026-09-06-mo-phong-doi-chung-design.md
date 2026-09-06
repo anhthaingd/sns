@@ -81,10 +81,29 @@ Nhóm tin đòi tiếng Nhật cao phần lớn là giảng dạy và dịch v�
 >
 > **Tiếng Nhật mở ra *số lượng* cơ hội — kỹ năng quyết định *mức lương*.**
 
-**② Delta không cộng được.** Học A mở thêm 20 tin, học B mở thêm 15 tin, học cả
-hai **không** mở thêm 35 tin — vì hai nhóm tin chồng lấn nhau, và vì luật loại hồ
-sơ không tuyến tính (xem 3.1). Đây chính là lý do phải có **engine chấm lại**,
-không thể dùng một bảng tra sẵn. Đây cũng là điểm kỹ thuật đáng nêu khi bảo vệ.
+**② Delta không cộng được — và đi được CẢ HAI chiều.** Đây chính là lý do phải
+có **engine chấm lại**, không thể dùng một bảng tra sẵn.
+
+> **Cập nhật sau khi triển khai.** Bản đầu của mục này đoán rằng kết hợp luôn
+> *nhỏ hơn* tổng lẻ. Chạy trên dữ liệu thật thì thấy ngược lại:
+>
+> ```
+> lên N2      →  +64 tin
+> học Sales   →  +42 tin
+> cộng lẻ     →  106
+> làm cả hai  →  +116   ← NHIỀU hơn
+> ```
+>
+> Vì có những tin đòi **cùng lúc** cả hai thứ: bù riêng từng cái thì cái còn lại
+> vẫn chặn, nên chúng không được tính vào lợi ích lẻ nào cả.
+>
+> Chiều ngược lại cũng có thật: một tin yêu cầu `["Go", "Rust"]` mà CV chưa có
+> gì thì học Go mở được tin đó, học Rust cũng mở được tin đó, học cả hai vẫn chỉ
+> là **một** tin.
+>
+> Cả hai chiều giờ đều có test pin lại
+> (`test_combining_can_open_MORE_...` và `..._FEWER_...`), và giao diện **so số
+> thật với tổng lẻ rồi mới chọn câu giải thích** thay vì viết cứng một chiều.
 
 ---
 
@@ -223,7 +242,7 @@ kiểm sang `ok()` và gán mã cho chỗ này. Thêm phép kiểm thứ ba: **m
 | Việc | Bằng chứng phải đạt |
 |---|---|
 | Engine đúng | Test với CV + tin dựng tay: bù đúng chỗ thiếu thì tin chuyển sang đủ điều kiện |
-| **Delta không cộng được** | Test khẳng định `delta(A∪B) ≠ delta(A) + delta(B)` trên dữ liệu dựng tay — pin đúng tính chất là lý do tồn tại của engine |
+| **Delta không cộng được (cả hai chiều)** | Hai test riêng trên dữ liệu dựng tay: một pin chiều kết hợp > tổng lẻ, một pin chiều kết hợp < tổng lẻ |
 | Không có embedder vẫn chạy | Tắt `embedder`, endpoint vẫn 200 và số tin đủ điều kiện **không đổi** |
 | Cùng bộ luật | Test: số tin đủ điều kiện từ `/api/match/whatif` khớp số đếm từ `/api/match/jobs` |
 | Hiệu năng | Test khẳng định một lượt quét < 50ms trên 430 tin |
