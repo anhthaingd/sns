@@ -16,6 +16,25 @@
 
 ---
 
+## 📚 Tài liệu chi tiết
+
+README này chỉ hướng dẫn **cài đặt và chạy**. Muốn hiểu hệ thống hoạt động thế
+nào, hoặc muốn tự thêm chức năng, đọc thư mục **[`docs/`](docs/README.md)** —
+viết cho người chưa quen lập trình web, giải thích từng khái niệm trước khi dùng:
+
+| | |
+|---|---|
+| [Hệ thống hoạt động thế nào](docs/01-he-thong-hoat-dong-the-nao.md) | Bấm một nút thì chuyện gì xảy ra |
+| [Tạo một API mới](docs/02-tao-mot-api-moi.md) | 5 file cần viết, theo thứ tự nào |
+| [Tạo một màn hình mới](docs/03-tao-mot-man-hinh-moi.md) | Từ khai báo API tới component và menu |
+| [Luồng đăng nhập](docs/04-luong-dang-nhap.md) | Token, cookie, gia hạn tự động |
+| [Luồng bài viết](docs/05-luong-bai-viet.md) | Đăng bài, thích, bình luận, chat thời gian thực |
+| [Luồng CV và việc làm](docs/06-luong-cv-va-viec-lam.md) | ETL: crawl → chuẩn hoá → 430 tin |
+| [Embedding và gợi ý công ty](docs/07-embedding-va-goi-y.md) | Phần AI: máy "hiểu" CV kiểu gì |
+| [Lỗi, log và kiểm thử](docs/08-loi-log-va-kiem-thu.md) | Có sự cố thì tra ở đâu |
+
+---
+
 ## 1. Yêu cầu cài đặt
 
 Chỉ cần **một trong hai**:
