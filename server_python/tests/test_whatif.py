@@ -345,6 +345,34 @@ async def test_whatif_rejects_a_malformed_value(client, user_with_resume, has_jo
     assert r.json()["code"] == "whatif.invalidValue"
 
 
+async def test_whatif_caps_the_number_of_actions(client, user_with_resume, has_jobs):
+    """Danh sách phương án phải có trần, nếu không một request là đủ treo backend.
+
+    Mỗi phương án tốn hai lượt quét toàn bộ kho tin, và controller còn chấm
+    thêm một lượt cho từng phương án để tính tổng lợi ích lẻ. Đo được: 2000
+    phương án mất 9,5 giây — một tài khoản thường gửi vài request là backend
+    nghẽn. Giao diện nhiều nhất chỉ có 13 lựa chọn.
+    """
+    r = await client.post(
+        "/api/match/whatif",
+        json={"actions": [{"kind": "skill", "value": f"X{i}"} for i in range(500)]},
+        headers=user_with_resume.headers,
+    )
+    assert r.status_code == 400, f"{r.status_code}: {r.text[:200]}"
+    assert r.json()["code"] == "whatif.tooManyActions"
+
+
+async def test_whatif_accepts_every_option_the_ui_can_offer(client, user_with_resume, has_jobs):
+    """Trần không được chặt tới mức người dùng tick hết màn hình lại bị từ chối."""
+    listed = (await client.get("/api/match/whatif", headers=user_with_resume.headers)).json()["suggestions"]
+    r = await client.post(
+        "/api/match/whatif",
+        json={"actions": [{"kind": s["kind"], "value": s["value"]} for s in listed]},
+        headers=user_with_resume.headers,
+    )
+    assert r.status_code == 200, f"tick hết {len(listed)} mục mà bị từ chối: {r.text[:200]}"
+
+
 async def test_whatif_rejects_an_unknown_action_kind(client, user_with_resume, has_jobs):
     r = await client.post(
         "/api/match/whatif",

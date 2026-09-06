@@ -117,7 +117,8 @@
     },
     "whatif": {
       "unknownAction": "Loại phương án không hợp lệ!",
-      "invalidValue": "Giá trị của phương án không hợp lệ!"
+      "invalidValue": "Giá trị của phương án không hợp lệ!",
+      "tooManyActions": "Bạn chọn quá nhiều phương án cùng lúc!"
     }
   }
 }

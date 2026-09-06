@@ -41,6 +41,16 @@ YEAR_STEPS = (1, 3)
 # diện sẽ mời người dùng chọn đúng thứ mà API từ chối.
 MAX_SIMULATED_YEARS = 50
 
+# Trần số phương án nhận trong MỘT request. Mỗi phương án tốn hai lượt quét
+# toàn kho tin, và controller còn chấm thêm một lượt cho từng phương án để tính
+# tổng lợi ích lẻ — nên chi phí tăng tuyến tính theo số phương án. Đo được:
+# 2000 phương án mất 9,5 giây, đủ để một tài khoản thường làm nghẽn backend.
+#
+# `candidate_actions` sinh ra nhiều nhất SKILL_CANDIDATES + 2 (tiếng Nhật)
+# + 1 (tiếng Anh) + len(YEAR_STEPS) = 13 mục, nên trần dưới đây vẫn còn dư cho
+# mọi lựa chọn mà giao diện bày ra.
+MAX_ACTIONS_PER_REQUEST = SKILL_CANDIDATES + 2 + 1 + len(YEAR_STEPS) + 5
+
 
 @dataclass
 class Action:

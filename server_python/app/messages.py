@@ -113,6 +113,7 @@ MESSAGES: dict[str, str] = {
     "match.noResume": "Bạn cần tạo CV trước khi dùng chức năng gợi ý công ty phù hợp!",
     "whatif.unknownAction": "Loại phương án không hợp lệ!",
     "whatif.invalidValue": "Giá trị của phương án không hợp lệ!",
+    "whatif.tooManyActions": "Bạn chọn quá nhiều phương án cùng lúc!",
     # --- website & quản trị -----------------------------------------------
     "web.invalidOldLogo": "Dữ liệu logo cũ không hợp lệ!",
     "web.updated": "Cập nhật thông tin website thành công!",

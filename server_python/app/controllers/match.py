@@ -21,7 +21,13 @@ from app.models.job import LANGUAGE_LEVELS, Job, JobMatchView
 from app.models.resume import Resume
 from app.services.job_index import job_index
 from app.services.matching import evaluate
-from app.services.whatif import MAX_SIMULATED_YEARS, Action, simulate, suggestions
+from app.services.whatif import (
+    MAX_ACTIONS_PER_REQUEST,
+    MAX_SIMULATED_YEARS,
+    Action,
+    simulate,
+    suggestions,
+)
 from app.utils.ids import to_object_id
 from app.utils.loaders import load_by_ids
 from app.utils.responses import ok
@@ -295,6 +301,9 @@ async def whatif_suggestions(decoded_user: dict):
 async def whatif_simulate(decoded_user: dict, raw_actions: list[dict] | None):
     """Áp dụng ĐỒNG THỜI một tổ hợp phương án do người dùng chọn."""
     resume = await _require_resume(decoded_user)
+
+    if len(raw_actions or []) > MAX_ACTIONS_PER_REQUEST:
+        raise ApiError(400, code="whatif.tooManyActions")
 
     actions = [_parse_action(item) for item in raw_actions or []]
 

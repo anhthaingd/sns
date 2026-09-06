@@ -117,7 +117,8 @@
     },
     "whatif": {
       "unknownAction": "That simulation option is not valid.",
-      "invalidValue": "That simulation value is not valid."
+      "invalidValue": "That simulation value is not valid.",
+      "tooManyActions": "Too many simulation options at once."
     }
   }
 }
