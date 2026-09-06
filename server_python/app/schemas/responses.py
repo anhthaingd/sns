@@ -168,6 +168,14 @@ class JobFiltersResponse(ApiEnvelope):
     skills: list[dict[str, Any]]
 
 
+class MarketResponse(ApiEnvelope):
+    totalJobs: int
+    minGroupSize: int
+    skills: list[dict[str, Any]]
+    japanese: list[dict[str, Any]]
+    prefectures: list[dict[str, Any]]
+
+
 # --- Gợi ý & phân tích thiếu sót --------------------------------------------
 
 

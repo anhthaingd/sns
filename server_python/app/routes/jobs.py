@@ -6,6 +6,7 @@ from app.controllers.jobs import (
     get_job_details,
     get_job_filters,
     get_jobs,
+    job_market,
 )
 from app.middleware.auth import get_current_user
 from app.schemas.responses import (
@@ -15,6 +16,7 @@ from app.schemas.responses import (
     JobDetailsResponse,
     JobFiltersResponse,
     JobListResponse,
+    MarketResponse,
 )
 
 router = APIRouter(tags=["jobs"], responses=ERROR_RESPONSES)
@@ -47,6 +49,11 @@ async def route_get_jobs(
 @router.get("/api/jobs/filters", response_model=JobFiltersResponse)
 async def route_get_job_filters(decoded=Depends(get_current_user)):
     return await get_job_filters()
+
+
+@router.get("/api/jobs/market", response_model=MarketResponse)
+async def route_job_market(decoded=Depends(get_current_user)):
+    return await job_market(decoded)
 
 
 @router.get("/api/jobs/{job_id}", response_model=JobDetailsResponse)

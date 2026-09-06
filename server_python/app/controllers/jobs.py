@@ -9,6 +9,7 @@ import math
 from app.errors import ApiError
 from app.models.company import Company
 from app.models.job import Job
+from app.services import market
 from app.utils.ids import to_object_id
 from app.utils.loaders import load_by_ids
 from app.utils.responses import ok
@@ -169,3 +170,8 @@ async def get_job_filters():
         japaneseLevels=[level for level in japanese_levels if level],
         skills=[{"name": s["_id"], "count": s["count"]} for s in skills],
     )
+
+
+async def job_market(decoded_user: dict):
+    """Bản đồ thị trường — không phụ thuộc CV, ai đăng nhập cũng xem được."""
+    return ok(**await market.snapshot())
