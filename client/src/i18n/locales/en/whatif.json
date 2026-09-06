@@ -1,0 +1,29 @@
+{
+  "title": "What if I learned more?",
+  "intro": "Pick what you plan to add and we re-score all {{total}} job posts to see how many more open up.",
+  "baseline_one": "You currently clear the requirements on {{count}} job",
+  "baseline_other": "You currently clear the requirements on {{count}} jobs",
+  "companies_one": "at {{count}} company",
+  "companies_other": "at {{count}} companies",
+  "opens_one": "+{{count}} job",
+  "opens_other": "+{{count}} jobs",
+  "noBenefit": "Opens no new jobs",
+  "openedSalary": "Median salary of the newly opened jobs: {{salary}} (from {{sample}} jobs that state one)",
+  "openedSalaryUnknown": "Not enough salary data on the newly opened jobs",
+  "action": {
+    "skill": "Learn {{value}}",
+    "japanese": "Reach {{value}} Japanese",
+    "english": "Reach {{value}} English",
+    "years": "Reach {{value}} years of experience"
+  },
+  "combined": {
+    "title": "If you did everything you selected",
+    "result_one": "You would clear the requirements on {{count}} job",
+    "result_other": "You would clear the requirements on {{count}} jobs",
+    "more": "More than the sum of the individual gains ({{sum}}) — some posts demand several requirements at once, so closing one still leaves the other blocking you, and those posts count towards neither individual gain.",
+    "fewer": "Fewer than the sum of the individual gains ({{sum}}) — many posts are opened by both items, and they cannot be counted twice.",
+    "empty": "Select at least one item above to see the combined result."
+  },
+  "disclaimer": "This is how many posts you CLEAR THE REQUIREMENTS for — not how many you would be hired for.",
+  "needResume": "Create a CV first to use this feature."
+}

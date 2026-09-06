@@ -13,5 +13,7 @@
   "logout": "ログアウト",
   "notifications": "お知らせ",
   "messages": "メッセージ",
-  "theme": "表示テーマの切り替え"
+  "theme": "表示テーマの切り替え",
+  "whatif": "スキルを追加したら",
+  "market": "求人マーケット"
 }

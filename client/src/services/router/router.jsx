@@ -15,6 +15,7 @@ const JobGapLayout = lazy(() => import('../../layouts/home/Match/JobGapLayout'))
 const CompanyGapLayout = lazy(() =>
   import('../../layouts/home/Match/CompanyGapLayout')
 );
+const WhatIfLayout = lazy(() => import('../../layouts/home/Match/WhatIfLayout'));
 const SearchLayout = lazy(() =>
   import('../../layouts/home/Search/SearchLayout')
 );
@@ -108,6 +109,14 @@ const routes = [
             element: (
               <ProtectedRoute>
                 <CompanyGapLayout />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'whatif',
+            element: (
+              <ProtectedRoute>
+                <WhatIfLayout />
               </ProtectedRoute>
             ),
           },

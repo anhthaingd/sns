@@ -19,6 +19,17 @@ export const matchApi = api.injectEndpoints({
       query: (id) => `match/companies/${id}/gap`,
       providesTags: ['matches'],
     }),
+    getWhatIf: builder.query({
+      query: () => 'match/whatif',
+      providesTags: ['matches'],
+    }),
+    simulateWhatIf: builder.mutation({
+      query: (actions) => ({
+        url: 'match/whatif',
+        method: 'POST',
+        body: { actions },
+      }),
+    }),
   }),
 });
 
@@ -27,4 +38,6 @@ export const {
   useGetMatchedJobsQuery,
   useGetJobGapQuery,
   useGetCompanyGapQuery,
+  useGetWhatIfQuery,
+  useSimulateWhatIfMutation,
 } = matchApi;

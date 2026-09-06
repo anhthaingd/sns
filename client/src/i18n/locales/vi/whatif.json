@@ -1,0 +1,29 @@
+{
+  "title": "Nếu tôi học thêm thì sao?",
+  "intro": "Chọn những thứ bạn định bù, hệ thống chấm lại toàn bộ {{total}} tin tuyển dụng để xem mở ra thêm bao nhiêu cơ hội.",
+  "baseline_one": "Hiện tại bạn qua vòng lọc điều kiện ở {{count}} tin",
+  "baseline_other": "Hiện tại bạn qua vòng lọc điều kiện ở {{count}} tin",
+  "companies_one": "thuộc {{count}} công ty",
+  "companies_other": "thuộc {{count}} công ty",
+  "opens_one": "+{{count}} tin",
+  "opens_other": "+{{count}} tin",
+  "noBenefit": "Không mở thêm tin nào",
+  "openedSalary": "Trung vị lương của nhóm tin mở thêm: {{salary}} (trên {{sample}} tin có ghi lương)",
+  "openedSalaryUnknown": "Nhóm tin mở thêm chưa đủ dữ liệu lương",
+  "action": {
+    "skill": "Học {{value}}",
+    "japanese": "Nâng tiếng Nhật lên mức {{value}}",
+    "english": "Nâng tiếng Anh lên mức {{value}}",
+    "years": "Có {{value}} năm kinh nghiệm"
+  },
+  "combined": {
+    "title": "Nếu làm tất cả những điều đã chọn",
+    "result_one": "Bạn sẽ qua vòng lọc ở {{count}} tin",
+    "result_other": "Bạn sẽ qua vòng lọc ở {{count}} tin",
+    "more": "Nhiều hơn tổng của từng mục lẻ ({{sum}} tin) — vì có những tin đòi cùng lúc nhiều điều kiện: bù riêng một thứ thì thứ kia vẫn chặn, nên chúng không được tính vào lợi ích của mục nào cả.",
+    "fewer": "Ít hơn tổng của từng mục lẻ ({{sum}} tin) — vì nhiều tin được mở ra bởi cả hai mục, không thể đếm hai lần.",
+    "empty": "Chọn ít nhất một mục ở trên để xem kết quả kết hợp."
+  },
+  "disclaimer": "Đây là số tin bạn qua được VÒNG LỌC ĐIỀU KIỆN, không phải số tin chắc chắn trúng tuyển.",
+  "needResume": "Bạn cần tạo CV trước khi dùng chức năng này."
+}

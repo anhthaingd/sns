@@ -13,5 +13,7 @@
   "logout": "Log out",
   "notifications": "Notifications",
   "messages": "Messages",
-  "theme": "Toggle light/dark theme"
+  "theme": "Toggle light/dark theme",
+  "whatif": "What if",
+  "market": "Market map"
 }
