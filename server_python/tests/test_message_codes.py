@@ -71,6 +71,18 @@ def test_every_catalog_message_formats_without_error():
         assert "{" not in rendered, f"{code}: còn chỗ trống chưa thay -> {rendered}"
 
 
+def _enclosing_function(tree: ast.AST, node: ast.AST) -> str:
+    return next(
+        (
+            n.name
+            for n in ast.walk(tree)
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and n.lineno <= node.lineno <= (n.end_lineno or n.lineno)
+        ),
+        "?",
+    )
+
+
 def test_no_api_error_raised_without_code():
     """Mỗi `raise ApiError(...)` phải có `code=` để client dịch được.
 
@@ -90,19 +102,34 @@ def test_no_api_error_raised_without_code():
             if any(kw.arg == "code" for kw in node.exc.keywords):
                 continue
             rel = str(path.relative_to(APP_DIR))
-            enclosing = next(
-                (
-                    n.name
-                    for n in ast.walk(tree)
-                    if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-                    and n.lineno <= node.lineno <= (n.end_lineno or n.lineno)
-                ),
-                "?",
-            )
+            enclosing = _enclosing_function(tree, node)
             if (rel, enclosing) in allowed_without_code:
                 continue
             offenders.append(f"{rel}:{node.lineno} trong {enclosing}()")
     assert not offenders, "ApiError thiếu `code=` (client sẽ không dịch được): " + ", ".join(offenders)
+
+
+def test_no_success_message_without_code():
+    """`ok(message="...")` không kèm `code=` cũng lọt ra tiếng Việt y như ApiError.
+
+    Phép kiểm cũ chỉ soi `raise ApiError(...)` nên nhánh này đi lọt suốt: một
+    `ok(message=f"...")` vẫn dựng toast bằng câu tiếng Việt cứng, và câu đó còn
+    có thể mang cả ObjectId thô ra cho người dùng cuối.
+
+    `ok()` không truyền `message` thì không có câu nào để dịch -> hợp lệ.
+    """
+    offenders = []
+    for path in _python_files():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+                continue
+            if node.func.id != "ok":
+                continue
+            kwargs = {kw.arg for kw in node.keywords}
+            if "message" in kwargs and "code" not in kwargs:
+                offenders.append(f"{path.relative_to(APP_DIR)}:{node.lineno} trong {_enclosing_function(tree, node)}()")
+    assert not offenders, "ok(message=...) thiếu `code=`: " + ", ".join(offenders)
 
 
 # ---------------------------------------------------------------------------

@@ -76,7 +76,8 @@
       "joined": "Gia nhập channel thành công!",
       "left": "Bạn đã thoát nhóm channel!",
       "updated": "Cập nhật channel thành công!",
-      "deleted": "Xóa channel thành công!"
+      "deleted": "Xóa channel thành công!",
+      "userRemoved": "Đã xóa người dùng khỏi channel!"
     },
     "chat": {
       "conversationNotFound": "Không tìm thấy hội thoại!"

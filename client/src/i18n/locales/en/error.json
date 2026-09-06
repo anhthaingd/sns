@@ -76,7 +76,8 @@
       "joined": "Joined the channel.",
       "left": "You left the channel.",
       "updated": "Channel updated.",
-      "deleted": "Channel deleted."
+      "deleted": "Channel deleted.",
+      "userRemoved": "The user has been removed from the channel."
     },
     "chat": {
       "conversationNotFound": "Conversation not found."

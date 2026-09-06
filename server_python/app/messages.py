@@ -96,6 +96,7 @@ MESSAGES: dict[str, str] = {
     "channel.left": "Bạn đã thoát nhóm channel!",
     "channel.updated": "Cập nhật channel thành công!",
     "channel.deleted": "Xóa channel thành công!",
+    "channel.userRemoved": "Đã xóa người dùng khỏi channel!",
     # --- hội thoại ---------------------------------------------------------
     "chat.conversationNotFound": "Không tìm thấy hội thoại!",
     # --- việc làm & doanh nghiệp ------------------------------------------

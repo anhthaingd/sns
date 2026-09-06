@@ -157,7 +157,7 @@ async def remove_user_from_channel(decoded_user: dict, channel_id: str, user_id_
             url=None,
         ).insert()
 
-    return ok(message=f"Đã xóa người dùng id:{user_id_to_remove} ra khỏi channel!")
+    return ok(code="channel.userRemoved")
 
 
 async def update_channel(
