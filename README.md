@@ -73,6 +73,8 @@ muốn chạy nhanh, làm đúng [mục 3](#3-chạy-dự-án-bằng-docker-khuy
 | **Tin tuyển dụng** | Tin từ **4 nguồn** (DaiJob, GaijinPot, Nihongo Engineer, LinkedIn JP) đã được chuẩn hoá về cùng một dạng: tìm theo từ khoá, lọc theo **trình độ tiếng Nhật**, mức lương, tỉnh/thành, việc remote |
 | **Công ty phù hợp** | Xếp hạng công ty theo mức khớp với CV của bạn, kèm **lý do** cho từng công ty |
 | **"Tôi còn thiếu gì?"** | Với một công ty hoặc một vị trí cụ thể: liệt kê rõ **bắt buộc phải bù** / **nên có thêm** / **bạn đã đáp ứng** |
+| **"Nếu tôi học thêm thì sao?"** | Tick những thứ bạn định bù → hệ thống chấm lại cả 430 tin và cho biết mở ra thêm bao nhiêu cơ hội, kèm trung vị lương của nhóm tin đó |
+| **Bản đồ thị trường** | Kỹ năng nào đang được săn, lương theo kỹ năng / trình độ tiếng Nhật / tỉnh thành — mọi trung vị đều kèm cỡ mẫu |
 
 Điểm phù hợp gồm **hai phần tách bạch** để kiểm chứng được:
 
@@ -350,6 +352,22 @@ tiếng Nhật**, mức lương, tỉnh/thành, việc remote.
 **bắt buộc phải bù** (ví dụ tiếng Nhật chưa đủ mức), **nên có thêm** (kỹ năng,
 lương, địa điểm), và **bạn đã đáp ứng**.
 
+### 5.10. Xem học thêm cái gì thì lợi nhất
+
+Vào **Nếu tôi học thêm**. Màn hình liệt kê các phương án đã xếp theo lợi ích —
+mỗi dòng cho biết **mở thêm bao nhiêu tin** và **trung vị lương của nhóm tin
+đó**. Tick vài ô để xem kết quả khi làm đồng thời.
+
+> Con số kết hợp **không bằng** tổng của từng mục lẻ, và có thể lớn hơn *hoặc*
+> nhỏ hơn. Màn hình tự giải thích chiều đang xảy ra. Xem
+> [docs/10](docs/10-mo-phong-doi-chung.md) nếu muốn hiểu vì sao.
+
+### 5.11. Xem toàn cảnh thị trường
+
+Vào **Bản đồ thị trường**: kỹ năng được săn nhiều nhất, phân bố yêu cầu tiếng
+Nhật, nơi làm việc — kèm mức lương của từng nhóm. Mọi trung vị đều hiện cỡ mẫu
+`n`, và nhóm dưới 10 tin ghi lương thì không hiện trung vị.
+
 ---
 
 ## 6. Các lệnh Docker hữu ích
@@ -446,13 +464,13 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 Không cần cài gì trên máy. Stack phải đang chạy (`docker compose up -d`).
 
 ```bash
-# Test API (291 test: auth/refresh token, rate limit, phan quyen, post, channel,
+# Test API (321 test: auth/refresh token, rate limit, phan quyen, post, channel,
 # chat + phan trang, upload, socket, ETL/parser (chay offline tren HTML da luu),
 # loi cham diem CV, API viec lam & goi y, dem so query chong N+1, hop dong
 # response, va doi chieu ma thong bao cua backend voi ban dich cua client)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
 
-# Test E2E qua giao dien that bang Playwright (12 test, gom ca test doi ngon ngu)
+# Test E2E qua giao dien that bang Playwright (15 test, gom ca test doi ngon ngu)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
 
 # Chay xong E2E, tra client ve cau hinh thuong de dung tu trinh duyet:
@@ -535,7 +553,8 @@ thật với một trang `data:` (không cần mạng), để bảo vệ quyết
 │   │   │   ├── config.js     #   khoi tao i18next, ngon ngu mac dinh = ja
 │   │   │   └── locales/      #   ja/ vi/ en/ x 12 nhom chu (460 khoa moi ngon ngu)
 │   │   ├── layouts/home/Recruitment/  # Tim viec lam (doc tu DB da ETL)
-│   │   ├── layouts/home/Match/        # Goi y cong ty + phan tich thieu sot
+│   │   ├── layouts/home/Match/        # Goi y cong ty + thieu sot + mo phong doi chung
+│   │   ├── layouts/home/Market/       # Ban do thi truong viec lam
 │   │   ├── components/common/LanguageSwitcher.jsx  # nut JA / VI / EN
 │   │   └── services/redux/query/baseQuery.js  # tu gia han access token khi 401
 │   ├── scripts/check-i18n.mjs # Doi chieu ban dich 3 ngon ngu (chay trong npm run lint)
@@ -553,6 +572,8 @@ thật với một trang `data:` (không cần mạng), để bảo vệ quyết
 │   │   ├── services/         # browser dung chung, rate limit, blacklist token,
 │   │   │   ├── etl/          #   crawl -> parse -> chuan hoa (4 parser + tu dien ky nang)
 │   │   │   ├── matching.py   #   cham diem CV <-> tin tuyen dung, liet ke thieu sot
+│   │   │   ├── whatif.py     #   mo phong "neu CV co them X" tren toan kho tin
+│   │   │   ├── market.py     #   thong ke nhu cau ky nang / luong, co nguong co mau
 │   │   │   ├── embedding.py  #   goi service embedder (suy giam em khi no chet)
 │   │   │   └── job_index.py  #   chi muc vector trong bo nho (numpy, khong can vector DB)
 │   │   ├── sockets/          # Socket.io handler (chat, video call)
@@ -605,3 +626,4 @@ viết cho người chưa quen lập trình web, giải thích từng khái ni�
 | [7. Embedding và gợi ý công ty](docs/07-embedding-va-goi-y.md) | Phần AI: máy "hiểu" CV kiểu gì |
 | [8. Lỗi, log và kiểm thử](docs/08-loi-log-va-kiem-thu.md) | Có sự cố thì tra ở đâu |
 | [9. Đa ngôn ngữ](docs/09-da-ngon-ngu.md) | Giao diện Nhật · Việt · Anh: thêm chữ mới ở đâu |
+| [10. Mô phỏng đối chứng](docs/10-mo-phong-doi-chung.md) | "Học thêm X thì mở ra bao nhiêu cơ hội" tính thế nào |

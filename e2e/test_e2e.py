@@ -317,6 +317,82 @@ async def test_match_page_requires_a_resume_then_shows_companies(page, db):
     assert tr("match", "openPositions") in gap_body
 
 
+async def _create_minimal_resume(page):
+    """Tạo CV tối thiểu qua API của ứng dụng.
+
+    Form CV rất dài và không phải thứ đang kiểm ở các test dưới; đi qua API là
+    cách nhanh nhất để có được điều kiện tiên quyết.
+    """
+    token = await page.evaluate("() => window.localStorage.getItem('social_app_token')")
+    status = await page.evaluate(
+        """async (args) => {
+            const body = new FormData();
+            body.append('position', 'Backend Engineer');
+            body.append('skills', JSON.stringify(['Python', 'Docker']));
+            body.append('languages', JSON.stringify(['Japanese N3']));
+            body.append('japaneseLevel', 'conversational');
+            body.append('yearsOfExperience', '3');
+            const res = await fetch(args.api + '/api/resume', {
+                method: 'POST',
+                headers: { Authorization: 'Bearer ' + args.token },
+                body,
+            });
+            return res.status;
+        }""",
+        {"api": API_URL, "token": token},
+    )
+    assert status == 200, f"không tạo được CV: {status}"
+
+
+async def test_whatif_recalculates_when_an_option_is_picked(page):
+    """Tick một phương án -> con số kết hợp phải xuất hiện.
+
+    Chọn phần tử theo `data-testid` chứ không theo câu chữ: test này phải sống
+    được ở cả ba ngôn ngữ.
+    """
+    email = unique_email("whatif")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+    await _create_minimal_resume(page)
+
+    await page.goto(f"{APP_URL}/match/whatif", wait_until="domcontentloaded")
+    await page.wait_for_selector("[data-testid='whatif-baseline']", timeout=30000)
+
+    options = page.locator("[data-testid='whatif-option']")
+    assert await options.count() > 0, "không có phương án nào để mô phỏng"
+
+    await options.first.click()
+    await page.wait_for_selector("[data-testid='whatif-combined']", timeout=20000)
+    combined = (await page.locator("[data-testid='whatif-combined']").inner_text()).strip()
+    assert combined, "tick rồi mà phần kết hợp vẫn trống"
+
+
+async def test_whatif_needs_a_resume_first(page):
+    """Chưa có CV thì phải nói rõ, không hiện màn hình trống."""
+    email = unique_email("whatif-nocv")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+
+    await page.goto(f"{APP_URL}/match/whatif", wait_until="domcontentloaded")
+    await page.get_by_text(tr("whatif", "needResume")).wait_for(timeout=30000)
+
+
+async def test_market_page_shows_the_sample_size_next_to_every_median(page):
+    """Không được có trung vị nào đứng một mình — cỡ mẫu luôn đi kèm."""
+    email = unique_email("market")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+
+    await page.goto(f"{APP_URL}/market", wait_until="domcontentloaded")
+    # Nhắm vào TIÊU ĐỀ trang, không phải văn bản bất kỳ: mục menu bên trái mang
+    # đúng chữ đó nên `get_by_text` khớp hai phần tử và Playwright báo lỗi.
+    await page.get_by_role("heading", name=tr("market", "title")).wait_for(timeout=30000)
+    await page.wait_for_timeout(1500)
+
+    body = await page.inner_text("body")
+    assert "n=" in body, f"trang thống kê không hiện cỡ mẫu. body={body[:300]}"
+
+
 async def test_switching_language_changes_the_whole_interface(page, db):
     """Đổi ngôn ngữ đổi cả giao diện tĩnh lẫn câu chữ do backend sinh ra.
 
