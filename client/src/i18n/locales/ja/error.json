@@ -116,7 +116,8 @@
       "removedFromChannel": "チャンネル「{{channel}}」から削除されました。"
     },
     "whatif": {
-      "unknownAction": "シミュレーションの種類が正しくありません。"
+      "unknownAction": "シミュレーションの種類が正しくありません。",
+      "invalidValue": "シミュレーションの値が正しくありません。"
     }
   }
 }

@@ -116,7 +116,8 @@
       "removedFromChannel": "Bạn đã bị xóa khỏi channel {{channel}}!"
     },
     "whatif": {
-      "unknownAction": "Loại phương án không hợp lệ!"
+      "unknownAction": "Loại phương án không hợp lệ!",
+      "invalidValue": "Giá trị của phương án không hợp lệ!"
     }
   }
 }

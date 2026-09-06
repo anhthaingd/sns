@@ -17,11 +17,11 @@ import math
 
 from app.errors import ApiError
 from app.models.company import Company
-from app.models.job import Job, JobMatchView
+from app.models.job import LANGUAGE_LEVELS, Job, JobMatchView
 from app.models.resume import Resume
 from app.services.job_index import job_index
 from app.services.matching import evaluate
-from app.services.whatif import Action, simulate, suggestions
+from app.services.whatif import MAX_SIMULATED_YEARS, Action, simulate, suggestions
 from app.utils.ids import to_object_id
 from app.utils.loaders import load_by_ids
 from app.utils.responses import ok
@@ -247,6 +247,36 @@ async def company_gap(decoded_user: dict, company_id: str):
 VALID_ACTION_KINDS = {"skill", "japanese", "english", "years"}
 
 
+def _parse_action(item: dict | None) -> Action:
+    """Dựng một `Action` từ dữ liệu client gửi lên, hoặc ném 400.
+
+    Kiểm CẢ `value` chứ không chỉ `kind`: bản đầu để `value` đi thẳng vào
+    `int(...)` bên trong engine, nên `{"kind": "years", "value": "abc"}` ném
+    ValueError giữa luồng xử lý và API trả 500 thay vì 400.
+    """
+    item = item or {}
+    kind = item.get("kind")
+    if kind not in VALID_ACTION_KINDS:
+        raise ApiError(400, code="whatif.unknownAction")
+
+    value = item.get("value")
+    if kind == "skill":
+        if not isinstance(value, str) or not value.strip():
+            raise ApiError(400, code="whatif.invalidValue")
+        return Action(kind=kind, value=value.strip())
+
+    if kind in ("japanese", "english"):
+        if value not in LANGUAGE_LEVELS:
+            raise ApiError(400, code="whatif.invalidValue")
+        return Action(kind=kind, value=value)
+
+    # years — `bool` là con của `int` trong Python, chặn riêng để `true` không
+    # lặng lẽ thành 1 năm kinh nghiệm.
+    if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= MAX_SIMULATED_YEARS:
+        raise ApiError(400, code="whatif.invalidValue")
+    return Action(kind=kind, value=value)
+
+
 async def _active_jobs() -> list[JobMatchView]:
     return await Job.find({"is_active": True}, projection_model=JobMatchView).limit(MAX_JOBS_SCORED).to_list()
 
@@ -266,12 +296,7 @@ async def whatif_simulate(decoded_user: dict, raw_actions: list[dict] | None):
     """Áp dụng ĐỒNG THỜI một tổ hợp phương án do người dùng chọn."""
     resume = await _require_resume(decoded_user)
 
-    actions = []
-    for item in raw_actions or []:
-        kind = (item or {}).get("kind")
-        if kind not in VALID_ACTION_KINDS:
-            raise ApiError(400, code="whatif.unknownAction")
-        actions.append(Action(kind=kind, value=item.get("value")))
+    actions = [_parse_action(item) for item in raw_actions or []]
 
     jobs = await _active_jobs()
     combined = simulate(jobs, resume, actions)

@@ -116,7 +116,8 @@
       "removedFromChannel": "You were removed from the channel {{channel}}."
     },
     "whatif": {
-      "unknownAction": "That simulation option is not valid."
+      "unknownAction": "That simulation option is not valid.",
+      "invalidValue": "That simulation value is not valid."
     }
   }
 }

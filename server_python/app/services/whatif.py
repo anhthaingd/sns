@@ -23,6 +23,7 @@ from typing import Any
 
 from app.models.job import LANGUAGE_LEVELS
 from app.models.resume import ResumeMatchView
+from app.services.market import median
 from app.services.matching import evaluate
 
 # Số kỹ năng đưa vào danh sách gợi ý. Nhiều hơn thì màn hình thành một bảng tra
@@ -34,6 +35,11 @@ LEVEL_STEPS = 2
 
 # Các mốc kinh nghiệm để mô phỏng.
 YEAR_STEPS = (1, 3)
+
+# Trần số năm kinh nghiệm. Đặt ở ĐÂY chứ không ở controller: nơi sinh ra gợi ý
+# và nơi kiểm dữ liệu client gửi lên phải dùng chung một con số, nếu không giao
+# diện sẽ mời người dùng chọn đúng thứ mà API từ chối.
+MAX_SIMULATED_YEARS = 50
 
 
 @dataclass
@@ -91,11 +97,6 @@ def _company_key(job) -> str:
     return str(job.company) if job.company else f"name:{job.company_name or ''}"
 
 
-def _median(values: list[int]) -> int | None:
-    known = sorted(v for v in values if v is not None)
-    return known[len(known) // 2] if known else None
-
-
 def _next_levels(current: str | None, steps: int = LEVEL_STEPS) -> list[str]:
     """Các bậc ngôn ngữ ngay trên mức hiện tại.
 
@@ -124,7 +125,11 @@ def candidate_actions(jobs: list, resume: ResumeMatchView) -> list[Action]:
     actions += [Action("english", level) for level in _next_levels(resume.english_level, steps=1)]
 
     current_years = resume.years_of_experience or 0
-    actions += [Action("years", current_years + step) for step in YEAR_STEPS]
+    actions += [
+        Action("years", current_years + step)
+        for step in YEAR_STEPS
+        if current_years + step <= MAX_SIMULATED_YEARS
+    ]
     return actions
 
 
@@ -147,7 +152,7 @@ def simulate(jobs: list, resume: ResumeMatchView, actions: list[Action]) -> dict
         "qualifiedJobs": len(after),
         "qualifiedCompanies": len({_company_key(by_id[jid]) for jid in after}),
         "deltaJobs": len(after) - len(before),
-        "openedSalaryMedian": _median(opened_salaries),
+        "openedSalaryMedian": median(opened_salaries),
         "openedSalarySample": len(opened_salaries),
     }
 

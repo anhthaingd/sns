@@ -8,7 +8,14 @@ lại, chứ không phải một bảng tra sẵn.
 import pytest
 from app.models.job import JobMatchView
 from app.models.resume import ResumeMatchView
-from app.services.whatif import Action, apply_actions, candidate_actions, qualified_job_ids, simulate
+from app.services.whatif import (
+    MAX_SIMULATED_YEARS,
+    Action,
+    apply_actions,
+    candidate_actions,
+    qualified_job_ids,
+    simulate,
+)
 from bson import ObjectId
 
 
@@ -177,6 +184,25 @@ def test_combining_can_open_FEWER_than_the_sum_of_the_parts():
 # ---------------------------------------------------------------------------
 
 
+def test_candidates_never_suggest_a_value_the_api_would_reject():
+    """Giao diện không được mời người dùng chọn thứ mà API sẽ trả 400.
+
+    Mốc kinh nghiệm sinh ra bằng "hiện tại + 1/+3", nên CV ghi 49 năm sẽ sinh
+    ra mốc 52 — vượt trần MAX_SIMULATED_YEARS mà controller kiểm. Tick vào là
+    nhận 400 cho một lựa chọn do chính hệ thống bày ra.
+    """
+    resume = make_resume(years_of_experience=MAX_SIMULATED_YEARS - 1)
+    years = [a.value for a in candidate_actions([make_job()], resume) if a.kind == "years"]
+
+    assert years, "vẫn phải còn ít nhất một mốc dưới trần"
+    assert all(y <= MAX_SIMULATED_YEARS for y in years)
+
+
+def test_candidates_stop_offering_years_at_the_cap():
+    resume = make_resume(years_of_experience=MAX_SIMULATED_YEARS)
+    assert not [a for a in candidate_actions([make_job()], resume) if a.kind == "years"]
+
+
 def test_candidates_never_suggest_a_skill_the_resume_already_has():
     jobs = [make_job(required_skills=["Python", "AWS"]) for _ in range(3)]
     resume = make_resume(skills_normalized=["python"])  # khác hoa thường, vẫn phải nhận ra
@@ -290,6 +316,33 @@ async def test_whatif_combination_is_not_the_sum_of_its_parts(client, user_with_
     # hai test logic thuần ở trên. Bất biến luôn đúng là kết hợp không bao giờ
     # tệ hơn phương án lẻ tốt nhất — bù thêm một thứ không làm mất cơ hội nào.
     assert combined["combined"]["deltaJobs"] >= max(s["deltaJobs"] for s in two)
+
+
+@pytest.mark.parametrize(
+    "action",
+    [
+        {"kind": "years", "value": "abc"},  # không ép được sang số -> từng ném 500
+        {"kind": "years", "value": None},
+        {"kind": "years", "value": -3},  # kinh nghiệm âm là vô nghĩa
+        {"kind": "skill", "value": None},  # từng lặng lẽ thêm kỹ năng tên "None"
+        {"kind": "skill", "value": ""},
+        {"kind": "japanese", "value": "khong_co_bac_nay"},  # từng lặng lẽ bỏ qua
+    ],
+)
+async def test_whatif_rejects_a_malformed_value(client, user_with_resume, has_jobs, action):
+    """Giá trị hỏng phải thành 400 có mã, không được thành 500.
+
+    Controller bản đầu chỉ kiểm `kind`, còn `value` đi thẳng vào `int(...)` —
+    gửi `{"kind": "years", "value": "abc"}` là ném ValueError giữa luồng xử lý
+    và API trả 500.
+    """
+    r = await client.post(
+        "/api/match/whatif",
+        json={"actions": [action]},
+        headers=user_with_resume.headers,
+    )
+    assert r.status_code == 400, f"{action} -> {r.status_code}: {r.text[:200]}"
+    assert r.json()["code"] == "whatif.invalidValue"
 
 
 async def test_whatif_rejects_an_unknown_action_kind(client, user_with_resume, has_jobs):
