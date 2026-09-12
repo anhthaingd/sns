@@ -54,6 +54,7 @@
     "imageAlt": "Không tìm thấy trang"
   },
   "upload": {
-    "imageHint": "(Chỉ nhận ảnh *.jpeg, *.webp và *.png)"
+    "imageHint": "(Chỉ nhận ảnh *.jpeg, *.webp và *.png)",
+    "dropHere": "Kéo ảnh vào đây, hoặc bấm để chọn"
   }
 }

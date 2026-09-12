@@ -109,7 +109,8 @@
     "description": "Description",
     "tech": "Tech",
     "gpa": "GPA:",
-    "certificateFile": "{{name}}.pdf"
+    "certificateFile": "{{name}}.pdf",
+    "title": "Preview and export"
   },
   "validate": {
     "certificateIncomplete": "A certificate needs both a name and a PDF file."

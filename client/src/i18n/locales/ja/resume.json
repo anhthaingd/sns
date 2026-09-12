@@ -109,7 +109,8 @@
     "description": "業務内容",
     "tech": "使用技術",
     "gpa": "GPA:",
-    "certificateFile": "{{name}}.pdf"
+    "certificateFile": "{{name}}.pdf",
+    "title": "プレビューと書き出し"
   },
   "validate": {
     "certificateIncomplete": "資格には名称とPDFファイルの両方が必要です。"

@@ -5,8 +5,8 @@
   "ruleOnlyNotice": "Đang xếp hạng bằng luật (tiếng Nhật, kinh nghiệm, kỹ năng). Phần so khớp theo ngữ nghĩa chưa sẵn sàng — kết quả vẫn dùng được, chỉ kém tinh tế hơn.",
   "qualifiedOnly": "Chỉ hiện công ty tôi đã đủ điều kiện",
   "missingPrefix": "Còn thiếu:",
-  "companyGapLink": "Tôi còn thiếu gì để vào công ty này →",
-  "jobDetailLink": "Chi tiết vị trí →",
+  "companyGapLink": "Tôi còn thiếu gì để vào công ty này",
+  "jobDetailLink": "Chi tiết vị trí",
   "techStack": "Công nghệ công ty dùng:",
   "jobTech": "Công nghệ:",
   "openPositions": "Các vị trí đang tuyển",
@@ -64,7 +64,7 @@
     "qualified": "Bạn đã đáp ứng mọi điều kiện bắt buộc của vị trí này.",
     "notQualified": "Còn điều kiện bắt buộc chưa đạt — xem danh sách bên dưới.",
     "employmentType": "Hình thức",
-    "openOriginal": "Mở tin gốc trên {{source}} →",
+    "openOriginal": "Mở tin gốc trên {{source}}",
     "aboutCompany": "Về {{name}}"
   },
   "companyGap": {
@@ -74,6 +74,8 @@
   "score": {
     "semantic": "Độ liên quan ngành nghề: {{percent}}%",
     "requirement": "Đáp ứng yêu cầu:",
-    "noRequirement": "tin không nêu yêu cầu cụ thể"
+    "noRequirement": "tin không nêu yêu cầu cụ thể",
+    "label": "Điểm khớp",
+    "semanticLabel": "Độ gần về nội dung"
   }
 }

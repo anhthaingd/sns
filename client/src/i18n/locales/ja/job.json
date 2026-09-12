@@ -12,11 +12,15 @@
     "from300": "300万円以上",
     "from500": "500万円以上",
     "from800": "800万円以上",
-    "remoteOnly": "リモートのみ"
+    "remoteOnly": "リモートのみ",
+    "filters": "絞り込み",
+    "activeFilters": "適用中の絞り込み",
+    "resultsTitle": "検索結果",
+    "sourceLabel": "掲載元"
   },
   "card": {
     "remote": "リモート",
-    "gapLink": "この求人に足りないものを見る →"
+    "gapLink": "この求人に足りないものを見る"
   },
   "level": {
     "none": "不問",
@@ -47,5 +51,6 @@
   },
   "japaneseLabel": "日本語",
   "empty": "条件に一致する求人が見つかりません。",
-  "subtitle_other": "GaijinPot・DaiJob・Nihongo Engineer・LinkedIn JP から集約した{{count}}件"
+  "subtitle_other": "GaijinPot・DaiJob・Nihongo Engineer・LinkedIn JP から集約した{{count}}件",
+  "emptyHint": "条件をゆるめるか、絞り込みを解除してみてください。"
 }

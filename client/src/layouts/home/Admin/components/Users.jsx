@@ -1,73 +1,74 @@
-import { useMemo, useState } from 'react';
-import { useGetUsersByAdminQuery } from '../../../../services/redux/query/api/usersApi';
+import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useGetUsersByAdminQuery } from '../../../../services/redux/query/api/usersApi';
+import useQueryString from '../../../../hooks/useQueryString';
 import { formatDate } from '../../../../services/utils/format';
 import Table from '../../../../components/ui/Table';
-import NotFoundItem from '../../../../components/ui/NotFoundItem';
-import useQueryString from '../../../../hooks/useQueryString';
-import { useTranslation } from 'react-i18next';
+import EmptyState from '../../../../components/ui/EmptyState';
+import SearchBar from '../../../../components/ui/SearchBar';
+import Avatar from '../../../../components/ui/Avatar';
+
+const cell = 'px-4 py-3 align-middle';
 
 function Users() {
-  const { t } = useTranslation(['user', 'common']);
+  const { t } = useTranslation(['user', 'common', 'admin']);
   const [searchParams] = useSearchParams();
   const [createQueryString, deleteQueryString] = useQueryString();
-  const [searchValue, setSearchValue] = useState('');
-  const { data: usersData, isSuccess: isSuccessUsers } =
-    useGetUsersByAdminQuery(
-      `page=${searchParams.get('page') || 1}&search=${searchParams.get(
-        'search'
-      )}`
-    );
-  const rendered = useMemo(() => {
-    return (
+  const { data: usersData, isSuccess: isSuccessUsers } = useGetUsersByAdminQuery(
+    `page=${searchParams.get('page') || 1}&search=${searchParams.get('search')}`
+  );
+
+  const rendered = useMemo(
+    () =>
       isSuccessUsers &&
-      usersData?.users?.map((u) => {
-        return (
-          <tr key={u._id}>
-            <td
-              title={u._id}
-              className='p-4 text-center truncate max-w-[120px]'
-            >
-              {u._id}
-            </td>
-            <td className='p-4 text-center'>{u.username}</td>
-            <td className='p-4 text-center'>{u.email}</td>
-            <td className='p-4 text-center'>{u.address}</td>
-            <td className='p-4 text-center'>{formatDate(u.created_at)}</td>
-          </tr>
-        );
-      })
-    );
-  }, [isSuccessUsers, usersData]);
+      usersData?.users?.map((u) => (
+        <tr key={u._id}>
+          <td className={cell}>
+            <div className='flex items-center gap-2.5'>
+              <Avatar src={u?.avatar} name={u?.username} size='sm' />
+              <span className='truncate font-medium text-fg'>{u.username}</span>
+            </div>
+          </td>
+          <td className={`${cell} text-fg-muted`}>{u.email}</td>
+          <td className={`${cell} text-fg-muted`}>{u.address}</td>
+          <td className={`${cell} tnum whitespace-nowrap text-fg-subtle`}>
+            {formatDate(u.created_at)}
+          </td>
+          {/* Mã người dùng đứng cuối, cỡ chữ nhỏ: nó chỉ cần khi tra cứu sự cố,
+              còn bản cũ đặt nó ở cột ĐẦU TIÊN — thứ vô nghĩa nhất với mắt người
+              lại chiếm chỗ dễ đọc nhất. */}
+          <td className={`${cell} font-mono text-2xs text-fg-subtle`} title={u._id}>
+            {u._id}
+          </td>
+        </tr>
+      )),
+    [isSuccessUsers, usersData]
+  );
+
   return (
     <div className='flex flex-col gap-4'>
-      <div className='w-full justify-end flex items-center gap-2'>
-        <input
-          className='px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded dark:bg-neutral-800'
-          type='text'
-          placeholder={t('search.usernamePlaceholder')}
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-        />
-        <button
-          className='px-4 py-2 font-bold bg-neutral-700 text-white rounded'
-          onClick={deleteQueryString}
-        >{t('common:actions.reset')}</button>
-        <button
-          className='px-4 py-2 font-bold bg-blue-500 rounded text-neutral-100'
-          onClick={() => createQueryString('search', searchValue)}
-        >{t('common:actions.search')}</button>
-      </div>
-      {isSuccessUsers && usersData?.users.length > 0 && (
+      <SearchBar
+        placeholder={t('search.usernamePlaceholder')}
+        initialValue={searchParams.get('search') || ''}
+        onSearch={(value) => createQueryString('search', value)}
+        onReset={deleteQueryString}
+      />
+      {isSuccessUsers && usersData?.users.length > 0 ? (
         <Table
-          tHeader={['id', 'username', 'email', 'address', 'created at']}
+          tHeader={[
+            t('admin:table.username'),
+            t('admin:table.email'),
+            t('field.address'),
+            t('admin:table.createdAt'),
+            t('admin:table.id'),
+          ]}
           renderedData={rendered}
           currPage={searchParams.get('page') || 1}
           totalPage={usersData?.totalPage}
         />
-      )}
-      {isSuccessUsers && usersData?.users?.length === 0 && (
-        <NotFoundItem message={t('search.empty')} />
+      ) : (
+        isSuccessUsers && <EmptyState title={t('search.empty')} />
       )}
     </div>
   );

@@ -8,7 +8,9 @@
     "intro": "自己紹介",
     "details": "詳細",
     "coverAlt": "カバー画像",
-    "chat": "チャット"
+    "chat": "チャット",
+    "noIntro": "自己紹介はまだありません",
+    "noAddress": "住所は未設定です"
   },
   "update": {
     "title": "プロフィールを編集",
@@ -37,7 +39,9 @@
   "actions": {
     "update": "編集",
     "delete": "削除",
-    "notFoundImage": "ページが見つかりません"
+    "notFoundImage": "ページが見つかりません",
+    "follow": "フォローする",
+    "unfollow": "フォロー中"
   },
   "confirm": {
     "removeFollower": "{{name}}さんをフォロワーから外してよろしいですか？",

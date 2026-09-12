@@ -1,14 +1,17 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import bgImg from '@/assets/pexels-photo-3228727.webp';
+import { useTranslation } from 'react-i18next';
 import { validateEmail } from '../../services/utils/validate';
 import { useLoginUserMutation } from '../../services/redux/query/api/usersApi';
 import { getWebInfo, setToken } from '../../services/redux/slice/userSlice';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import useMutationToast from '../../hooks/useMutationToast';
-import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from '../../components/common/LanguageSwitcher';
+import AuthShell from '../auth/AuthShell';
+import Button from '../../components/ui/Button';
+import Field from '../../components/ui/Field';
+import Input from '../../components/ui/Input';
+
 function LoginLayout() {
   const { t } = useTranslation('auth');
   const webInfo = useSelector(getWebInfo);
@@ -26,10 +29,8 @@ function LoginLayout() {
     },
   ] = useLoginUserMutation();
   const [isValidate, setIsValidate] = useState(false);
-  const [form, setForm] = useState({
-    email: '',
-    password: '',
-  });
+  const [form, setForm] = useState({ email: '', password: '' });
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
@@ -40,8 +41,9 @@ function LoginLayout() {
         await login({ email: form.email, password: form.password });
       }
     },
-    [isValidate, form, login]
+    [form, login]
   );
+
   useMutationToast(
     { data: loginData, error: errorLogin, isSuccess: isSuccessLogin, isError: isErrorLogin },
     {
@@ -51,90 +53,61 @@ function LoginLayout() {
       onSuccess: (data) => dispatch(setToken(data?.accessToken)),
     }
   );
+
   useEffect(() => {
-    if (user !== null) {
-      return navigate('/', { replace: true });
-    }
+    if (user !== null) navigate('/', { replace: true });
   }, [user, navigate]);
+
+  const emailError = isValidate && !validateEmail(form.email) ? t('validate.email') : '';
+  const passwordError = isValidate && !form.password ? t('validate.password') : '';
+
   return (
-    <div className='absolute w-full h-full top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 overflow-hidden flex justify-center items-center bg-violet-200 text-neutral-700 px-4 sm:px-0'>
-      <section
-        className='w-full sm:w-4/5 lg:w-1/2 m-auto h-4/5 overflow-hidden rounded-xl grid grid-cols-1 lg:grid-cols-2 text-sm md:text-base'
-        aria-disabled={isLoadingLogin}
-      >
-        <div className='hidden lg:flex relative'>
-          <img src={bgImg} alt='' {...{ fetchPriority: 'high' }} />
-          <div
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-            className='absolute top-0 left-0 z-10 w-full h-full flex flex-col justify-center items-center gap-8 px-4'
-          >
-            <h1 className='text-neutral-100 text-4xl font-bold'>
-              {webInfo?.website_name}
-            </h1>
-            <p className='text-neutral-100 font-bold italic'>
-              &quot; {webInfo?.website_quotes_login} &quot;
-            </p>
-          </div>
-        </div>
-        <form
-          className='bg-white flex flex-col justify-center px-8 md:px-16 gap-6 md:gap-8'
-          onSubmit={handleSubmit}
-        >
-          <div className='flex justify-end'>
-            <LanguageSwitcher variant='auth' />
-          </div>
-          <h1 className='text-center lg:text-start text-4xl font-bold'>
-            {t('login.title')}
-          </h1>
-          <div className='w-full flex flex-col gap-6'>
-            <div className='w-full flex flex-col gap-2'>
-              <input
-                className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
-                type='text'
-                placeholder={t('field.emailPlaceholder')}
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-              {isValidate && !validateEmail(form.email) && (
-                <p className='font-bold text-red-500 text-sm'>
-                  {t('validate.email')}
-                </p>
-              )}
-            </div>
-            <div className='w-full flex flex-col gap-2'>
-              <input
-                className='h-[48px] px-4 py-2 border border-neutral-300 rounded'
-                type='password'
-                placeholder={t('field.passwordPlaceholder')}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-              />
-              {isValidate && !form.password && (
-                <p className='font-bold text-red-500 text-sm'>
-                  {t('validate.password')}
-                </p>
-              )}
-            </div>
-          </div>
+    <AuthShell title={t('login.title')} quote={webInfo?.website_quotes_login}>
+      <form className='flex flex-col gap-4' onSubmit={handleSubmit} noValidate>
+        <Field label={t('field.emailLabel')} error={emailError}>
+          {(aria) => (
+            <Input
+              {...aria}
+              type='email'
+              autoComplete='email'
+              size='lg'
+              placeholder={t('field.emailPlaceholder')}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          )}
+        </Field>
+
+        <Field label={t('field.passwordLabel')} error={passwordError}>
+          {(aria) => (
+            <Input
+              {...aria}
+              type='password'
+              autoComplete='current-password'
+              size='lg'
+              placeholder={t('field.passwordPlaceholder')}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+          )}
+        </Field>
+
+        <Button type='submit' size='lg' block loading={isLoadingLogin} className='mt-2'>
+          {t('login.submit')}
+        </Button>
+
+        <p className='mt-2 text-center text-sm text-fg-muted'>
+          {t('login.noAccount')}{' '}
           <button
-            className='h-[48px] bg-neutral-700 text-white font-bold rounded hover:bg-violet-500 transition-colors'
-            type='submit'
+            type='button'
+            className='font-semibold text-accent-text underline-offset-4 hover:underline'
+            onClick={() => navigate('/register')}
           >
-            {t('login.submit')}
+            {t('login.toRegister')}
           </button>
-          <div className='flex items-center gap-2'>
-            <p className='font-bold'>{t('login.noAccount')}</p>
-            <button
-              className='text-violet-500 font-bold'
-              type='button'
-              onClick={() => navigate('/register')}
-            >
-              {t('login.toRegister')}
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
+        </p>
+      </form>
+    </AuthShell>
   );
 }
 

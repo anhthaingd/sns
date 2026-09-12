@@ -47,5 +47,6 @@
     "name": "名前",
     "intro": "紹介"
   },
-  "memberCount_other": "メンバー {{count}}人"
+  "memberCount_other": "メンバー {{count}}人",
+  "emptyFeedHint": "チャンネルに参加すると、その投稿がここに流れます。"
 }

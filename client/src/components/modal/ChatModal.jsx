@@ -1,15 +1,20 @@
 import Modal from '@/modal';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { FetchDataContext } from '../../context/FetchDataProvider';
-import { FaXmark, FaPaperPlane, FaVideo } from 'react-icons/fa6';
-import { ModalContext } from '../../context/ModalProvider';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { FaXmark, FaPaperPlane, FaVideo, FaMinus } from 'react-icons/fa6';
+import { FetchDataContext } from '../../context/FetchDataProvider';
+import { ModalContext } from '../../context/ModalProvider';
 import { socket } from '../../context/SocketProvider';
+import { useLazyGetChatQuery } from '../../services/redux/query/api/chatApi';
+import Avatar from '../ui/Avatar';
+import IconButton from '../ui/IconButton';
+import Spinner from '../ui/Spinner';
+import cn from '../../services/utils/cn';
 
 // Cuộn tới trong khoảng này tính từ đầu danh sách thì coi như "muốn xem tin cũ".
 const LOAD_MORE_SCROLL_THRESHOLD_PX = 24;
-import { useLazyGetChatQuery } from '../../services/redux/query/api/chatApi';
-import { useTranslation } from 'react-i18next';
+
 function ChatModal() {
   const { t } = useTranslation('chat');
   const { user, refetchMessages } = useContext(FetchDataContext);
@@ -20,8 +25,8 @@ function ChatModal() {
   const { state, setVisibleModal } = useContext(ModalContext);
   const [messages, setMessages] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [isFocusCmt, setIsFocusCmt] = useState(false);
-  const messageRef = useRef();
+  const [draft, setDraft] = useState('');
+  const [minimized, setMinimized] = useState(false);
   const chatContainerRef = useRef();
   // Sau khi chèn tin cũ lên đầu thì KHÔNG được nhảy xuống đáy, phải giữ nguyên
   // chỗ người dùng đang đọc. Hai ref dưới điều khiển việc đó.
@@ -31,12 +36,6 @@ function ChatModal() {
   // nhật bất đồng bộ, nên chỉ dựa vào `isLoadingMore` sẽ tải trùng một trang.
   const isLoadingMoreRef = useRef(false);
   const [triggerGetChat] = useLazyGetChatQuery();
-  const handleFocusComment = () => {
-    if (messageRef.current) {
-      messageRef.current.focus();
-      setIsFocusCmt(true);
-    }
-  };
 
   // Đi qua RTK Query (thay vì `fetch` thô) để dùng chung cơ chế tự gia hạn
   // access token; trước đây token hết hạn giữa chừng là khung chat trắng xoá.
@@ -87,14 +86,13 @@ function ChatModal() {
       setSelectedUser(state.visibleChatModal);
       setPage(1);
       setTotalPage(1);
+      setMinimized(false);
 
       socket.on('receiveMessage', (message) => {
         // Tin mới luôn nối xuống cuối -> cuộn xuống đáy.
         shouldScrollToBottomRef.current = true;
         setMessages((prevMessages) => [...prevMessages, message]);
-        if (message.refetch) {
-          refetchMessages();
-        }
+        if (message.refetch) refetchMessages();
       });
 
       socket.emit('joinChat', user);
@@ -103,9 +101,9 @@ function ChatModal() {
         socket.off('receiveMessage');
         socket.off('userConnected');
       };
-    } else {
-      setMessages([]);
     }
+    setMessages([]);
+    return undefined;
   }, [state.visibleChatModal]);
 
   useEffect(() => {
@@ -131,144 +129,147 @@ function ChatModal() {
     shouldScrollToBottomRef.current = true;
   }, [messages]);
 
+  // Ô nhập là <textarea> thật, không phải <p contentEditable> vẽ placeholder
+  // bằng tay như bản cũ: bộ gõ tiếng Nhật (IME) hoạt động đúng, và nút gửi
+  // biết được ô có rỗng hay không ngay khi gõ — trước đây `disabled` đọc
+  // `messageRef.current?.textContent` nên chỉ đúng sau lần render kế tiếp.
   const sendMessage = () => {
-    if (!selectedUser || !messageRef?.current?.textContent) return;
-    const messageData = {
+    const content = draft.trim();
+    if (!selectedUser || !content) return;
+    socket.emit('sendMessage', {
       sender: user,
       receiver: selectedUser,
-      content: messageRef?.current?.textContent,
+      content,
       lastSent: user,
-    };
-    socket.emit('sendMessage', messageData);
-    if (messageRef.current) {
-      messageRef.current.textContent = '';
-    }
+    });
+    setDraft('');
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
+  if (!state.visibleChatModal) return null;
+
   return (
     <Modal>
       <section
-        className={`fixed w-[320px] h-[465px] bg-neutral-50 dark:bg-neutral-800 z-50 bottom-0 right-4 border border-neutral-300 dark:border-neutral-500 rounded-lg dark:text-neutral-100 flex ${
-          state.visibleChatModal ? 'flex' : 'hidden'
-        } flex-col justify-between`}
+        className={cn(
+          'fixed bottom-0 right-2 z-50 flex w-[min(21rem,calc(100vw-1rem))] animate-rise flex-col',
+          'overflow-hidden rounded-t-card bg-surface shadow-modal ring-1 ring-inset ring-line sm:right-4',
+          minimized ? 'h-auto' : 'h-[28rem] max-h-[75vh]'
+        )}
       >
-        <div className='p-2 flex justify-between items-center gap-4 border-b border-neutral-300 dark:border-neutral-500'>
-          <div className='flex gap-4'>
-            <img
-              className='size-[36px] rounded-full object-cover'
-              src={`${import.meta.env.VITE_BACKEND_URL}/${
-                selectedUser?.avatar?.url
-              }`}
-              alt={selectedUser?.avatar?.name}
-              {...{ fetchPriority: 'low' }}
-            />
-            <p
-              className='font-bold cursor-pointer'
-              onClick={() => {
-                setVisibleModal('visibleChatModal');
-                navigate(`/profile/${selectedUser?._id}`);
-              }}
-            >
-              {selectedUser?.username}
-            </p>
-          </div>
-          <div className='flex items-center gap-2'>
-            <button
-              title={t('modal.videoCall')}
-              aria-label={t('modal.videoCall')}
-              onClick={() =>
-                setVisibleModal({
-                  visibleVideoModal: {
-                    seeder: user,
-                    receiver: selectedUser,
-                  },
-                })
-              }
-            >
-              <FaVideo className='text-2xl rotate-180' />
-            </button>
-            <button
-              title={t('modal.close')}
-              aria-label={t('modal.close')}
-              onClick={() => setVisibleModal('visibleChatModal')}
-            >
-              <FaXmark className='text-2xl' />
-            </button>
-          </div>
-        </div>
-        <div
-          ref={chatContainerRef}
-          onScroll={handleScroll}
-          className='px-2 py-4 w-full h-full overflow-y-auto flex flex-col gap-4'
-        >
-          {isLoadingMore && (
-            <p className='text-center text-xs opacity-60'>{t('modal.loadingOlder')}</p>
-          )}
-          {messages?.map((m) => {
-            const isSender = m?.sender?._id === user?._id;
-            return (
-              <div
-                key={m._id}
-                className={`w-full flex items-center gap-2 ${
-                  isSender ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                {!isSender && (
-                  <img
-                    className='size-[36px] rounded-full object-cover'
-                    src={`${import.meta.env.VITE_BACKEND_URL}/${
-                      m?.sender?.avatar?.url
-                    }`}
-                    alt={m?.sender?.avatar?.name}
-                    {...{ fetchPriority: 'low' }}
-                  />
-                )}
-                <p
-                  className={`max-w-[180px] px-2 py-1 rounded-3xl break-words ${
-                    isSender
-                      ? 'bg-blue-500 text-neutral-100'
-                      : 'bg-neutral-200 dark:bg-neutral-700'
-                  }`}
-                >
-                  {m?.content}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-        <div className='relative w-full p-2' onClick={handleFocusComment}>
-          <p
-            onBlur={() => {
-              setIsFocusCmt(false);
-            }}
-            onKeyDown={handleKeyDown}
-            ref={messageRef}
-            className='rounded-3xl px-4 py-2 bg-neutral-200 dark:bg-neutral-700 max-h-[180px] focus:outline overflow-y-auto'
-            contentEditable
-          ></p>
-          {!isFocusCmt && !messageRef.current?.textContent && (
-            <div
-              className='absolute top-1/2 left-6 -translate-y-1/2'
-              onClick={handleFocusComment}
-            >
-              <p>{t('modal.inputPlaceholder')}</p>
-            </div>
-          )}
+        <header className='flex shrink-0 items-center gap-2 border-b border-line bg-surface-2 px-3 py-2'>
           <button
-            className='absolute bottom-[35%] right-6 z-10 hover:text-blue-500 transition-colors'
-            aria-label={t('modal.send')}
-            disabled={!messageRef.current?.textContent}
-            onClick={sendMessage}
+            type='button'
+            className='flex min-w-0 flex-1 items-center gap-2.5 text-left'
+            onClick={() => {
+              setVisibleModal('visibleChatModal');
+              navigate(`/profile/${selectedUser?._id}`);
+            }}
           >
-            <FaPaperPlane />
+            <Avatar src={selectedUser?.avatar} name={selectedUser?.username} size='sm' />
+            <span className='truncate text-sm font-bold text-fg'>
+              {selectedUser?.username}
+            </span>
           </button>
-        </div>
+          <IconButton
+            size='sm'
+            label={t('modal.videoCall')}
+            onClick={() =>
+              setVisibleModal({
+                visibleVideoModal: { seeder: user, receiver: selectedUser },
+              })
+            }
+          >
+            <FaVideo className='size-4' />
+          </IconButton>
+          <IconButton
+            size='sm'
+            label={minimized ? t('modal.open') : t('modal.minimize')}
+            onClick={() => setMinimized((v) => !v)}
+          >
+            <FaMinus className='size-4' />
+          </IconButton>
+          <IconButton
+            size='sm'
+            label={t('modal.close')}
+            onClick={() => setVisibleModal('visibleChatModal')}
+          >
+            <FaXmark className='size-4' />
+          </IconButton>
+        </header>
+
+        {!minimized && (
+          <>
+            <div
+              ref={chatContainerRef}
+              onScroll={handleScroll}
+              className='flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-3 py-3'
+            >
+              {isLoadingMore && (
+                <p className='flex items-center justify-center gap-2 py-1 text-2xs text-fg-subtle'>
+                  <Spinner className='size-3' />
+                  {t('modal.loadingOlder')}
+                </p>
+              )}
+              {messages?.map((m) => {
+                const isSender = m?.sender?._id === user?._id;
+                return (
+                  <div
+                    key={m._id}
+                    className={cn(
+                      'flex items-end gap-2',
+                      isSender ? 'justify-end' : 'justify-start'
+                    )}
+                  >
+                    {!isSender && (
+                      <Avatar
+                        src={m?.sender?.avatar}
+                        name={m?.sender?.username}
+                        size='xs'
+                      />
+                    )}
+                    <p
+                      className={cn(
+                        'max-w-[75%] whitespace-pre-wrap break-words rounded-2xl px-3 py-1.5 text-sm',
+                        isSender
+                          ? 'rounded-br-sm bg-brand text-brand-on'
+                          : 'rounded-bl-sm bg-surface-2 text-fg'
+                      )}
+                    >
+                      {m?.content}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className='shrink-0 border-t border-line p-2'>
+              <div className='relative'>
+                <textarea
+                  rows={1}
+                  className='max-h-24 w-full resize-none rounded-2xl bg-surface-2 py-2 pl-3 pr-10 text-sm text-fg ring-1 ring-inset ring-transparent transition-shadow placeholder:text-fg-subtle focus:bg-surface focus:ring-accent'
+                  placeholder={t('modal.inputPlaceholder')}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                />
+                <button
+                  type='button'
+                  className='absolute bottom-1.5 right-1.5 flex size-7 items-center justify-center rounded-full text-fg-subtle transition-colors hover:bg-accent-soft hover:text-accent-text disabled:opacity-40'
+                  aria-label={t('modal.send')}
+                  disabled={!draft.trim()}
+                  onClick={sendMessage}
+                >
+                  <FaPaperPlane className='size-3.5' />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </section>
     </Modal>
   );

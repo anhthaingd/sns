@@ -55,6 +55,7 @@
     "imageAlt": "Page not found"
   },
   "upload": {
-    "imageHint": "(Only *.jpeg, *.webp and *.png images will be accepted)"
+    "imageHint": "(Only *.jpeg, *.webp and *.png images will be accepted)",
+    "dropHere": "Drop an image here, or click to choose"
   }
 }

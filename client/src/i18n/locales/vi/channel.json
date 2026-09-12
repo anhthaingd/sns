@@ -47,5 +47,6 @@
     "name": "Tên",
     "intro": "Giới thiệu"
   },
-  "memberCount_other": "{{count}} thành viên"
+  "memberCount_other": "{{count}} thành viên",
+  "emptyFeedHint": "Tham gia một channel để bài viết của họ hiện lên đây."
 }

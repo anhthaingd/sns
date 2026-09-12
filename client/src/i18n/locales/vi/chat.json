@@ -13,7 +13,9 @@
     "send": "Gửi",
     "close": "Đóng khung chat",
     "loadingOlder": "Đang tải tin cũ…",
-    "videoCall": "Gọi video"
+    "videoCall": "Gọi video",
+    "minimize": "Thu nhỏ",
+    "open": "Mở lại"
   },
   "video": {
     "ended": "Cuộc gọi đã kết thúc",

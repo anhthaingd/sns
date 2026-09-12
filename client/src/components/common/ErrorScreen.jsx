@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useRouteError, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { logger } from '../../services/logger';
+import { FaTriangleExclamation } from 'react-icons/fa6';
+import Button from '../ui/Button';
 
 /**
  * Màn hình hiển thị khi một route ném lỗi lúc render.
@@ -26,10 +28,13 @@ function ErrorScreen() {
   }, [error]);
 
   return (
-    <section className='w-full min-h-screen flex items-center justify-center p-4 dark:bg-neutral-900'>
-      <div className='w-full max-w-lg flex flex-col gap-4 text-center dark:text-neutral-100'>
-        <h1 className='text-2xl font-bold'>{t('ui.title')}</h1>
-        <p className='text-neutral-600 dark:text-neutral-400'>
+    <section className='flex min-h-screen w-full items-center justify-center bg-bg p-4'>
+      <div className='flex w-full max-w-lg flex-col items-center gap-4 text-center'>
+        <span className='flex size-14 items-center justify-center rounded-full bg-danger-soft text-xl text-danger-text'>
+          <FaTriangleExclamation aria-hidden='true' />
+        </span>
+        <h1 className='font-display text-2xl font-black text-fg'>{t('ui.title')}</h1>
+        <p className='text-sm leading-relaxed text-fg-muted'>
           {t('ui.description')}
         </p>
 
@@ -38,25 +43,19 @@ function ErrorScreen() {
         {import.meta.env.DEV && error && (
           <pre
             aria-label={t('ui.technicalDetails')}
-            className='text-left text-xs overflow-auto max-h-60 p-3 rounded bg-neutral-100 dark:bg-neutral-800'
+            className='max-h-60 w-full overflow-auto rounded-lg bg-surface-2 p-3 text-left text-xs text-fg-muted'
           >
             {error?.stack || error?.message || String(error)}
           </pre>
         )}
 
-        <div className='flex gap-3 justify-center'>
-          <button
-            className='px-4 py-2 rounded font-bold bg-blue-500 text-white hover:bg-blue-700 transition-colors'
-            onClick={() => window.location.reload()}
-          >
+        <div className='mt-1 flex flex-wrap justify-center gap-2'>
+          <Button onClick={() => window.location.reload()}>
             {t('common:actions.reload')}
-          </button>
-          <button
-            className='px-4 py-2 rounded font-bold border border-neutral-300 dark:border-neutral-700'
-            onClick={() => navigate('/')}
-          >
+          </Button>
+          <Button variant='outline' onClick={() => navigate('/')}>
             {t('common:actions.goHome')}
-          </button>
+          </Button>
         </div>
       </div>
     </section>

@@ -1,12 +1,16 @@
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
 import Page from '../../Page';
+import Card from '../../../components/ui/Card';
+import Avatar from '../../../components/ui/Avatar';
 import Loading from '../../../components/ui/Loading';
+import ScoreDial from '../../../components/ui/ScoreDial';
 import { useGetCompanyGapQuery } from '../../../services/redux/query/api/matchApi';
 import GapList from './components/GapList';
 import MatchScore from './components/MatchScore';
+import MatchError from './components/MatchError';
 import { formatSalary } from '../../../services/utils/jobFormat';
-import { useTranslation } from 'react-i18next';
-import { serverMessage } from '../../../services/utils/serverMessage';
 
 /**
  * Chức năng 2 ở mức công ty — tổng hợp thiếu sót trên MỌI vị trí đang tuyển.
@@ -22,93 +26,97 @@ function CompanyGapLayout() {
   if (isLoading) return <Loading />;
   if (isError) {
     return (
-      <Page>
-        <section className='p-8 rounded-lg border border-neutral-300 dark:border-neutral-700 flex flex-col items-center gap-4'>
-          <p className='font-bold'>
-            {serverMessage(t, error?.data, 'jobGap.loadFailed')}
-          </p>
-          <Link to='/match' className='px-4 py-2 rounded bg-blue-500 text-neutral-50'>
-            {t('backToList')}
-          </Link>
-        </section>
-      </Page>
+      <MatchError
+        error={error}
+        fallbackKey='jobGap.loadFailed'
+        to='/match'
+        actionKey='backToList'
+      />
     );
   }
 
   const { company, bestJob, bestMatch, positions, combinedGaps } = data;
 
   return (
-    <Page>
-      <section className='mb-6 flex flex-col gap-3'>
-        <div className='flex justify-between items-start gap-4 flex-wrap'>
-          <div className='flex gap-3 items-center'>
-            {company.logo_url && (
-              <img className='size-14 rounded object-contain bg-white' src={company.logo_url} alt='' />
-            )}
-            <div>
-              <h1 className='text-2xl font-bold'>{company.name}</h1>
+    <Page rail={false}>
+      <Card className='flex flex-col gap-4'>
+        <div className='flex flex-wrap items-start justify-between gap-4'>
+          <div className='flex min-w-0 items-center gap-3'>
+            <Avatar
+              src={company.logo_url}
+              name={company.name}
+              size='xl'
+              className='rounded-xl'
+            />
+            <div className='min-w-0'>
+              <h1 className='truncate text-xl font-bold text-fg sm:text-2xl'>
+                {company.name}
+              </h1>
               {company.website && (
                 <a
                   href={company.website}
                   target='_blank'
                   rel='noreferrer'
-                  className='text-sm text-blue-600 dark:text-blue-400 hover:underline'
+                  className='mt-0.5 inline-flex items-center gap-1.5 text-sm text-accent-text hover:underline'
                 >
-                  {company.website}
+                  <span className='truncate'>{company.website}</span>
+                  <FaArrowUpRightFromSquare className='size-3 shrink-0' aria-hidden='true' />
                 </a>
               )}
             </div>
           </div>
-          <MatchScore match={bestMatch} />
+          <MatchScore match={bestMatch} size='lg' />
         </div>
 
         {company.description && (
-          <p className='text-sm opacity-80 whitespace-pre-line'>{company.description}</p>
+          <p className='whitespace-pre-line text-sm leading-relaxed text-fg-muted'>
+            {company.description}
+          </p>
         )}
         {company.tech_stack?.length > 0 && (
-          <p className='text-sm'>
-            <span className='opacity-70'>{t('techStack')} </span>
+          <p className='text-sm text-fg'>
+            <span className='font-semibold text-fg-subtle'>{t('techStack')} </span>
             {company.tech_stack.join(', ')}
           </p>
         )}
-      </section>
+      </Card>
 
-      <section className='mb-6'>
-        <h2 className='text-lg font-bold mb-3'>
+      <section className='mt-6'>
+        <h2 className='text-lg font-bold text-fg'>
           {t('companyGap.title', { name: company.name })}
         </h2>
-        <p className='text-sm opacity-70 mb-3'>
+        <p className='mb-4 mt-1 text-sm text-fg-muted'>
           {t('companyGap.summary', { count: positions.length })}{' '}
-          <Link to={`/match/jobs/${bestJob._id}`} className='text-blue-600 dark:text-blue-400 hover:underline'>
+          <Link
+            to={`/match/jobs/${bestJob._id}`}
+            className='font-semibold text-accent-text hover:underline'
+          >
             {bestJob.title}
           </Link>
         </p>
         <GapList gaps={combinedGaps} met={bestMatch.met} />
       </section>
 
-      <section>
-        <h2 className='text-lg font-bold mb-3'>{t('openPositions')}</h2>
+      <section className='mt-8'>
+        <h2 className='mb-3 text-lg font-bold text-fg'>{t('openPositions')}</h2>
         <ul className='flex flex-col gap-2'>
           {positions.map((p) => (
-            <li
-              key={p.job._id}
-              className='p-3 rounded border border-neutral-300 dark:border-neutral-600 flex justify-between items-center gap-4 flex-wrap'
-            >
-              <div>
-                <Link
-                  to={`/match/jobs/${p.job._id}`}
-                  className='font-medium hover:text-blue-500'
-                >
-                  {p.job.title}
-                </Link>
-                <p className='text-sm opacity-70'>
-                  {formatSalary(t, p.job.salary_min, p.job.salary_max)}
-                  {p.job.prefecture ? ` · ${p.job.prefecture}` : ''}
-                </p>
-              </div>
-              <span className='px-3 py-1 rounded-full font-bold bg-neutral-200 dark:bg-neutral-700'>
-                {p.match.score}
-              </span>
+            <li key={p.job._id}>
+              <Link
+                to={`/match/jobs/${p.job._id}`}
+                className='flex items-center gap-4 rounded-card bg-surface p-3 ring-1 ring-inset ring-line transition-all duration-150 hover:shadow-card-hover hover:ring-accent/40'
+              >
+                <div className='min-w-0 flex-1'>
+                  <p className='truncate text-sm font-semibold text-fg'>
+                    {p.job.title}
+                  </p>
+                  <p className='tnum truncate text-sm text-fg-muted'>
+                    {formatSalary(t, p.job.salary_min, p.job.salary_max)}
+                    {p.job.prefecture ? ` · ${p.job.prefecture}` : ''}
+                  </p>
+                </div>
+                <ScoreDial value={p.match.score} size='sm' label={t('score.label')} />
+              </Link>
             </li>
           ))}
         </ul>

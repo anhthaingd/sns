@@ -27,6 +27,26 @@
     "quotesLogin": "Câu trích trang đăng nhập"
   },
   "userPosts": {
-    "selectChannel": "Chọn channel"
+    "selectChannel": "Chọn channel",
+    "you": "Bạn"
+  },
+  "table": {
+    "id": "Mã",
+    "image": "Ảnh",
+    "likes": "Lượt thích",
+    "bookmarks": "Lượt lưu",
+    "comments": "Bình luận",
+    "channel": "Channel",
+    "updatedAt": "Cập nhật",
+    "createdAt": "Ngày tạo",
+    "actions": "Thao tác",
+    "email": "Email",
+    "avatar": "Ảnh đại diện",
+    "username": "Tên người dùng",
+    "role": "Vai trò",
+    "members": "Thành viên",
+    "name": "Tên",
+    "intro": "Giới thiệu",
+    "user": "Người đăng"
   }
 }

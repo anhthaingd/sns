@@ -109,7 +109,8 @@
     "description": "Mô tả",
     "tech": "Công nghệ",
     "gpa": "GPA:",
-    "certificateFile": "{{name}}.pdf"
+    "certificateFile": "{{name}}.pdf",
+    "title": "Xem trước và xuất CV"
   },
   "validate": {
     "certificateIncomplete": "Chứng chỉ yêu cầu có tên và file dạng pdf!"

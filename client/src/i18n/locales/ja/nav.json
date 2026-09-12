@@ -15,5 +15,23 @@
   "messages": "メッセージ",
   "theme": "表示テーマの切り替え",
   "whatif": "スキルを追加したら",
-  "market": "求人マーケット"
+  "market": "求人マーケット",
+  "home": "ホーム",
+  "more": "その他",
+  "openMenu": "メニューを開く",
+  "closeMenu": "メニューを閉じる",
+  "skipToContent": "本文へスキップ",
+  "noShortcuts": "ピン留めしたチャンネルはまだありません",
+  "groups": {
+    "discover": "見つける",
+    "career": "キャリア",
+    "account": "アカウント"
+  },
+  "menu": "メニュー",
+  "short": {
+    "home": "ホーム",
+    "recruitment": "求人",
+    "match": "マッチ",
+    "channels": "チャンネル"
+  }
 }

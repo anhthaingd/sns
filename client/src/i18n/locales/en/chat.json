@@ -13,7 +13,9 @@
     "send": "Send",
     "close": "Close chat",
     "loadingOlder": "Loading older messages…",
-    "videoCall": "Video call"
+    "videoCall": "Video call",
+    "minimize": "Minimize",
+    "open": "Expand"
   },
   "video": {
     "ended": "Call ended",

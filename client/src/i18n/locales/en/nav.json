@@ -15,5 +15,23 @@
   "messages": "Messages",
   "theme": "Toggle light/dark theme",
   "whatif": "What if",
-  "market": "Market map"
+  "market": "Market map",
+  "home": "Feed",
+  "more": "More",
+  "openMenu": "Open menu",
+  "closeMenu": "Close menu",
+  "skipToContent": "Skip to main content",
+  "noShortcuts": "No pinned channels yet",
+  "groups": {
+    "discover": "Discover",
+    "career": "Career",
+    "account": "Account"
+  },
+  "menu": "Menu",
+  "short": {
+    "home": "Feed",
+    "recruitment": "Jobs",
+    "match": "Match",
+    "channels": "Channels"
+  }
 }

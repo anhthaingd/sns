@@ -12,11 +12,15 @@
     "from300": "From ¥3M/year",
     "from500": "From ¥5M/year",
     "from800": "From ¥8M/year",
-    "remoteOnly": "Remote only"
+    "remoteOnly": "Remote only",
+    "filters": "Filters",
+    "activeFilters": "Active filters",
+    "resultsTitle": "Results",
+    "sourceLabel": "Source"
   },
   "card": {
     "remote": "Remote",
-    "gapLink": "See what I'm missing for this role →"
+    "gapLink": "See what I'm missing for this role"
   },
   "level": {
     "none": "Not required",
@@ -48,5 +52,6 @@
   "japaneseLabel": "Japanese",
   "empty": "No job matches these filters.",
   "subtitle_other": "{{count}} postings aggregated from GaijinPot, DaiJob, Nihongo Engineer and LinkedIn JP",
-  "subtitle_one": "{{count}} posting aggregated from GaijinPot, DaiJob, Nihongo Engineer and LinkedIn JP"
+  "subtitle_one": "{{count}} posting aggregated from GaijinPot, DaiJob, Nihongo Engineer and LinkedIn JP",
+  "emptyHint": "Try relaxing the criteria or clearing some filters."
 }

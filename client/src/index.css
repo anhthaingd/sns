@@ -2,100 +2,324 @@
 @tailwind components;
 @tailwind utilities;
 
-input:focus {
-  outline: none;
-}
-/* width */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 8px;
-}
-/* Track */
-::-webkit-scrollbar-track {
-  background: #fff;
-  border-radius: 2px;
-}
+/* ==========================================================================
+   Fuurin — token nền tảng
+   Mỗi token là ba kênh RGB rời nhau ("39 74 120") chứ không phải mã hex, để
+   Tailwind ghép được độ trong suốt: `bg-brand/10`, `text-fg/70`...
+   ========================================================================== */
 
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #666666;
-  border-radius: 2px;
-}
-input[type='number']::-webkit-inner-spin-button {
-  display: none;
-}
-.loading {
-  position: fixed;
-  z-index: 1000;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.loading-components {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.loading {
-  background-color: #fff;
-}
-.loading > .circle {
-  position: absolute;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  animation: infiniteScale 1.2s linear infinite;
-  opacity: 0;
-}
-.loading > .circle {
-  border: 5px solid #716fe0;
-}
-.circle:first-child {
-  animation-name: 1.2;
-}
-.circle:nth-child(2) {
-  animation-delay: 0.8s;
-}
-.circle:nth-child(3) {
-  animation-delay: 1.2s;
-}
-@keyframes infiniteScale {
-  0% {
-    scale: 0.2;
-    opacity: 0;
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Nền và mặt phẳng */
+    --fu-bg: 246 245 242; /* washi 和紙 */
+    --fu-bg-alt: 239 237 232;
+    --fu-surface: 255 255 255;
+    --fu-surface-2: 240 238 233;
+    --fu-surface-3: 231 228 221;
+
+    /* Đường kẻ */
+    --fu-line: 224 220 212;
+    --fu-line-strong: 200 194 182;
+
+    /* Chữ */
+    --fu-fg: 26 31 46;
+    --fu-fg-muted: 79 88 107;
+    --fu-fg-subtle: 101 110 130;
+    --fu-fg-inverse: 255 255 255;
+
+    /* Thương hiệu — ai 藍 */
+    --fu-brand: 39 74 120; /* ai-600 */
+    --fu-brand-hover: 30 58 96; /* ai-700 */
+    --fu-brand-soft: 232 238 248;
+    --fu-brand-text: 39 74 120;
+    --fu-brand-on: 255 255 255;
+
+    /* Tương tác — asagi 浅葱 */
+    --fu-accent: 10 112 112; /* asagi-600 */
+    --fu-accent-hover: 7 88 88; /* asagi-700 */
+    --fu-accent-soft: 224 243 243;
+    --fu-accent-text: 10 112 112;
+    --fu-accent-on: 255 255 255;
+
+    /* Trạng thái */
+    --fu-danger: 196 60 27; /* shu-500 */
+    --fu-danger-soft: 252 237 233;
+    --fu-danger-text: 162 47 20;
+    --fu-success: 63 125 78; /* matcha-500 */
+    --fu-success-soft: 226 238 229;
+    --fu-success-text: 51 101 63;
+    --fu-warning: 164 117 34; /* yamabuki-600 */
+    --fu-warning-soft: 251 239 212;
+    --fu-warning-text: 126 89 26;
   }
-  25% {
-    scale: 0.4;
-    opacity: 0.5;
+
+  .dark {
+    color-scheme: dark;
+
+    --fu-bg: 14 18 25; /* sumi 墨 */
+    --fu-bg-alt: 10 13 19;
+    --fu-surface: 22 27 37;
+    --fu-surface-2: 30 37 49;
+    --fu-surface-3: 40 48 62;
+
+    --fu-line: 40 48 62;
+    --fu-line-strong: 60 70 88;
+
+    --fu-fg: 233 235 240;
+    --fu-fg-muted: 163 173 192;
+    --fu-fg-subtle: 124 135 156;
+    --fu-fg-inverse: 14 18 25;
+
+    --fu-brand: 61 95 152; /* ai-500 — nền tối cần sắc nhạt hơn */
+    --fu-brand-hover: 92 125 179; /* ai-400 */
+    --fu-brand-soft: 27 39 64;
+    --fu-brand-text: 138 163 204; /* ai-300 */
+    --fu-brand-on: 255 255 255;
+
+    --fu-accent: 33 163 163; /* asagi-400 */
+    --fu-accent-hover: 84 190 190; /* asagi-300 */
+    --fu-accent-soft: 7 45 45;
+    --fu-accent-text: 84 190 190;
+    --fu-accent-on: 8 19 26;
+
+    --fu-danger: 220 88 55; /* shu-400 */
+    --fu-danger-soft: 64 24 16;
+    --fu-danger-text: 240 172 155;
+    --fu-success: 143 190 155; /* matcha-300 */
+    --fu-success-soft: 24 46 31;
+    --fu-success-text: 143 190 155;
+    --fu-warning: 232 193 103; /* yamabuki-300 */
+    --fu-warning-soft: 56 42 14;
+    --fu-warning-text: 232 193 103;
   }
-  50% {
-    scale: 0.6;
+
+  * {
+    border-color: rgb(var(--fu-line));
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-bg text-fg font-sans antialiased;
+    font-feature-settings: 'cv05' 1, 'ss03' 1;
+  }
+
+  /* Tiêu đề dùng font Nhật để cả ba ngôn ngữ cùng một giọng chữ. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* Số liệu (lương, điểm khớp, ngày) canh cột thẳng hàng. */
+  :where(table, .tnum) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Vòng focus thống nhất: chỉ hiện khi điều hướng bằng bàn phím. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
+  }
+
+  ::selection {
+    background-color: rgb(var(--fu-accent) / 0.22);
+  }
+
+  ::placeholder {
+    color: rgb(var(--fu-fg-subtle));
     opacity: 1;
   }
-  75% {
-    scale: 0.8;
-    opacity: 0.5;
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
   }
-  100% {
-    opacity: 1;
-    opacity: 0;
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--fu-line-strong));
+    border: 3px solid rgb(var(--fu-bg));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--fu-fg-subtle));
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-@keyframes loading {
-  0% {
-    transform: translateX(-100%);
+/* ==========================================================================
+   Lớp thành phần dùng lại
+   ========================================================================== */
+
+@layer components {
+  /* Dây chuông — dấu hiệu nhận diện của Fuurin.
+     Một vạch dọc chuyển màu chàm → asagi, đánh dấu mục đang mở. */
+  .fu-cord {
+    @apply absolute left-0 top-1/2 h-[70%] w-1 -translate-y-1/2 rounded-r-pill;
+    background-image: linear-gradient(
+      to bottom,
+      rgb(var(--fu-brand)),
+      rgb(var(--fu-accent))
+    );
   }
-  50% {
-    transform: translateX(100%);
+
+  /* Hoa văn sóng seigaiha 青海波 — nền rất mờ cho trang đăng nhập và
+     trạng thái rỗng. */
+  .fu-seigaiha {
+    background-image: radial-gradient(
+      circle at 50% 100%,
+      transparent 34%,
+      currentColor 34.5%,
+      currentColor 36%,
+      transparent 36.5%,
+      transparent 58%,
+      currentColor 58.5%,
+      currentColor 60%,
+      transparent 60.5%,
+      transparent 82%,
+      currentColor 82.5%,
+      currentColor 84%,
+      transparent 84.5%
+    );
+    background-size: 48px 24px;
+    background-position: 0 0, 24px 12px;
   }
-  100% {
-    transform: translateX(100%);
+
+  /* Khung xương chờ dữ liệu. */
+  .fu-skeleton {
+    @apply relative overflow-hidden rounded-md bg-surface-2;
   }
+  .fu-skeleton::after {
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    content: '';
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--fu-fg) / 0.06),
+      transparent
+    );
+  }
+
+  /* Nội dung bài viết do trình soạn thảo sinh ra — chuẩn hoá kiểu chữ. */
+  .fu-prose {
+    @apply text-[0.9375rem] leading-relaxed text-fg;
+  }
+  .fu-prose p {
+    @apply my-1;
+  }
+  .fu-prose a {
+    @apply text-accent-text underline underline-offset-2;
+  }
+  .fu-prose ul {
+    @apply my-2 list-disc pl-5;
+  }
+  .fu-prose ol {
+    @apply my-2 list-decimal pl-5;
+  }
+  .fu-prose h1,
+  .fu-prose h2,
+  .fu-prose h3 {
+    @apply mb-1 mt-3;
+  }
+  .fu-prose blockquote {
+    @apply my-2 border-l-2 border-accent pl-3 text-fg-muted;
+  }
+  .fu-prose img {
+    @apply my-2 rounded-lg;
+  }
+  .fu-prose strong {
+    @apply font-semibold;
+  }
+}
+
+/* ==========================================================================
+   Thư viện bên thứ ba — kéo về đúng hệ màu
+   ========================================================================== */
+
+/* react-quill */
+.ql-toolbar.ql-snow {
+  @apply rounded-t-lg border-line bg-surface-2 !important;
+}
+.ql-container.ql-snow {
+  @apply rounded-b-lg border-line bg-surface font-sans text-[0.9375rem] text-fg !important;
+}
+.ql-editor {
+  min-height: 7rem;
+}
+.ql-editor.ql-blank::before {
+  @apply not-italic text-fg-subtle !important;
+}
+.ql-snow .ql-stroke {
+  stroke: rgb(var(--fu-fg-muted)) !important;
+}
+.ql-snow .ql-fill {
+  fill: rgb(var(--fu-fg-muted)) !important;
+}
+.ql-snow .ql-picker,
+.ql-snow .ql-picker-label {
+  color: rgb(var(--fu-fg-muted)) !important;
+}
+.ql-snow .ql-picker-options {
+  @apply rounded-lg border-line bg-surface shadow-pop !important;
+}
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke {
+  stroke: rgb(var(--fu-accent-text)) !important;
+}
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill {
+  fill: rgb(var(--fu-accent-text)) !important;
+}
+
+/* react-toastify */
+:root {
+  --toastify-font-family: inherit;
+  --toastify-color-light: rgb(var(--fu-surface));
+  --toastify-text-color-light: rgb(var(--fu-fg));
+  --toastify-color-success: rgb(var(--fu-success));
+  --toastify-color-error: rgb(var(--fu-danger));
+  --toastify-color-warning: rgb(var(--fu-warning));
+  --toastify-color-info: rgb(var(--fu-accent));
+  --toastify-toast-min-height: 56px;
+}
+.Toastify__toast {
+  @apply rounded-card border border-line bg-surface text-fg shadow-pop;
+}
+.Toastify__close-button {
+  color: rgb(var(--fu-fg-subtle));
+  opacity: 1;
+}
+
+/* react-paginate — bố cục do component Pagination quy định, phần còn lại ở đây */
+.fu-pagination li a {
+  @apply flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-lg px-3 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg;
+}
+.fu-pagination li.fu-page-active a {
+  @apply bg-brand text-brand-on hover:bg-brand-hover hover:text-brand-on;
+}
+.fu-pagination li.fu-page-disabled a {
+  @apply cursor-not-allowed opacity-40 hover:bg-transparent;
 }

@@ -1,25 +1,31 @@
-import imgNotFound from '../../assets/permissions_dark_mode.svg';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { FaCompass } from 'react-icons/fa6';
+import Button from '../../components/ui/Button';
+
 function NotFoundLayout() {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
+
   return (
-    <main className='absolute w-full h-[100vh] flex justify-center items-center dark:bg-neutral-900 text-neutral-700 dark:text-neutral-100'>
-      <div className='p-4 w-full sm:w-1/2 lg:w-1/3 h-1/2 flex flex-col justify-center items-center gap-4'>
-        <div className='size-[150px]'>
-          <img
-            className='w-full h-full object-cover'
-            src={imgNotFound}
-            alt={t('notFound.imageAlt')}
-          />
-        </div>
-        <h1 className='text-center font-bold text-lg sm:text-xl'>{t('notFound.title')}</h1>
-        <p className='text-center'>{t('notFound.description')}</p>
-        <button
-          className='px-4 py-2 rounded bg-blue-500 text-neutral-100 font-bold'
-          onClick={() => navigate('/', { replace: true })}
-        >{t('actions.goToFeed')}</button>
+    <main className='relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-4'>
+      <div
+        className='fu-seigaiha pointer-events-none absolute inset-0 text-fg opacity-[0.05]'
+        aria-hidden='true'
+      />
+      <div className='relative flex w-full max-w-md flex-col items-center gap-4 text-center'>
+        <span className='flex size-16 items-center justify-center rounded-full bg-brand-soft text-2xl text-brand-text'>
+          <FaCompass aria-hidden='true' />
+        </span>
+        <h1 className='font-display text-2xl font-black text-fg'>
+          {t('notFound.title')}
+        </h1>
+        <p className='text-sm leading-relaxed text-fg-muted'>
+          {t('notFound.description')}
+        </p>
+        <Button className='mt-2' onClick={() => navigate('/', { replace: true })}>
+          {t('actions.goToFeed')}
+        </Button>
       </div>
     </main>
   );

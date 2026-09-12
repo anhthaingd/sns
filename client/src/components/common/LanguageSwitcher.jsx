@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES } from '../../i18n/config';
+import cn from '../../services/utils/cn';
 
 /**
  * Chuyển ngôn ngữ giao diện.
@@ -17,34 +18,38 @@ function LanguageSwitcher({ variant = 'header' }) {
   const { t, i18n } = useTranslation('common');
   const active = i18n.resolvedLanguage;
 
-  const base =
-    variant === 'auth'
-      ? 'bg-white/80 text-neutral-700'
-      : 'bg-neutral-200 dark:bg-neutral-600';
-
   return (
     <div
-      className={`flex items-center rounded-full overflow-hidden text-xs font-bold ${base}`}
+      className={cn(
+        'inline-flex items-center gap-0.5 rounded-pill p-0.5 text-2xs font-bold',
+        variant === 'auth' ? 'bg-white/15 backdrop-blur-sm' : 'bg-surface-2'
+      )}
       role='group'
       aria-label={t('language.switcherLabel')}
     >
-      {SUPPORTED_LANGUAGES.map((lang) => (
-        <button
-          key={lang.code}
-          type='button'
-          lang={lang.code}
-          title={lang.label}
-          aria-pressed={active === lang.code}
-          className={`px-2 py-2 transition-colors ${
-            active === lang.code
-              ? 'bg-violet-500 text-neutral-100'
-              : 'hover:bg-neutral-300 dark:hover:bg-neutral-500'
-          }`}
-          onClick={() => i18n.changeLanguage(lang.code)}
-        >
-          {lang.short}
-        </button>
-      ))}
+      {SUPPORTED_LANGUAGES.map((lang) => {
+        const isActive = active === lang.code;
+        return (
+          <button
+            key={lang.code}
+            type='button'
+            lang={lang.code}
+            title={lang.label}
+            aria-pressed={isActive}
+            className={cn(
+              'rounded-pill px-2.5 py-1 transition-colors duration-150',
+              isActive
+                ? 'bg-accent text-accent-on shadow-card'
+                : variant === 'auth'
+                  ? 'text-white/80 hover:bg-white/15 hover:text-white'
+                  : 'text-fg-subtle hover:text-fg'
+            )}
+            onClick={() => i18n.changeLanguage(lang.code)}
+          >
+            {lang.short}
+          </button>
+        );
+      })}
     </div>
   );
 }

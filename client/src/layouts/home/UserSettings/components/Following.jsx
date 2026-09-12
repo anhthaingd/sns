@@ -1,19 +1,32 @@
-import { useContext, useMemo } from 'react';
-import { useDeleteFollowingMutation, useGetFollowingQuery } from '../../../../services/redux/query/api/usersApi';
+import { useContext } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import Table from '../../../../components/ui/Table';
-import { FaRegTrashCan } from 'react-icons/fa6';
-import { ModalContext } from '../../../../context/ModalProvider';
-import UpdatePostModal from '../../../../components/modal/UpdatePostModal';
-import useMutationToast from '../../../../hooks/useMutationToast';
 import { useTranslation } from 'react-i18next';
+import { FaRegTrashCan, FaUserGroup } from 'react-icons/fa6';
+import {
+  useDeleteFollowingMutation,
+  useGetFollowingQuery,
+} from '../../../../services/redux/query/api/usersApi';
+import { ModalContext } from '../../../../context/ModalProvider';
+import useMutationToast from '../../../../hooks/useMutationToast';
+import Pagination from '../../../../components/ui/Pagination';
+import UserRow from '../../../../components/ui/UserRow';
+import IconButton from '../../../../components/ui/IconButton';
+import EmptyState from '../../../../components/ui/EmptyState';
+import { RowSkeleton } from '../../../../components/ui/Skeleton';
 
+/**
+ * Những người mình đang theo dõi. Cùng dạng danh sách với `Followers`, chỉ
+ * khác nguồn dữ liệu và câu xác nhận khi bỏ theo dõi.
+ */
 function Following() {
   const { t } = useTranslation(['user', 'common']);
   const [searchParams] = useSearchParams();
   const { setVisibleModal } = useContext(ModalContext);
-  const { data: followingData, isSuccess: isSuccessFollowing } =
-    useGetFollowingQuery(`page=${searchParams.get('page') || 1}`);
+  const {
+    data: followingData,
+    isSuccess: isSuccessFollowing,
+    isLoading,
+  } = useGetFollowingQuery(`page=${searchParams.get('page') || 1}`);
   const [
     deleteUser,
     {
@@ -24,82 +37,63 @@ function Following() {
       error: errorDelete,
     },
   ] = useDeleteFollowingMutation();
-  const rendered = useMemo(() => {
-    return (
-      isSuccessFollowing &&
-      followingData?.following?.map((f) => {
-        return (
-          <tr key={f?._id}>
-            <td className='p-4 text-center'>{f?.email}</td>
-            <td className='p-4'>
-              <div className='m-auto size-[72px] overflow-hidden'>
-                <img
-                  className='w-full h-full object-cover'
-                  src={`${import.meta.env.VITE_BACKEND_URL}/${f?.avatar?.url}`}
-                  alt={f?.avatar?.name}
-                />
-              </div>
-            </td>
-            <td className='p-4 text-center'>{f?.username}</td>
-            <td className='p-4'>
-              <div className='flex justify-center items-center gap-[12px]'>
-                {/* <button
-                  className='text-lg flex justify-center items-center hover:text-green-500 transition-colors'
-                  aria-label='update-btn'
-                  onClick={() =>
-                    setVisibleModal({
-                      visibleUpdatePostModal: { ...p },
-                    })
-                  }
-                >
-                  <FaRegPenToSquare />
-                </button> */}
-                <button
-                  className='text-lg flex justify-center items-center hover:text-red-500 transition-colors'
-                  aria-label={t('actions.delete')}
-                  onClick={() =>
-                    setVisibleModal({
-                      visibleConfirmModal: {
-                        icon: <FaRegTrashCan className='text-red-500' />,
-                        question: t('confirm.unfollow', { name: f?.username }),
-                        description: t('common:confirm.irreversible'),
-                        loading: isLoadingDelete,
-                        acceptFunc: () => deleteUser(f._id),
-                      },
-                    })
-                  }
-                >
-                  <FaRegTrashCan />
-                </button>
-              </div>
-            </td>
-          </tr>
-        );
-      })
-    );
-  });
+
   useMutationToast({
     data: deleteData,
     error: errorDelete,
     isSuccess: isSuccessDelete,
     isError: isErrorDelete,
   });
+
+  if (isLoading) {
+    return (
+      <div aria-hidden='true' className='flex flex-col gap-2'>
+        <RowSkeleton />
+        <RowSkeleton />
+      </div>
+    );
+  }
+
+  if (isSuccessFollowing && followingData?.following?.length === 0) {
+    return <EmptyState icon={FaUserGroup} title={t('following.empty')} />;
+  }
+
   return (
-    <div aria-disabled={isLoadingDelete}>
-      <UpdatePostModal />
-      {isSuccessFollowing && followingData?.following?.length > 0 && (
-        <Table
-          tHeader={['email', 'avatar', 'username', 'actions']}
-          currPage={searchParams.get('page') || 1}
-          totalPage={followingData?.totalPage}
-          renderedData={rendered}
-        />
-      )}
-      {isSuccessFollowing && followingData?.following?.length === 0 && (
-        <div className='w-full flex justify-center items-center py-4'>
-          <p className='text-lg md:text-xl font-bold'>{t('following.empty')}</p>
-        </div>
-      )}
+    <div aria-busy={isLoadingDelete}>
+      <div className='flex flex-col gap-2'>
+        {followingData?.following?.map((f) => (
+          <UserRow
+            key={f?._id}
+            user={f}
+            subtitle={f?.email}
+            actions={
+              <IconButton
+                size='sm'
+                label={t('actions.delete')}
+                className='hover:bg-danger-soft hover:text-danger-text'
+                onClick={() =>
+                  setVisibleModal({
+                    visibleConfirmModal: {
+                      tone: 'danger',
+                      icon: <FaRegTrashCan />,
+                      question: t('confirm.unfollow', { name: f?.username }),
+                      description: t('common:confirm.irreversible'),
+                      loading: isLoadingDelete,
+                      acceptFunc: () => deleteUser(f?._id),
+                    },
+                  })
+                }
+              >
+                <FaRegTrashCan className='size-4' />
+              </IconButton>
+            }
+          />
+        ))}
+      </div>
+      <Pagination
+        curPage={searchParams.get('page') || 1}
+        totalPage={followingData?.totalPage}
+      />
     </div>
   );
 }

@@ -48,5 +48,6 @@
     "intro": "Intro"
   },
   "memberCount_one": "{{count}} member",
-  "memberCount_other": "{{count}} members"
+  "memberCount_other": "{{count}} members",
+  "emptyFeedHint": "Join a channel and its posts will show up here."
 }

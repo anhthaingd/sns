@@ -8,7 +8,9 @@
     "intro": "Intro",
     "details": "Details",
     "coverAlt": "Cover image",
-    "chat": "Chat"
+    "chat": "Chat",
+    "noIntro": "No introduction yet",
+    "noAddress": "No address set"
   },
   "update": {
     "title": "Update Profile",
@@ -37,7 +39,9 @@
   "actions": {
     "update": "Update",
     "delete": "Delete",
-    "notFoundImage": "Page not found"
+    "notFoundImage": "Page not found",
+    "follow": "Follow",
+    "unfollow": "Following"
   },
   "confirm": {
     "removeFollower": "Are you sure you want to remove {{name}} from the list?",

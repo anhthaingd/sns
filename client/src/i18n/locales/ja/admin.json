@@ -27,6 +27,26 @@
     "quotesLogin": "ログイン画面のひとこと"
   },
   "userPosts": {
-    "selectChannel": "チャンネルを選択"
+    "selectChannel": "チャンネルを選択",
+    "you": "自分"
+  },
+  "table": {
+    "id": "ID",
+    "image": "画像",
+    "likes": "いいね",
+    "bookmarks": "保存",
+    "comments": "コメント",
+    "channel": "チャンネル",
+    "updatedAt": "更新日",
+    "createdAt": "作成日",
+    "actions": "操作",
+    "email": "メール",
+    "avatar": "アイコン",
+    "username": "ユーザー名",
+    "role": "権限",
+    "members": "メンバー",
+    "name": "名前",
+    "intro": "紹介",
+    "user": "投稿者"
   }
 }

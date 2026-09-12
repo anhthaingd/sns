@@ -15,5 +15,23 @@
   "messages": "Tin nhắn",
   "theme": "Đổi giao diện sáng/tối",
   "whatif": "Nếu tôi học thêm",
-  "market": "Bản đồ thị trường"
+  "market": "Bản đồ thị trường",
+  "home": "Bảng tin",
+  "more": "Thêm",
+  "openMenu": "Mở menu",
+  "closeMenu": "Đóng menu",
+  "skipToContent": "Bỏ qua, tới nội dung chính",
+  "noShortcuts": "Chưa ghim channel nào",
+  "groups": {
+    "discover": "Khám phá",
+    "career": "Sự nghiệp",
+    "account": "Tài khoản"
+  },
+  "menu": "Menu",
+  "short": {
+    "home": "Bảng tin",
+    "recruitment": "Việc làm",
+    "match": "Phù hợp",
+    "channels": "Channel"
+  }
 }

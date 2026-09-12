@@ -1,47 +1,55 @@
 import { useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
-import { FaAnglesLeft, FaAnglesRight } from 'react-icons/fa6';
-import useQueryString from '../../hooks/useQueryString';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
 import { useTranslation } from 'react-i18next';
+import useQueryString from '../../hooks/useQueryString';
 
+/**
+ * Phân trang.
+ *
+ * Phần lớn kiểu dáng nằm ở `.fu-pagination` trong index.css: react-paginate
+ * dựng ra <li><a>, mà class truyền vào chỉ tới được <li> — muốn vùng bấm phủ
+ * hết ô số thì phải nhắm vào thẻ <a> bên trong bằng CSS.
+ *
+ * Không vẽ gì khi chỉ có một trang.
+ */
 function Pagination({ curPage, totalPage }) {
   const { t } = useTranslation('common');
   const [createQueryString] = useQueryString();
   const handlePageClick = useCallback(
-    (selectedItem) => {
-      createQueryString('page', selectedItem.selected + 1);
-    },
+    (selectedItem) => createQueryString('page', selectedItem.selected + 1),
     [createQueryString]
   );
+
+  if (!totalPage || totalPage <= 1) return null;
+
   return (
-    <ReactPaginate
-      forcePage={Number(curPage) - 1}
-      className='my-2 mx-4 flex justify-center items-stretch gap-[10px] font-bold text-neutral-700 dark:text-neutral-100 py-2'
-      nextLabel={
-        <button className='flex items-center gap-2 px-4 border border-neutral-300 py-2 text-neutral-500 dark:text-neutral-100 text-sm'>
-          <p>{t('actions.next')}</p>
-          <FaAnglesRight />
-        </button>
-      }
-      onPageChange={handlePageClick}
-      pageRangeDisplayed={2}
-      marginPagesDisplayed={2}
-      pageCount={totalPage}
-      previousLabel={
-        <button className='flex items-center gap-2 px-4 border border-neutral-300 py-2 text-neutral-500 dark:text-neutral-100 text-sm'>
-          <FaAnglesLeft />
-          <p>{t('actions.previous')}</p>
-        </button>
-      }
-      pageClassName='py-2 px-4 border border-neutral-300 text-sm flex justify-center items-center cursor-pointer'
-      // pageLinkClassName='py-2 w-full h-full flex justify-center items-center'
-      nextClassName='text-neutral-700'
-      breakLabel='...'
-      breakClassName='page-item'
-      containerClassName='pagination'
-      activeClassName='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white'
-      renderOnZeroPageCount={null}
-    />
+    <nav className='mt-6 flex justify-center' aria-label={t('pagination.page')}>
+      <ReactPaginate
+        forcePage={Number(curPage) - 1}
+        className='fu-pagination flex list-none items-center gap-1'
+        onPageChange={handlePageClick}
+        pageCount={totalPage}
+        pageRangeDisplayed={2}
+        marginPagesDisplayed={1}
+        previousLabel={
+          <span className='flex items-center gap-1.5'>
+            <FaChevronLeft className='size-3' aria-hidden='true' />
+            <span className='hidden sm:inline'>{t('actions.previous')}</span>
+          </span>
+        }
+        nextLabel={
+          <span className='flex items-center gap-1.5'>
+            <span className='hidden sm:inline'>{t('actions.next')}</span>
+            <FaChevronRight className='size-3' aria-hidden='true' />
+          </span>
+        }
+        breakLabel='…'
+        activeClassName='fu-page-active'
+        disabledClassName='fu-page-disabled'
+        renderOnZeroPageCount={null}
+      />
+    </nav>
   );
 }
 

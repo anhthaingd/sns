@@ -1,60 +1,55 @@
-import Modal from '@/modal';
 import { useContext, useMemo, useState } from 'react';
-import { FaXmark } from 'react-icons/fa6';
+import { useTranslation } from 'react-i18next';
 import { ModalContext } from '../../../context/ModalProvider';
-import useClickOutside from '../../../hooks/useClickOutside';
+import Dialog from '../../ui/Dialog';
 import Template1 from './Template1';
 import Template2 from './Template2';
-import { useTranslation } from 'react-i18next';
+import cn from '../../../services/utils/cn';
+
+/**
+ * Xem trước và in CV.
+ *
+ * Phần xem trước luôn giữ nền trắng và chữ đen, KHÔNG theo chế độ tối của giao
+ * diện: đây là bản sẽ được in ra giấy hoặc xuất PDF, nên nó phải trông đúng
+ * như lúc in. Bản cũ để nền `dark:bg-neutral-800` nên người dùng chế độ tối
+ * xem trước một tờ CV đen.
+ */
 function ResumeModal() {
   const { t } = useTranslation('resume');
   const { state, setVisibleModal } = useContext(ModalContext);
-  const [modalRef, clickOutside] = useClickOutside();
   const [curTemplate, setCurTemplate] = useState('1');
-  const form = useMemo(() => {
-    return state.visibleResumeModal || {};
-  }, [state.visibleResumeModal]);
+  const form = useMemo(() => state.visibleResumeModal || {}, [state.visibleResumeModal]);
+
+  const tabClass = (id) =>
+    cn(
+      'rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors',
+      curTemplate === id
+        ? 'bg-brand text-brand-on'
+        : 'bg-surface-2 text-fg-muted hover:bg-surface-3 hover:text-fg'
+    );
+
   return (
-    <Modal>
-      <section
-        style={{ backgroundColor: 'rgba(51,51,51,0.9)' }}
-        className={`fixed overflow-y-auto right-0 top-0 w-full h-full z-[100] transition-all duration-200 py-8 px-4 ${
-          state.visibleResumeModal ? 'block' : 'hidden'
-        } `}
-        onClick={clickOutside}
-      >
-        <div
-          ref={modalRef}
-          className='w-full xl:w-1/2 container m-auto flex flex-col gap-4 overflow-y-auto bg-white dark:bg-neutral-800 p-8 rounded'
-        >
-          <div className='px-4 w-full flex justify-end items-center'>
-            <button onClick={() => setVisibleModal('visibleResumeModal')}>
-              <FaXmark className='text-2xl dark:text-neutral-100' />
-            </button>
-          </div>
-          <div className='p-4 flex items-center gap-4'>
-            <button
-              className={`${
-                curTemplate === '1'
-                  ? 'bg-neutral-700 text-white'
-                  : 'border border-neutral-300 text-neutral-700'
-              } px-4 py-1 font-bold rounded`}
-              onClick={() => setCurTemplate('1')}
-            >{t('template.pick1')}</button>
-            <button
-              className={`${
-                curTemplate === '2'
-                  ? 'bg-neutral-700 text-white'
-                  : 'border border-neutral-300 text-neutral-700'
-              } px-4 py-1 font-bold rounded`}
-              onClick={() => setCurTemplate('2')}
-            >{t('template.pick2')}</button>
-          </div>
-          {curTemplate === '1' && <Template1 resume={form} />}
-          {curTemplate === '2' && <Template2 resume={form} />}
+    <Dialog
+      open={Boolean(state.visibleResumeModal)}
+      onClose={() => setVisibleModal('visibleResumeModal')}
+      title={t('template.title')}
+      size='full'
+      footer={
+        <div className='mr-auto flex items-center gap-2'>
+          <button type='button' className={tabClass('1')} onClick={() => setCurTemplate('1')}>
+            {t('template.pick1')}
+          </button>
+          <button type='button' className={tabClass('2')} onClick={() => setCurTemplate('2')}>
+            {t('template.pick2')}
+          </button>
         </div>
-      </section>
-    </Modal>
+      }
+    >
+      <div className='rounded-lg bg-white p-2 text-neutral-900 shadow-card sm:p-6'>
+        {curTemplate === '1' && <Template1 resume={form} />}
+        {curTemplate === '2' && <Template2 resume={form} />}
+      </div>
+    </Dialog>
   );
 }
 

@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useGetSearchUsersQuery } from '../../services/redux/query/api/usersApi';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { FaUserGroup } from 'react-icons/fa6';
+import { useGetSearchUsersQuery } from '../../services/redux/query/api/usersApi';
 import { useDebounce } from '../../hooks/useDebounce';
 import useObserver from '../../hooks/useObserver';
-import { FaXmark } from 'react-icons/fa6';
-import { useTranslation } from 'react-i18next';
+import Popover from '../ui/Popover';
+import Avatar from '../ui/Avatar';
+import Spinner from '../ui/Spinner';
 
+/**
+ * Gợi ý người dùng khi gõ vào ô tìm kiếm trên thanh trên cùng.
+ *
+ * Bảng này neo vào ô nhập chứ không vào nút, nên `Popover` ở đây được đặt
+ * `left-0 right-auto` để mép trái thẳng hàng với ô.
+ */
 function SearchUsersDropdown({ searchValue, setIsFocus }) {
   const { t } = useTranslation(['user', 'common']);
   const debouncedValue = useDebounce(searchValue, 500);
@@ -24,6 +33,7 @@ function SearchUsersDropdown({ searchValue, setIsFocus }) {
     usersData?.users,
     usersData?.totalPage
   );
+
   useEffect(() => {
     if (debouncedValue) {
       setCurPage(1);
@@ -31,70 +41,75 @@ function SearchUsersDropdown({ searchValue, setIsFocus }) {
       setHasMore(true);
     }
   }, [debouncedValue]);
+
   useEffect(() => {
     if (isSuccessUsers && usersData) {
-      setUsers((prevUsers) => {
-        if (curPage === 1) {
-          return [...usersData.users];
-        }
-        return [...new Set([...prevUsers, ...usersData.users])];
-      });
-
-      if (usersData?.totalPage === curPage) {
-        setHasMore(false);
-      }
+      setUsers((prevUsers) =>
+        curPage === 1
+          ? [...usersData.users]
+          : [...new Set([...prevUsers, ...usersData.users])]
+      );
+      if (usersData?.totalPage === curPage) setHasMore(false);
     }
   }, [isSuccessUsers, usersData, curPage]);
+
   const handleRedirect = useCallback(
-    (user) => {
+    (u) => {
       setIsFocus();
-      navigate(`/profile/${user?._id}`);
+      navigate(`/profile/${u?._id}`);
     },
-    [navigate]
+    [navigate, setIsFocus]
   );
-  const rendered = useMemo(() => {
-    return users?.map((u) => {
-      return (
-        <article
-          key={u._id}
-          className='cursor-pointer flex gap-2 font-bold'
-          onClick={() => handleRedirect(u)}
-        >
-          <div className='size-[36px] rounded-full overflow-hidden'>
-            <img
-              className='w-full h-full object-cover'
-              src={`${import.meta.env.VITE_BACKEND_URL}/${u?.avatar?.url}`}
-              alt={u?.email}
-              {...{ fetchPriority: 'low' }}
-            />
-          </div>
-          <p>{u?.username}</p>
-        </article>
-      );
-    });
-  }, [users]);
+
+  const rendered = useMemo(
+    () =>
+      users?.map((u) => (
+        <li key={u._id}>
+          <button
+            type='button'
+            className='flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-surface-2'
+            onClick={() => handleRedirect(u)}
+          >
+            <Avatar src={u?.avatar} name={u?.username} size='sm' />
+            <span className='min-w-0'>
+              <span className='block truncate text-sm font-semibold text-fg'>
+                {u?.username}
+              </span>
+              <span className='block truncate text-2xs text-fg-subtle'>
+                {u?.email}
+              </span>
+            </span>
+          </button>
+        </li>
+      )),
+    [users, handleRedirect]
+  );
+
   return (
-    <div
-      className={`absolute w-[380px] h-[90vh] top-[100%] left-0 my-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden shadow-lg`}
+    <Popover
+      open
+      onClose={setIsFocus}
+      title={t('search.title')}
+      className='left-0 right-auto'
     >
-      <div className='p-4 flex justify-between items-center gap-4'>
-        <h2 className='text-lg font-bold'>{t('search.title')}</h2>
-        <button aria-label={t('search.close')} onClick={setIsFocus}>
-          <FaXmark className='text-2xl' />
-        </button>
-      </div>
-      <div className='p-4 max-h-[80vh] overflow-y-auto'>
-        {users?.length === 0 && (
-          <div>
-            <p>{t('search.empty')}</p>
-          </div>
-        )}
-        <div className='flex flex-col gap-6'>{rendered}</div>
-        {hasMore && (
-          <div className='text-center my-4' ref={itemRef}>{t('common:status.loadingMore')}</div>
-        )}
-      </div>
-    </div>
+      {users?.length === 0 ? (
+        <div className='flex flex-col items-center gap-2 px-4 py-8 text-center'>
+          <FaUserGroup className='size-5 text-fg-subtle' aria-hidden='true' />
+          <p className='text-sm text-fg-muted'>{t('search.empty')}</p>
+        </div>
+      ) : (
+        <ul className='flex flex-col gap-0.5'>{rendered}</ul>
+      )}
+      {hasMore && users?.length > 0 && (
+        <div
+          ref={itemRef}
+          className='flex items-center justify-center gap-2 py-3 text-xs text-fg-subtle'
+        >
+          <Spinner className='size-3.5' />
+          {t('common:status.loadingMore')}
+        </div>
+      )}
+    </Popover>
   );
 }
 

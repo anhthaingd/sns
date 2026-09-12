@@ -12,11 +12,15 @@
     "from300": "Từ 300 man/năm",
     "from500": "Từ 500 man/năm",
     "from800": "Từ 800 man/năm",
-    "remoteOnly": "Chỉ việc remote"
+    "remoteOnly": "Chỉ việc remote",
+    "filters": "Bộ lọc",
+    "activeFilters": "Bộ lọc đang dùng",
+    "resultsTitle": "Kết quả",
+    "sourceLabel": "Nguồn tin"
   },
   "card": {
     "remote": "Remote",
-    "gapLink": "Xem tôi còn thiếu gì cho vị trí này →"
+    "gapLink": "Xem tôi còn thiếu gì cho vị trí này"
   },
   "level": {
     "none": "Không yêu cầu",
@@ -47,5 +51,6 @@
   },
   "japaneseLabel": "Tiếng Nhật",
   "empty": "Không tìm thấy việc làm nào khớp bộ lọc.",
-  "subtitle_other": "{{count}} tin tổng hợp từ GaijinPot, DaiJob, Nihongo Engineer, LinkedIn JP"
+  "subtitle_other": "{{count}} tin tổng hợp từ GaijinPot, DaiJob, Nihongo Engineer, LinkedIn JP",
+  "emptyHint": "Thử nới điều kiện hoặc xoá bớt bộ lọc."
 }

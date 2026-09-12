@@ -9,6 +9,7 @@ import {
   FaXmark,
 } from 'react-icons/fa6';
 import ResumeModal from '../../../components/modal/resume/ResumeModal';
+import ImageUpload from '../../../components/ui/ImageUpload';
 import { useGetResumeQuery, usePostResumeMutation } from '../../../services/redux/query/api/resumeApi';
 import { ModalContext } from '../../../context/ModalProvider';
 import useMutationToast from '../../../hooks/useMutationToast';
@@ -24,6 +25,20 @@ const LANGUAGE_LEVELS = [
   'fluent',
   'native',
 ];
+
+// Ô nhập của trang CV. Tách thành hằng số vì có gần ba mươi ô dùng chung đúng
+// một bộ class; trước đây chuỗi đó được chép tay ở từng chỗ, nên chỉ cần một
+// lần chép thiếu là có một ô lệch hẳn kiểu dáng so với các ô còn lại.
+const fieldClass =
+  'w-full rounded-lg bg-surface px-3 py-2 text-sm text-fg ring-1 ring-inset ring-line ' +
+  'transition-shadow placeholder:text-fg-subtle hover:ring-line-strong focus:outline-none focus:ring-2 focus:ring-accent';
+
+const buttonBase =
+  'inline-flex select-none items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold ' +
+  'transition-all duration-150 ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50';
+const addButtonClass = `${buttonBase} bg-surface-2 text-fg hover:bg-surface-3`;
+const previewButtonClass = `${buttonBase} bg-surface text-fg ring-1 ring-inset ring-line-strong hover:bg-surface-2`;
+const saveButtonClass = `${buttonBase} bg-brand text-brand-on shadow-card hover:bg-brand-hover`;
 
 function ResumeLayout() {
   const { t } = useTranslation(['resume', 'common']);
@@ -231,51 +246,32 @@ function ResumeLayout() {
     <Page>
       {state.visibleResumeModal && <ResumeModal />}
       <div className='flex flex-col gap-8' aria-disabled={isLoadingPost}>
-        <h1 className='text-center text-2xl font-bold'>{t('title')}</h1>
-        <div className='bg-neutral-50 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 px-4 py-8 flex flex-col gap-6 rounded'>
+        <div className='relative pl-3.5'>
+          <span className='fu-cord' aria-hidden='true' />
+          <h1 className='text-xl font-bold text-fg sm:text-2xl'>{t('title')}</h1>
+        </div>
+        <div className='flex flex-col gap-7 rounded-card bg-surface p-4 ring-1 ring-inset ring-line sm:p-6'>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.basicInfo')}</h2>
-            <div>
-              <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
-                type='file'
-                accept='image/*,.jpeg,.jpg,.png,.webp'
-                placeholder={t('field.avatarName')}
-                onChange={(e) =>
-                  setForm({ ...form, avatar: e.target.files?.[0] })
-                }
-              />
-              <p className='italic text-sm'>
-                {t('common:upload.imageHint')}
-              </p>
-              {form.avatar && (
-                <img
-                  className='w-[170px] h-[180px] object-cover'
-                  src={URL.createObjectURL(form.avatar)}
-                  alt={form.avatar?.filename}
-                  {...{ fetchPriority: 'low' }}
-                />
-              )}
-              {form.oldAvatar && !form.avatar && (
-                <img
-                  className='w-[170px] h-[180px] object-cover'
-                  src={`${import.meta.env.VITE_BACKEND_URL}/${
-                    form.oldAvatar?.url
-                  }`}
-                  alt={form.oldAvatar?.name}
-                  {...{ fetchPriority: 'low' }}
-                />
-              )}
-            </div>
+            <h2 className='text-base font-bold text-fg'>{t('section.basicInfo')}</h2>
+            {/* Ảnh trong CV Nhật là ảnh chân dung dọc, nên khung xem trước
+                giữ đúng tỉ lệ 3:4 của ảnh chứng minh thư. */}
+            <ImageUpload
+              aspect='aspect-[3/4]'
+              className='max-w-[15rem]'
+              value={form.avatar}
+              existing={form.oldAvatar}
+              onChange={(file) => setForm((prev) => ({ ...prev, avatar: file }))}
+              onRemove={() => setForm((prev) => ({ ...prev, avatar: null }))}
+            />
             <input
-              className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+              className={fieldClass}
               type='text'
               placeholder={t('field.fullName')}
               value={form?.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             <input
-              className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+              className={fieldClass}
               type='text'
               placeholder={t('field.position')}
               value={form?.position}
@@ -283,17 +279,17 @@ function ResumeLayout() {
             />
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.contact')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.contact')}</h2>
             <div className='flex flex-col gap-4'>
               <div className='flex items-center gap-4'>
                 <label
-                  className='p-2 rounded-full bg-neutral-700 flex justify-center items-center'
+                  className='flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-accent-text'
                   htmlFor='date'
                 >
-                  <FaCakeCandles className='text-neutral-100' />
+                  <FaCakeCandles className='size-4' />
                 </label>
                 <input
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   type='date'
                   required
                   value={form?.birthday}
@@ -304,13 +300,13 @@ function ResumeLayout() {
               </div>
               <div className='flex items-center gap-4'>
                 <label
-                  className='p-2 rounded-full bg-neutral-700 flex justify-center items-center'
+                  className='flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-accent-text'
                   htmlFor='email'
                 >
-                  <FaEnvelope className='text-neutral-100' />
+                  <FaEnvelope className='size-4' />
                 </label>
                 <input
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   type='email'
                   placeholder={t('field.email')}
                   required
@@ -320,13 +316,13 @@ function ResumeLayout() {
               </div>
               <div className='flex items-center gap-4'>
                 <label
-                  className='p-2 rounded-full bg-neutral-700 flex justify-center items-center'
+                  className='flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-accent-text'
                   htmlFor='address'
                 >
-                  <FaLocationDot className='text-neutral-100' />
+                  <FaLocationDot className='size-4' />
                 </label>
                 <input
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   type='text'
                   placeholder={t('field.address')}
                   value={form?.address}
@@ -337,13 +333,13 @@ function ResumeLayout() {
               </div>
               <div className='flex items-center gap-4'>
                 <label
-                  className='p-2 rounded-full bg-neutral-700 flex justify-center items-center'
+                  className='flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-accent-text'
                   htmlFor='phone'
                 >
-                  <FaPhone className='text-neutral-100' />
+                  <FaPhone className='size-4' />
                 </label>
                 <input
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   type='number'
                   placeholder={t('field.phone')}
                   value={form?.phone}
@@ -352,13 +348,13 @@ function ResumeLayout() {
               </div>
               <div className='flex items-center gap-4'>
                 <label
-                  className='p-2 rounded-full bg-neutral-700 flex justify-center items-center'
+                  className='flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-accent-text'
                   htmlFor='github'
                 >
-                  <FaGithub className='text-neutral-100' />
+                  <FaGithub className='size-4' />
                 </label>
                 <input
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   placeholder={t('field.github')}
                   pattern='https://.*'
                   value={form?.github}
@@ -368,9 +364,9 @@ function ResumeLayout() {
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.objective')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.objective')}</h2>
             <textarea
-              className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none'
+              className={fieldClass}
               placeholder={t('field.objective')}
               rows={3}
               value={form?.objective}
@@ -378,10 +374,10 @@ function ResumeLayout() {
             />
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.experience')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.experience')}</h2>
             <div className='flex flex-col gap-4'>
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.company')}
                 value={experience?.name}
@@ -393,7 +389,7 @@ function ResumeLayout() {
                 <div>
                   <label className='font-medium' htmlFor='start_time'>{t('field.startTimeLabel')}</label>
                   <input
-                    className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                    className={fieldClass}
                     type='text'
                     placeholder={t('field.startTime')}
                     value={experience?.startTime}
@@ -408,7 +404,7 @@ function ResumeLayout() {
                 <div>
                   <label className='font-medium' htmlFor='end_time'>{t('field.endTimeLabel')}</label>
                   <input
-                    className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                    className={fieldClass}
                     type='text'
                     placeholder={t('field.endTime')}
                     value={experience?.endTime}
@@ -419,7 +415,7 @@ function ResumeLayout() {
                 </div>
               </div>
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.jobPosition')}
                 value={experience?.position}
@@ -428,7 +424,7 @@ function ResumeLayout() {
                 }
               />
               <textarea
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none'
+                className={fieldClass}
                 rows={3}
                 placeholder={t('field.jobDescription')}
                 value={experience?.description}
@@ -436,15 +432,17 @@ function ResumeLayout() {
                   setExperience({ ...experience, description: e.target.value })
                 }
               />
-              <ul className='flex flex-col gap-2 list-decimal'>
+              <ul className='flex flex-col gap-2'>
                 {form?.experiences?.map((e, index) => {
                   return (
-                    <li className='w-full capitalize flex gap-2' key={index}>
+                    <li className='flex w-full gap-3 rounded-lg bg-surface-2 p-3 text-sm capitalize' key={index}>
                       <p>{index + 1}.</p>
-                      <div className='w-f ull flex flex-col'>
+                      <div className='flex w-full flex-col'>
                         <div className='w-full flex justify-between items-center gap-4'>
                           <p className='text-lg font-bold'>{e?.name}</p>
                           <button
+                            type='button'
+                            className='flex size-7 shrink-0 items-center justify-center rounded-full text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text'
                             aria-label={t('actions.removeSkill')}
                             onClick={() =>
                               setForm({
@@ -455,10 +453,10 @@ function ResumeLayout() {
                               })
                             }
                           >
-                            <FaXmark />
+                            <FaXmark className='size-4' />
                           </button>
                         </div>
-                        <p className='text-sm font-medium italic'>
+                        <p className='text-sm font-medium text-fg-muted'>
                           {e?.startTime} - {e?.endTime}
                         </p>
                         <p className='flex gap-2'>
@@ -475,16 +473,16 @@ function ResumeLayout() {
                 })}
               </ul>
               <button
-                className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
+                className={addButtonClass}
                 onClick={handleAddExperience}
               >{t('actions.addExperience')}</button>
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.education')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.education')}</h2>
             <div className='flex flex-col gap-4'>
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.school')}
                 value={form?.educationName}
@@ -493,7 +491,7 @@ function ResumeLayout() {
                 }
               />
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.major')}
                 value={form?.educationMajor}
@@ -502,7 +500,7 @@ function ResumeLayout() {
                 }
               />
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.completionTime')}
                 value={form?.educationCompletion}
@@ -511,7 +509,7 @@ function ResumeLayout() {
                 }
               />
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.gpa')}
                 value={form?.educationGPA}
@@ -522,14 +520,14 @@ function ResumeLayout() {
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.career')}</h2>
-            <p className='text-sm opacity-70'>{t('career.hint')}</p>
+            <h2 className='text-base font-bold text-fg'>{t('section.career')}</h2>
+            <p className='text-sm text-fg-muted'>{t('career.hint')}</p>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div className='flex flex-col gap-2'>
                 <label className='font-medium' htmlFor='japaneseLevel'>{t('career.japaneseLevel')}</label>
                 <select
                   id='japaneseLevel'
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   value={form?.japaneseLevel}
                   onChange={(e) =>
                     setForm({ ...form, japaneseLevel: e.target.value })
@@ -547,7 +545,7 @@ function ResumeLayout() {
                 <label className='font-medium' htmlFor='englishLevel'>{t('career.englishLevel')}</label>
                 <select
                   id='englishLevel'
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   value={form?.englishLevel}
                   onChange={(e) =>
                     setForm({ ...form, englishLevel: e.target.value })
@@ -565,7 +563,7 @@ function ResumeLayout() {
                 <label className='font-medium' htmlFor='yearsOfExperience'>{t('career.years')}</label>
                 <input
                   id='yearsOfExperience'
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   type='number'
                   min='0'
                   max='50'
@@ -580,7 +578,7 @@ function ResumeLayout() {
                 <label className='font-medium' htmlFor='desiredSalaryMin'>{t('career.salary')}</label>
                 <input
                   id='desiredSalaryMin'
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   type='number'
                   min='0'
                   step='500000'
@@ -595,7 +593,7 @@ function ResumeLayout() {
                 <label className='font-medium' htmlFor='desiredLocations'>{t('career.locations')}</label>
                 <input
                   id='desiredLocations'
-                  className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                  className={fieldClass}
                   type='text'
                   placeholder={t('career.locationsPlaceholder')}
                   value={form?.desiredLocations}
@@ -607,10 +605,10 @@ function ResumeLayout() {
             </div>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.certificates')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.certificates')}</h2>
             <div className='flex flex-col gap-4'>
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.certificateName')}
                 value={certificate.name}
@@ -641,6 +639,8 @@ function ResumeLayout() {
                                 <span className='font-bold'>{c?.name}</span>
                               </p>
                               <button
+                                type='button'
+                                className='flex size-7 shrink-0 items-center justify-center rounded-full text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text'
                                 onClick={() => {
                                   setForm((prevForm) => {
                                     return {
@@ -654,7 +654,7 @@ function ResumeLayout() {
                                 }}
                                 aria-label={t('actions.removeCertificate')}
                               >
-                                <FaXmark className='text-lg' />
+                                <FaXmark className='size-4' />
                               </button>
                             </div>
                             <a
@@ -685,6 +685,8 @@ function ResumeLayout() {
                                 </span>
                               </p>
                               <button
+                                type='button'
+                                className='flex size-7 shrink-0 items-center justify-center rounded-full text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text'
                                 onClick={() => {
                                   setForm((prevForm) => {
                                     const newCertificates =
@@ -705,7 +707,7 @@ function ResumeLayout() {
                                 }}
                                 aria-label={t('actions.removeCertificate')}
                               >
-                                <FaXmark className='text-lg' />
+                                <FaXmark className='size-4' />
                               </button>
                             </div>
                             <a href={URL.createObjectURL(c)} download={c.name}>
@@ -720,25 +722,25 @@ function ResumeLayout() {
               </div>
             </div>
             <button
-              className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
+              className={addButtonClass}
               onClick={handleAddCertificate}
               disabled={isLoadingPost}
             >{t('actions.addCertificate')}</button>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.skills')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.skills')}</h2>
             <input
-              className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+              className={fieldClass}
               type='text'
               placeholder={t('field.skill')}
               value={skill}
               onChange={(e) => setSkill(e.target.value)}
             />
-            <ul className='flex flex-col gap-2 list-decimal'>
+            <ul className='flex flex-col gap-2'>
               {form?.skills?.map((s, index) => {
                 return (
                   <li
-                    className='w-full capitalize flex justify-between items-center list-decimal'
+                    className='flex w-full items-center justify-between gap-3 rounded-lg bg-surface-2 p-3 text-sm capitalize'
                     key={index}
                   >
                     <p>
@@ -746,6 +748,8 @@ function ResumeLayout() {
                       <span>{s}</span>
                     </p>
                     <button
+                      type='button'
+                      className='flex size-7 shrink-0 items-center justify-center rounded-full text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text'
                       aria-label={t('actions.removeSkill')}
                       disabled={isLoadingPost}
                       onClick={() =>
@@ -755,32 +759,32 @@ function ResumeLayout() {
                         })
                       }
                     >
-                      <FaXmark />
+                      <FaXmark className='size-4' />
                     </button>
                   </li>
                 );
               })}
             </ul>
             <button
-              className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
+              className={addButtonClass}
               onClick={handleAddSkill}
               disabled={isLoadingPost}
             >{t('actions.addSkill')}</button>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.languages')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.languages')}</h2>
             <input
-              className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+              className={fieldClass}
               type='text'
               placeholder={t('field.language')}
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             />
-            <ul className='flex flex-col gap-2 list-decimal'>
+            <ul className='flex flex-col gap-2'>
               {form?.languages?.map((l, index) => {
                 return (
                   <li
-                    className='w-full capitalize flex justify-between items-center list-decimal'
+                    className='flex w-full items-center justify-between gap-3 rounded-lg bg-surface-2 p-3 text-sm capitalize'
                     key={index}
                   >
                     <p>
@@ -788,6 +792,8 @@ function ResumeLayout() {
                       <span>{l}</span>
                     </p>
                     <button
+                      type='button'
+                      className='flex size-7 shrink-0 items-center justify-center rounded-full text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text'
                       aria-label={t('actions.removeLanguage')}
                       disabled={isLoadingPost}
                       onClick={() =>
@@ -799,23 +805,23 @@ function ResumeLayout() {
                         })
                       }
                     >
-                      <FaXmark />
+                      <FaXmark className='size-4' />
                     </button>
                   </li>
                 );
               })}
             </ul>
             <button
-              className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
+              className={addButtonClass}
               onClick={handleAddLanguage}
               disabled={isLoadingPost}
             >{t('actions.addLanguage')}</button>
           </div>
           <div className='flex flex-col gap-4'>
-            <h2 className='text-xl font-bold'>{t('section.projects')}</h2>
+            <h2 className='text-base font-bold text-fg'>{t('section.projects')}</h2>
             <div className='flex flex-col gap-4'>
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.projectName')}
                 value={project.name}
@@ -824,7 +830,7 @@ function ResumeLayout() {
                 }
               />
               <input
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded'
+                className={fieldClass}
                 type='text'
                 placeholder={t('field.projectTech')}
                 value={project.tech}
@@ -833,7 +839,7 @@ function ResumeLayout() {
                 }
               />
               <textarea
-                className='dark:bg-neutral-700 w-full px-4 py-2 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none'
+                className={fieldClass}
                 placeholder={t('field.projectDescription')}
                 rows={3}
                 value={project.description}
@@ -842,11 +848,11 @@ function ResumeLayout() {
                 }
               />
             </div>
-            <ul className='flex flex-col gap-2 list-decimal'>
+            <ul className='flex flex-col gap-2'>
               {form?.projects?.map((p, index) => {
                 return (
                   <li
-                    className='w-full capitalize flex flex-col gap-2'
+                    className='flex w-full flex-col gap-2 rounded-lg bg-surface-2 p-3 text-sm capitalize'
                     key={index}
                   >
                     <div className='flex gap-2'>
@@ -858,6 +864,8 @@ function ResumeLayout() {
                             <span className='font-bold'>{p?.name}</span>
                           </p>
                           <button
+                            type='button'
+                            className='flex size-7 shrink-0 items-center justify-center rounded-full text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text'
                             aria-label={t('actions.removeProject')}
                             disabled={isLoadingPost}
                             onClick={() =>
@@ -869,7 +877,7 @@ function ResumeLayout() {
                               })
                             }
                           >
-                            <FaXmark />
+                            <FaXmark className='size-4' />
                           </button>
                         </div>
                         <p className='flex gap-2'>
@@ -887,22 +895,22 @@ function ResumeLayout() {
               })}
             </ul>
             <button
-              className='bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-700 text-white px-4 py-2 rounded font-bold'
+              className={addButtonClass}
               onClick={handleAddProject}
               disabled={isLoadingPost}
             >{t('actions.addProject')}</button>
           </div>
-          <div className='flex justify-center items-center gap-4'>
+          <div className='flex flex-wrap items-center justify-end gap-2 border-t border-line pt-5'>
             <button
-              className='bg-neutral-700 text-white px-4 py-2 font-bold hover:bg-neutral-800 dark:bg-neutral-200 dark:hover:bg-neutral-50 dark:text-neutral-700 transition-colors'
-              onClick={handlePostResume}
-              disabled={isLoadingPost}
-            >{t('actions.save')}</button>
-            <button
-              className='px-4 py-2 bg-blue-500 hover:bg-blue-700 transition-colors text-white font-bold'
+              className={previewButtonClass}
               disabled={isLoadingPost}
               onClick={() => setVisibleModal({ visibleResumeModal: form })}
             >{t('actions.downloadPreview')}</button>
+            <button
+              className={saveButtonClass}
+              onClick={handlePostResume}
+              disabled={isLoadingPost}
+            >{t('actions.save')}</button>
           </div>
         </div>
       </div>

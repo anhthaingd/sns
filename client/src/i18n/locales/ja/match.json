@@ -5,8 +5,8 @@
   "ruleOnlyNotice": "現在はルール（日本語力・経験年数・スキル）のみで順位付けしています。意味的なマッチングは利用できませんが、結果は十分に使えます。",
   "qualifiedOnly": "応募条件を満たす企業だけ表示",
   "missingPrefix": "不足:",
-  "companyGapLink": "この企業に足りないものを見る →",
-  "jobDetailLink": "求人の詳細 →",
+  "companyGapLink": "この企業に足りないものを見る",
+  "jobDetailLink": "求人の詳細",
   "techStack": "この企業で使われている技術:",
   "jobTech": "技術:",
   "openPositions": "募集中のポジション",
@@ -64,7 +64,7 @@
     "qualified": "この求人の必須条件はすべて満たしています。",
     "notQualified": "満たしていない必須条件があります。下の一覧をご確認ください。",
     "employmentType": "雇用形態",
-    "openOriginal": "{{source}}の元の求人を開く →",
+    "openOriginal": "{{source}}の元の求人を開く",
     "aboutCompany": "{{name}}について"
   },
   "companyGap": {
@@ -74,6 +74,8 @@
   "score": {
     "semantic": "業種の関連度: {{percent}}%",
     "requirement": "条件の充足度:",
-    "noRequirement": "具体的な条件の記載なし"
+    "noRequirement": "具体的な条件の記載なし",
+    "label": "マッチ度",
+    "semanticLabel": "内容の近さ"
   }
 }

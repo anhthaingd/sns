@@ -1,17 +1,26 @@
 import { useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGetChannelDetailsQuery, useJoinChannelMutation } from '../../../../services/redux/query/api/channelsApi';
-import { HiUserGroup } from 'react-icons/hi';
-import { IoLogOutOutline } from 'react-icons/io5';
+import { useTranslation } from 'react-i18next';
+import { FaUserGroup, FaCalendarDay, FaRightFromBracket } from 'react-icons/fa6';
+import Page from '../../../Page';
 import NotFoundLayout from '../../../notfound/NotFoundLayout';
 import Loading from '../../../../components/ui/Loading';
-import CreatePost from './components/CreatePost';
+import Avatar from '../../../../components/ui/Avatar';
+import Button from '../../../../components/ui/Button';
+import Card from '../../../../components/ui/Card';
+import PostComposer from '../../../../components/post/PostComposer';
 import ListsPost from './components/ListsPost';
-import Page from '../../../Page';
-import { formatShortDate } from '../../../../services/utils/format';
+import {
+  useGetChannelDetailsQuery,
+  useJoinChannelMutation,
+} from '../../../../services/redux/query/api/channelsApi';
 import { ModalContext } from '../../../../context/ModalProvider';
 import useMutationToast from '../../../../hooks/useMutationToast';
-import { useTranslation } from 'react-i18next';
+import { formatShortDate } from '../../../../services/utils/format';
+import mediaUrl from '../../../../services/utils/media';
+
+/** Số thành viên hiện dưới dạng chồng ảnh đại diện. */
+const MAX_FACES = 8;
 
 function ChannelDetailsLayout() {
   const { t } = useTranslation(['channel', 'common']);
@@ -43,97 +52,106 @@ function ChannelDetailsLayout() {
     // Rời channel xong thì trang này không còn gì để xem nữa.
     { onSuccess: () => navigate('/', { replace: true }) }
   );
+
   if (isLoadingChannel) return <Loading />;
   if (isErrorChannel && errorChannel) return <NotFoundLayout />;
+  if (!isSuccessChannel || !channelData) return null;
+
+  const channel = channelData.channel;
+  const members = channel?.members ?? [];
+  const cover = mediaUrl(channel?.background);
 
   return (
     <Page>
-      <div className='min-h-[100vh] dark:bg-neutral-900 flex flex-col gap-8 text-neutral-700 dark:text-neutral-100'>
-        {isSuccessChannel && channelData && (
-          <>
-            <section className='w-full rounded-lg overflow-hidden flex flex-col gap-4 border border-neutral-300 dark:border-neutral-600'>
-              <div className='overflow-hidden'>
-                <img
-                  className='w-full h-[300px] object-cover'
-                  src={`${import.meta.env.VITE_BACKEND_URL}/${
-                    channelData?.channel?.background?.url
-                  }`}
-                  alt={channelData?.channel?.background?.name}
-                />
-              </div>
-              <div className='p-4 flex flex-col gap-2'>
-                <h1 className='text-xl md:text-3xl font-bold'>
-                  {channelData?.channel?.name}
-                </h1>
-                <p>{channelData?.channel?.intro}</p>
-              </div>
-              <div className='p-4 grid grid-cols-3 border-t border-neutral-300 dark:borer-neutral-700 place-content-center place-items-center'>
-                <div className='col-span-1 flex flex-col gap-4'>
-                  <p className='text-lg font-medium'>
-                    {channelData?.channel?.members?.length}{' '}
-                    {channelData?.channel?.members?.length > 1
-                      ? 'members'
-                      : 'member'}
+      <div className='mx-auto flex w-full max-w-feed flex-col gap-4'>
+        <Card padded={false} className='overflow-hidden'>
+          <div className='relative h-40 bg-gradient-to-br from-ai-700 via-ai-800 to-asagi-800 sm:h-56'>
+            {cover ? (
+              <img
+                className='size-full object-cover'
+                src={cover}
+                alt=''
+              />
+            ) : (
+              <div
+                className='fu-seigaiha size-full text-white opacity-[0.12]'
+                aria-hidden='true'
+              />
+            )}
+          </div>
+
+          <div className='p-4 sm:p-5'>
+            <h1 className='text-xl font-bold text-fg sm:text-2xl'>{channel?.name}</h1>
+            {channel?.intro && (
+              <p className='mt-1.5 text-sm leading-relaxed text-fg-muted'>
+                {channel.intro}
+              </p>
+            )}
+
+            <div className='mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-4'>
+              <div className='flex flex-wrap items-center gap-x-6 gap-y-3'>
+                <div>
+                  <p className='flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wider text-fg-subtle'>
+                    <FaUserGroup className='size-3' aria-hidden='true' />
+                    {/* Bản cũ ghép tay chuỗi 'member'/'members' bằng tiếng Anh
+                        ngay trong JSX, nên ô này luôn là tiếng Anh kể cả khi
+                        giao diện đang chạy tiếng Nhật. */}
+                    {t('memberCount', { count: members.length })}
                   </p>
-                  <div className='flex items-center'>
-                    {channelData?.channel?.members?.slice(0, 8).map((m) => (
-                      <div
-                        key={m.id}
-                        className='size-[32px] rounded-full overflow-hidden'
-                      >
-                        <img
-                          className='w-full h-full object-cover'
-                          src={`${import.meta.env.VITE_BACKEND_URL}/${
-                            m?.avatar?.url
-                          }`}
-                          alt={m?.avatar?.name}
-                          {...{ fetchPriority: 'low' }}
-                        />
-                      </div>
+                  <div className='mt-1.5 flex -space-x-2'>
+                    {members.slice(0, MAX_FACES).map((m) => (
+                      <Avatar
+                        key={m._id}
+                        src={m?.avatar}
+                        name={m?.username}
+                        size='sm'
+                        ring
+                      />
                     ))}
+                    {members.length > MAX_FACES && (
+                      <span className='tnum flex size-8 items-center justify-center rounded-full bg-surface-3 text-2xs font-bold text-fg-muted ring-2 ring-surface'>
+                        +{members.length - MAX_FACES}
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className='col-span-1 flex flex-col gap-4'>
-                  <p className='font-bold'>{t('detail.createdDay')}</p>
-                  <p>
-                    {formatShortDate(channelData?.channel?.created_at)}
+
+                <div>
+                  <p className='flex items-center gap-1.5 text-2xs font-semibold uppercase tracking-wider text-fg-subtle'>
+                    <FaCalendarDay className='size-3' aria-hidden='true' />
+                    {t('detail.createdDay')}
+                  </p>
+                  <p className='tnum mt-1.5 text-sm font-semibold text-fg'>
+                    {formatShortDate(channel?.created_at)}
                   </p>
                 </div>
-                <div className='col-span-1 flex flex-col gap-4'>
-                  <div className='flex items-center gap-2'>
-                    <HiUserGroup className='text-2xl' />
-                    <p className='font-bold'>{t('detail.joined')}</p>
-                  </div>
-                  <div>
-                    <button
-                      className='flex items-center gap-2'
-                      onClick={() =>
-                        setVisibleModal({
-                          visibleConfirmModal: {
-                            question: t('confirm.leave', {
-                              name: channelData?.channel?.name,
-                            }),
-                            description: t('common:confirm.areYouSure'),
-                            loading: isLoadingJoin,
-                            acceptFunc: () =>
-                              joinChannel(channelData?.channel?._id),
-                          },
-                        })
-                      }
-                    >
-                      <IoLogOutOutline className='text-2xl' />
-                      <span className='font-bold'>{t('detail.leave')}</span>
-                    </button>
-                  </div>
-                </div>
               </div>
-            </section>
-            <section className='px-8 md:px-32'>
-              <CreatePost channelId={channelData?.channel?._id} />
-              <ListsPost channelId={channelData?.channel?._id} />
-            </section>
-          </>
-        )}
+
+              <Button
+                variant='ghost'
+                size='sm'
+                icon={FaRightFromBracket}
+                className='text-danger-text hover:bg-danger-soft'
+                onClick={() =>
+                  setVisibleModal({
+                    visibleConfirmModal: {
+                      tone: 'danger',
+                      question: t('confirm.leave', { name: channel?.name }),
+                      description: t('common:confirm.areYouSure'),
+                      loading: isLoadingJoin,
+                      acceptFunc: () => joinChannel(channel?._id),
+                    },
+                  })
+                }
+              >
+                {t('detail.leave')}
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        <PostComposer channelId={channel?._id} />
+        <ListsPost channelId={channel?._id} />
       </div>
     </Page>
   );

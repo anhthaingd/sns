@@ -1,17 +1,23 @@
-import {
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react';
-import Page from '../../../Page';
-import { useGetAllChannelsQuery, useJoinChannelMutation } from '../../../../services/redux/query/api/channelsApi';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { FaMagnifyingGlass, FaLayerGroup, FaArrowRight, FaPlus } from 'react-icons/fa6';
+import Page from '../../../Page';
+import {
+  useGetAllChannelsQuery,
+  useJoinChannelMutation,
+} from '../../../../services/redux/query/api/channelsApi';
 import useQueryString from '../../../../hooks/useQueryString';
+import useMutationToast from '../../../../hooks/useMutationToast';
 import { FetchDataContext } from '../../../../context/FetchDataProvider';
 import Pagination from '../../../../components/ui/Pagination';
-import useMutationToast from '../../../../hooks/useMutationToast';
-import { useTranslation } from 'react-i18next';
+import Avatar from '../../../../components/ui/Avatar';
+import Button from '../../../../components/ui/Button';
+import Card from '../../../../components/ui/Card';
+import EmptyState from '../../../../components/ui/EmptyState';
+import SectionHeading from '../../../../components/ui/SectionHeading';
+import { RowSkeleton } from '../../../../components/ui/Skeleton';
+import mediaUrl from '../../../../services/utils/media';
 
 function ChannelListLayout() {
   const { t } = useTranslation(['channel', 'common']);
@@ -19,127 +25,169 @@ function ChannelListLayout() {
   const [searchParams] = useSearchParams();
   const { user, updateShortcut } = useContext(FetchDataContext);
   const [createQueryString, deleteQueryString] = useQueryString();
-  const [searchValue, setSearchValue] = useState('');
-  const { data: channelsData, isSuccess: isSuccessChannels } =
-    useGetAllChannelsQuery(
-      `page=${searchParams.get('page') || 1}&search=${searchParams.get(
-        'search'
-      )}`
-    );
+  const [searchValue, setSearchValue] = useState(searchParams.get('search') || '');
+  const {
+    data: channelsData,
+    isSuccess: isSuccessChannels,
+    isLoading,
+  } = useGetAllChannelsQuery(
+    `page=${searchParams.get('page') || 1}&search=${searchParams.get('search')}`
+  );
   const [
     joinChannel,
     {
       data: joinData,
       isSuccess: isSuccessJoin,
-      isLoading: isLoadingJoin,
       isError: isErrorJoin,
       error: errorJoin,
     },
   ] = useJoinChannelMutation();
+  // Chỉ thẻ vừa được bấm mới quay, chứ không phải cả lưới: `isLoading` của
+  // mutation là một cờ dùng chung, gắn nó vào mọi nút thì bấm tham gia một
+  // channel sẽ làm toàn bộ danh sách hiện con quay cùng lúc.
+  const [joiningId, setJoiningId] = useState(null);
+
   const checkJoinMember = useCallback(
-    (channel) => {
-      return channel?.members?.map((m) => m._id).includes(user?._id);
-    },
+    (channel) => channel?.members?.map((m) => m._id).includes(user?._id),
     [user?._id]
   );
+
   const handleRedirect = useCallback(
     async (c) => {
       if (checkJoinMember(c)) {
         navigate(`/channels/${c?._id}`);
         updateShortcut(c?._id);
-      } else {
+        return;
+      }
+      setJoiningId(c?._id);
+      try {
         await joinChannel(c?._id);
+      } finally {
+        setJoiningId(null);
       }
     },
-    [user, joinChannel, navigate, updateShortcut]
+    [checkJoinMember, joinChannel, navigate, updateShortcut]
   );
-  const renderedChannels = useMemo(() => {
-    return (
+
+  const renderedChannels = useMemo(
+    () =>
       isSuccessChannels &&
       channelsData?.channels?.map((c) => {
+        const joined = checkJoinMember(c);
+        const cover = mediaUrl(c?.background);
         return (
-          <article className='flex gap-4' key={c._id}>
-            <div className='size-[60px] rounded-lg overflow-hidden'>
-              <img
-                className='w-full h-full object-cover'
-                src={`${import.meta.env.VITE_BACKEND_URL}/${
-                  c?.background?.url
-                }`}
-                alt={c?.background?.name}
-                {...{ fetchPriority: 'low' }}
-              />
+          <Card as='article' key={c._id} padded={false} className='overflow-hidden'>
+            <div className='relative h-24 bg-gradient-to-br from-ai-700 to-asagi-700'>
+              {cover ? (
+                <img
+                  className='size-full object-cover'
+                  src={cover}
+                  alt=''
+                  loading='lazy'
+                />
+              ) : (
+                <div
+                  className='fu-seigaiha size-full text-white opacity-[0.14]'
+                  aria-hidden='true'
+                />
+              )}
             </div>
-            <div className='w-full flex justify-between items-center gap-4'>
-              <div className='flex flex-col gap-1'>
-                <p className='font-bold md:text-lg'>{c?.name}</p>
-                <p className='font-medium'>
+            <div className='flex items-end gap-3 p-4'>
+              <Avatar
+                src={c?.background}
+                name={c?.name}
+                size='lg'
+                ring
+                className='-mt-9 rounded-xl ring-4'
+              />
+              <div className='min-w-0 flex-1'>
+                <h2 className='truncate font-bold text-fg'>{c?.name}</h2>
+                <p className='tnum truncate text-xs text-fg-subtle'>
                   {t('memberCount', { count: c?.members?.length || 0 })}
                 </p>
               </div>
-              <button
-                className={` px-4 py-2 rounded font-bold ${
-                  checkJoinMember(c)
-                    ? 'bg-neutral-200 dark:bg-neutral-700 dark:hover:bg-neutral-500 hover:bg-neutral-300'
-                    : 'bg-blue-500 text-neutral-100 hover:bg-blue-300'
-                } transition colors`}
+              <Button
+                size='sm'
+                variant={joined ? 'soft' : 'accent'}
+                icon={joined ? FaArrowRight : FaPlus}
+                loading={joiningId === c._id}
                 onClick={() => handleRedirect(c)}
               >
-                {checkJoinMember(c) ? t('detail.visit') : t('detail.join')}
-              </button>
+                {joined ? t('detail.visit') : t('detail.join')}
+              </Button>
             </div>
-          </article>
+          </Card>
         );
-      })
-    );
-  // `t` trong mảng phụ thuộc: đổi ngôn ngữ -> react-i18next trả `t` mới; thiếu
-  // nó thì danh sách đã memo hoá giữ chữ của ngôn ngữ cũ.
-  }, [isSuccessChannels, channelsData, user, t]);
+      }),
+    // `t` trong mảng phụ thuộc: đổi ngôn ngữ -> react-i18next trả `t` mới; thiếu
+    // nó thì danh sách đã memo hoá giữ chữ của ngôn ngữ cũ.
+    [isSuccessChannels, channelsData, checkJoinMember, handleRedirect, joiningId, t]
+  );
+
   useMutationToast({
     data: joinData,
     error: errorJoin,
     isSuccess: isSuccessJoin,
     isError: isErrorJoin,
   });
+
   return (
-    <Page>
-      <div
-        className='border border-neutral-300 dark:border-neutral-700 rounded-lg p-4 flex flex-col gap-8'
-        aria-disabled={isLoadingJoin}
+    <Page rail={false}>
+      <SectionHeading title={t('title')} />
+
+      <form
+        className='mt-5 flex gap-2'
+        onSubmit={(e) => {
+          e.preventDefault();
+          createQueryString('search', searchValue);
+        }}
       >
-        <h1 className='text-xl md:text-2xl font-bold'>{t('title')}</h1>
-        <div className='w-full flex justify-end items-center gap-2'>
+        <div className='relative min-w-0 flex-1 sm:max-w-sm'>
+          <FaMagnifyingGlass
+            className='pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle'
+            aria-hidden='true'
+          />
           <input
-            className='px-4 py-2 border border-neutral-300 dark:border-neutral-700 rounded dark:bg-neutral-800'
-            type='text'
+            className='h-10 w-full rounded-lg bg-surface pl-9 pr-3 text-sm text-fg ring-1 ring-inset ring-line transition-shadow placeholder:text-fg-subtle focus:ring-2 focus:ring-accent'
+            type='search'
             placeholder={t('searchPlaceholder')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
           />
-          <button
-            className='px-4 py-2 font-bold bg-neutral-700 text-white rounded'
-            onClick={deleteQueryString}
-          >{t('common:actions.reset')}</button>
-          <button
-            className='px-4 py-2 font-bold bg-blue-500 rounded text-neutral-100'
-            onClick={() => createQueryString('search', searchValue)}
-          >{t('common:actions.search')}</button>
         </div>
-        <div>
-          {isSuccessChannels && channelsData?.channels?.length > 0 && (
-            <div className='flex flex-col gap-4'>{renderedChannels}</div>
-          )}
-          {isSuccessChannels && channelsData?.channels?.length === 0 && (
-            <div className='w-full flex justify-center items-center text-lg md:text-xl font-bold'>
-              <p>{t('empty')}</p>
+        <Button type='submit'>{t('common:actions.search')}</Button>
+        <Button
+          type='button'
+          variant='ghost'
+          onClick={() => {
+            setSearchValue('');
+            deleteQueryString();
+          }}
+        >
+          {t('common:actions.reset')}
+        </Button>
+      </form>
+
+      <div className='mt-6'>
+        {isLoading ? (
+          <div aria-hidden='true' className='flex flex-col gap-2'>
+            <RowSkeleton />
+            <RowSkeleton />
+            <RowSkeleton />
+          </div>
+        ) : channelsData?.channels?.length > 0 ? (
+          <>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3'>
+              {renderedChannels}
             </div>
-          )}
-          {isSuccessChannels && channelsData?.totalPage > 1 && (
             <Pagination
               curPage={searchParams.get('page') || 1}
               totalPage={channelsData?.totalPage}
             />
-          )}
-        </div>
+          </>
+        ) : (
+          <EmptyState icon={FaLayerGroup} title={t('empty')} />
+        )}
       </div>
     </Page>
   );

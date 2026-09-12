@@ -1,172 +1,91 @@
 import { useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FetchDataContext } from '../../context/FetchDataProvider';
-import { icons } from '../../assets/icons';
 import { useNavigate } from 'react-router-dom';
-import { scrollElement } from '../../services/utils/scrollElement';
+import { FaChevronRight } from 'react-icons/fa6';
+import { FetchDataContext } from '../../context/FetchDataProvider';
 import { useGetShortcutsQuery } from '../../services/redux/query/api/channelsApi';
+import Avatar from '../../components/ui/Avatar';
+import { RowSkeleton } from '../../components/ui/Skeleton';
+import NavSections from './NavSections';
 
+/**
+ * Cột điều hướng trái (từ breakpoint lg trở lên).
+ *
+ * Bản cũ là mười hai khối <button> chép tay gọi `navigate()`, không có trạng
+ * thái đang chọn, và biểu tượng nhồi bằng `dangerouslySetInnerHTML`. Giờ là
+ * <NavLink> thật: bấm giữa chuột mở tab mới được, trình đọc màn hình biết
+ * đang ở trang nào.
+ */
 function LeftAside() {
   const { t } = useTranslation('nav');
   const { user, updateShortcut } = useContext(FetchDataContext);
   const navigate = useNavigate();
-  const { data: shortcutsData, isSuccess: isSuccessShortcuts } =
-    useGetShortcutsQuery();
-  const handleRedirect = useCallback(
-    (link) => {
-      scrollElement();
-      navigate(link);
-    },
-    [navigate]
-  );
+  const { data: shortcutsData, isLoading, isSuccess } = useGetShortcutsQuery();
+
   const handleRedirectShortcut = useCallback(
     (s) => {
       updateShortcut(s?.channel?._id);
-      navigate(`/channels/${s?.channel._id}`);
+      navigate(`/channels/${s?.channel?._id}`);
     },
     [updateShortcut, navigate]
   );
+
+  const shortcuts = isSuccess ? shortcutsData?.shortcuts ?? [] : [];
+
   return (
-    <section className='fixed top-0 left-0 mt-[72px] pb-8 w-[350px] h-[95vh] px-4 font-medium hidden lg:flex flex-col gap-8 overflow-y-auto'>
-      <div className='pb-6 border-b border-neutral-300'>
-        <button
-          className='p-2 w-full flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/profile/${user?._id}`)}
-        >
-          <img
-            className='size-[40px] rounded-full object-cover'
-            src={`${import.meta.env.VITE_BACKEND_URL}/${user?.avatar?.url}`}
-            alt={user?.username}
-          />
-          <p className='font-bold'>{user?.username}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/search`)}
-        >
-          <span dangerouslySetInnerHTML={{ __html: icons.search_icon }}></span>
-          <p>{t('search')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/profile/${user?._id}`)}
-        >
-          <span dangerouslySetInnerHTML={{ __html: icons.user_icon }}></span>
-          <p>{t('profile')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/resume`)}
-        >
-          <span dangerouslySetInnerHTML={{ __html: icons.resume_icon }}></span>
-          <p>{t('resume')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/recruitment`)}
-        >
-          <span
-            dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}
-          ></span>
-          <p>{t('recruitment')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/match`)}
-        >
-          <span
-            dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}
-          ></span>
-          <p>{t('match')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/match/whatif`)}
-        >
-          <span
-            dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}
-          ></span>
-          <p>{t('whatif')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect(`/market`)}
-        >
-          <span
-            dangerouslySetInnerHTML={{ __html: icons.recruitment_icon }}
-          ></span>
-          <p>{t('market')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect('/channels')}
-        >
-          <span dangerouslySetInnerHTML={{ __html: icons.channel_icon }}></span>
-          <p>{t('channels')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() => handleRedirect('/bookmarks')}
-        >
-          <span
-            dangerouslySetInnerHTML={{ __html: icons.book_mark_icon }}
-          ></span>
-          <p>{t('bookmark')}</p>
-        </button>
-        <button
-          className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-          onClick={() =>
-            handleRedirect(
-              `/${
-                user?.role?.value === 1 ? 'admin/settings' : 'users/settings'
-              }`
-            )
-          }
-        >
-          <span
-            dangerouslySetInnerHTML={{ __html: icons.settings_icon }}
-          ></span>
-          <p>{t('settings')}</p>
-        </button>
-        {user?.role?.value === 1 && (
-          <button
-            className='p-2 w-full h-[56px] flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded'
-            onClick={() => handleRedirect(`/admin/management`)}
-          >
-            <span
-              dangerouslySetInnerHTML={{ __html: icons.management_icon }}
-            ></span>
-            <p>{t('management')}</p>
-          </button>
+    <aside className='sticky top-header hidden h-[calc(100vh-theme(spacing.header))] shrink-0 overflow-y-auto overscroll-contain border-r border-line px-3 py-5 lg:block'>
+      <button
+        type='button'
+        className='mb-4 flex w-full items-center gap-3 rounded-card bg-surface p-2.5 text-left ring-1 ring-inset ring-line transition-colors hover:bg-surface-2'
+        onClick={() => navigate(`/profile/${user?._id}`)}
+      >
+        <Avatar src={user?.avatar} name={user?.username} size='md' />
+        <span className='min-w-0 flex-1'>
+          <span className='block truncate text-sm font-bold text-fg'>
+            {user?.username}
+          </span>
+          <span className='block truncate text-xs text-fg-subtle'>
+            {t('profile')}
+          </span>
+        </span>
+        <FaChevronRight className='size-3 shrink-0 text-fg-subtle' aria-hidden='true' />
+      </button>
+
+      <NavSections user={user} />
+
+      <div className='mt-6 border-t border-line pt-4'>
+        <h2 className='mb-1.5 px-3.5 text-2xs font-bold uppercase tracking-wider text-fg-subtle'>
+          {t('shortcuts')}
+        </h2>
+        {isLoading && (
+          <div aria-hidden='true'>
+            <RowSkeleton />
+            <RowSkeleton />
+          </div>
         )}
-      </div>
-      <div className='flex flex-col gap-4'>
-        <p>{t('shortcuts')}</p>
-        <div>
-          {isSuccessShortcuts &&
-            shortcutsData?.shortcuts?.map((s) => {
-              return (
-                <article
-                  key={s._id}
-                  className='flex items-center gap-4 hover:bg-neutral-100 dark:hover:bg-neutral-700 p-2 rounded transition-colors cursor-pointer'
-                  onClick={() => handleRedirectShortcut(s)}
-                >
-                  <div className='size-[42px] rounded-full overflow-hidden'>
-                    <img
-                      className='w-full h-full object-cover'
-                      src={`${import.meta.env.VITE_BACKEND_URL}/${
-                        s?.channel?.background?.url
-                      }`}
-                      alt={s?.channel?.background?.name}
-                    />
-                  </div>
-                  <p>{s?.channel?.name}</p>
-                </article>
-              );
-            })}
+        {!isLoading && shortcuts.length === 0 && (
+          <p className='px-3.5 py-2 text-xs text-fg-subtle'>{t('noShortcuts')}</p>
+        )}
+        <div className='flex flex-col gap-0.5'>
+          {shortcuts.map((s) => (
+            <button
+              key={s._id}
+              type='button'
+              className='flex items-center gap-3 rounded-lg py-2 pl-3.5 pr-3 text-left text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg'
+              onClick={() => handleRedirectShortcut(s)}
+            >
+              <Avatar
+                src={s?.channel?.background}
+                name={s?.channel?.name}
+                size='sm'
+                className='rounded-lg'
+              />
+              <span className='truncate'>{s?.channel?.name}</span>
+            </button>
+          ))}
         </div>
       </div>
-    </section>
+    </aside>
   );
 }
 

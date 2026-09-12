@@ -8,7 +8,9 @@
     "addToPost": "投稿に追加",
     "addImage": "画像を追加",
     "submit": "投稿する",
-    "imageAlt": "添付画像{{index}}"
+    "imageAlt": "添付画像{{index}}",
+    "removeImage": "画像を外す",
+    "expand": "投稿を書く"
   },
   "update": {
     "title": "投稿を編集",
@@ -37,5 +39,10 @@
   "count": {
     "like_other": "いいね {{count}}件",
     "comment_other": "コメント {{count}}件"
+  },
+  "comments": {
+    "placeholder": "コメントを書く…",
+    "empty": "まだコメントはありません",
+    "showAll_other": "コメントをすべて見る（{{count}}件）"
   }
 }

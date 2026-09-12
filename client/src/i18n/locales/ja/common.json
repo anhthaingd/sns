@@ -54,6 +54,7 @@
     "imageAlt": "ページが見つかりません"
   },
   "upload": {
-    "imageHint": "（利用できる画像形式は *.jpeg / *.webp / *.png のみです）"
+    "imageHint": "（利用できる画像形式は *.jpeg / *.webp / *.png のみです）",
+    "dropHere": "画像をドロップ、またはクリックして選択"
   }
 }

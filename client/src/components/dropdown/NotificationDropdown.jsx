@@ -1,12 +1,23 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { useGetNotificationsQuery, useReadNotificationMutation } from '../../services/redux/query/api/notificationsApi';
-import { notificationText } from '../../services/utils/notificationText';
-import { formatDistance } from 'date-fns';
-import { currentDateLocale } from '../../i18n/dateLocale';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { formatDistance } from 'date-fns';
+import { FaBellSlash } from 'react-icons/fa6';
+import {
+  useGetNotificationsQuery,
+  useReadNotificationMutation,
+} from '../../services/redux/query/api/notificationsApi';
+import { notificationText } from '../../services/utils/notificationText';
+import { currentDateLocale } from '../../i18n/dateLocale';
 import { DropdownContext } from '../../context/NotificationProvider';
 import useObserver from '../../hooks/useObserver';
-import { useTranslation } from 'react-i18next';
+import Popover from '../ui/Popover';
+import Avatar from '../ui/Avatar';
+import Spinner from '../ui/Spinner';
+import cn from '../../services/utils/cn';
+
+/** Bao lâu thì hỏi lại máy chủ xem có thông báo mới không. */
+const REFRESH_MS = 60_000;
 
 function NotificationDropdown({ setNotReadNotifications }) {
   const { t } = useTranslation(['chat', 'common', 'error']);
@@ -15,7 +26,6 @@ function NotificationDropdown({ setNotReadNotifications }) {
   const [hasMore, setHasMore] = useState(true);
   const [curPage, setCurPage] = useState(1);
   const [notifications, setNotifications] = useState([]);
-  const [notificationHover, setNotificationHover] = useState(null);
   const {
     data: notificationsData,
     isSuccess: isSuccessNotifications,
@@ -31,41 +41,31 @@ function NotificationDropdown({ setNotReadNotifications }) {
   );
   const [readNotification, { isSuccess: isSuccessRead }] =
     useReadNotificationMutation();
+
+  // Số chưa đọc cập nhật NGAY khi dữ liệu về, không chờ người dùng mở bảng.
+  // Bản cũ bọc cả khối này trong `if (state.visibleNotificationDropdown)`, nên
+  // chấm đỏ trên chuông chỉ xuất hiện sau lần mở bảng đầu tiên — tức là đúng
+  // lúc nó không còn tác dụng gì nữa.
   useEffect(() => {
-    if (state.visibleNotificationDropdown) {
-      if (isSuccessNotifications && notificationsData) {
-        setNotifications((prevNotifications) => {
-          if (curPage === 1) {
-            return [...(notificationsData?.notifications || [])];
-          } else {
-            return [
-              ...new Set([
-                ...prevNotifications,
-                ...(notificationsData?.notifications || []),
-              ]),
-            ];
-          }
-        });
-        setNotReadNotifications(notificationsData?.notRead);
-        if (notificationsData?.totalPage === curPage) {
-          setHasMore(false);
-        }
-      }
-    }
-  }, [
-    isSuccessNotifications,
-    notificationsData,
-    curPage,
-    state.visibleNotificationDropdown,
-  ]);
+    if (!isSuccessNotifications || !notificationsData) return;
+    setNotReadNotifications(notificationsData?.notRead);
+    setNotifications((prev) =>
+      curPage === 1
+        ? [...(notificationsData?.notifications || [])]
+        : [...new Set([...prev, ...(notificationsData?.notifications || [])])]
+    );
+    if (notificationsData?.totalPage === curPage) setHasMore(false);
+  }, [isSuccessNotifications, notificationsData, curPage, setNotReadNotifications]);
+
   const handleRedirect = useCallback(
     (notification) => {
-      notification?.url !== null && navigate(`/${notification?.url}`);
+      if (notification?.url !== null) navigate(`/${notification?.url}`);
       closeAllDropdown();
       readNotification(notification._id);
     },
     [navigate, closeAllDropdown, readNotification]
   );
+
   useEffect(() => {
     if (isSuccessRead) {
       setCurPage(1);
@@ -73,80 +73,78 @@ function NotificationDropdown({ setNotReadNotifications }) {
       setHasMore(true);
     }
   }, [isSuccessRead]);
+
   useEffect(() => {
-    const refetch = setInterval(() => {
+    const refresh = setInterval(() => {
       setCurPage(1);
       setNotifications([]);
       setHasMore(true);
       refetchNotifications();
-    }, [60000]);
-    return () => clearInterval(refetch);
-  }, []);
+    }, REFRESH_MS);
+    return () => clearInterval(refresh);
+  }, [refetchNotifications]);
+
   return (
-    <div
-      className={`absolute w-[380px] right-0 my-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden shadow-lg ${
-        state.visibleNotificationDropdown ? 'h-[90vh]' : 'h-0'
-      } transition-all duration-200`}
+    <Popover
+      open={Boolean(state.visibleNotificationDropdown)}
+      onClose={closeAllDropdown}
+      title={t('notifications.title')}
     >
-      <div className='p-4'>
-        <h2 className='text-lg font-bold'>{t('notifications.title')}</h2>
-      </div>
-      <div className='p-4 max-h-[80vh] overflow-y-auto'>
-        {notifications?.length === 0 && (
-          <div>
-            <p>{t('notifications.empty')}</p>
-          </div>
-        )}
-        <div className='flex flex-col gap-4'>
-          {notifications?.map((n) => (
-            <article
-              key={n._id}
-              className={`px-2 py-4 flex gap-2 rounded-lg cursor-pointer ${
-                notificationHover === n._id
-                  ? 'bg-neutral-200 dark:bg-neutral-600'
-                  : ''
-              }`}
-              onMouseEnter={() => setNotificationHover(n._id)}
-              onMouseLeave={() => setNotificationHover(null)}
-              onClick={() => handleRedirect(n)}
-            >
-              <div className='w-1/6 overflow-hidden'>
-                <img
-                  className='size-[42px] rounded-full object-cover'
-                  src={`${import.meta.env?.VITE_BACKEND_URL}/${
-                    n.seeder.avatar.url
-                  }`}
-                  alt={n.seeder.username}
-                />
-              </div>
-              <div className='w-5/6 text-base flex items-center gap-2'>
-                <div className='w-5/6 flex flex-col gap-2'>
-                  <p>{notificationText(t, n)}</p>
-                  <p className={`text-sm ${n.isRead ? '' : 'text-blue-500'}`}>
-                    {formatDistance(
-                      new Date(n?.created_at),
-                      new Date(Date.now()),
-                      {
-                        addSuffix: true,
-                        locale: currentDateLocale(),
-                      }
-                    )}
-                  </p>
-                </div>
-                {!n.isRead && (
-                  <div className='w-1/12 flex justify-end'>
-                    <span className='relative after:absolute after:w-2 after:h-2 after:bg-blue-500 after:rounded-full'></span>
-                  </div>
-                )}
-              </div>
-            </article>
-          ))}
+      {notifications.length === 0 ? (
+        <div className='flex flex-col items-center gap-2 px-4 py-10 text-center'>
+          <FaBellSlash className='size-6 text-fg-subtle' aria-hidden='true' />
+          <p className='text-sm text-fg-muted'>{t('notifications.empty')}</p>
         </div>
-        {hasMore && (
-          <div className='text-center my-4' ref={itemRef}>{t('common:status.loadingMore')}</div>
-        )}
-      </div>
-    </div>
+      ) : (
+        <ul className='flex flex-col gap-0.5'>
+          {notifications.map((n) => (
+            <li key={n._id}>
+              <button
+                type='button'
+                className={cn(
+                  'flex w-full items-start gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-surface-2',
+                  !n.isRead && 'bg-accent-soft/60'
+                )}
+                onClick={() => handleRedirect(n)}
+              >
+                <Avatar
+                  src={n?.seeder?.avatar}
+                  name={n?.seeder?.username}
+                  size='md'
+                />
+                <span className='min-w-0 flex-1'>
+                  <span className='block text-sm leading-snug text-fg'>
+                    {notificationText(t, n)}
+                  </span>
+                  <span className='mt-0.5 block text-2xs text-fg-subtle'>
+                    {formatDistance(new Date(n?.created_at), new Date(Date.now()), {
+                      addSuffix: true,
+                      locale: currentDateLocale(),
+                    })}
+                  </span>
+                </span>
+                {!n.isRead && (
+                  <span
+                    className='mt-2 size-2 shrink-0 rounded-full bg-accent'
+                    aria-hidden='true'
+                  />
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {hasMore && notifications.length > 0 && (
+        <div
+          ref={itemRef}
+          className='flex items-center justify-center gap-2 py-4 text-xs text-fg-subtle'
+        >
+          <Spinner className='size-3.5' />
+          {t('common:status.loadingMore')}
+        </div>
+      )}
+    </Popover>
   );
 }
 

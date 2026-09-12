@@ -79,7 +79,7 @@ async def test_admin_sees_admin_menu(page, db):
     await register_via_ui(page, email, username="admin e2e")
     await promote_to_admin(db, email)
     await login_via_ui(page, email)
-    await page.get_by_role("button", name=tr("nav", "management")).wait_for(timeout=20000)
+    await page.get_by_role("link", name=tr("nav", "management")).wait_for(timeout=20000)
 
 
 async def test_channel_join_and_post_flow(page, browser, db):
@@ -127,7 +127,10 @@ async def test_channel_join_and_post_flow(page, browser, db):
 
         await user_page.goto(f"{APP_URL}/channels/{channel['_id']}", wait_until="domcontentloaded")
         content = f"e2e post {uuid.uuid4().hex[:6]}"
-        # CreatePost dùng ReactQuill -> ô nhập là contenteditable .ql-editor, không phải <input>.
+        # Ô soạn bài mặc định thu gọn thành một dòng để bài viết mới nhất không
+        # bị đẩy xuống dưới nếp gấp; bấm vào nó mới mở trình soạn thảo ra.
+        await user_page.locator("[data-testid='composer-open']").first.click()
+        # PostComposer dùng ReactQuill -> ô nhập là contenteditable .ql-editor, không phải <input>.
         editor = user_page.locator(".ql-editor").first
         try:
             await editor.wait_for(timeout=30000)
@@ -191,6 +194,8 @@ async def test_client_connects_to_socketio_and_receives_new_message(page, db):
 
     await page.reload(wait_until="domcontentloaded")
     await page.wait_for_timeout(4000)
+    await page.get_by_role("button", name=tr("nav", "messages")).click()
+    await page.wait_for_timeout(1000)
     body = await page.inner_text("body")
     assert "alice e2e" in body, f"tin nhắn mới không hiện trên UI. body={body[:400]}"
 
@@ -415,7 +420,7 @@ async def test_switching_language_changes_the_whole_interface(page, db):
     await login_via_ui(page, email)
 
     # Mặc định (UI_LANG) hiển thị đúng.
-    await page.get_by_role("button", name=tr("nav", "resume")).first.wait_for(timeout=30000)
+    await page.get_by_role("link", name=tr("nav", "resume")).first.wait_for(timeout=30000)
 
     # Đổi sang tiếng Việt bằng chính nút trên thanh header.
     await page.get_by_role("button", name="VI", exact=True).click()

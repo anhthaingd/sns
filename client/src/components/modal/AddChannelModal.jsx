@@ -1,28 +1,21 @@
-import Modal from '@/modal';
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { IoCloudUploadOutline } from 'react-icons/io5';
-import { FaXmark } from 'react-icons/fa6';
+import { useCallback, useContext, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ModalContext } from '../../context/ModalProvider';
-import useClickOutside from '../../hooks/useClickOutside';
 import { useCreateChannelMutation } from '../../services/redux/query/api/channelsApi';
 import useMutationToast from '../../hooks/useMutationToast';
-import { useTranslation } from 'react-i18next';
+import Dialog from '../ui/Dialog';
+import Button from '../ui/Button';
+import Field from '../ui/Field';
+import Input from '../ui/Input';
+import Textarea from '../ui/Textarea';
+import ImageUpload from '../ui/ImageUpload';
+
+const EMPTY = { name: '', intro: '', background: null };
+
 function AddChannelModal() {
   const { t } = useTranslation(['channel', 'common']);
   const { state, setVisibleModal } = useContext(ModalContext);
-  const [modalRef, clickOutside] = useClickOutside();
-  const imgRef = useRef();
-  const [form, setForm] = useState({
-    name: '',
-    intro: '',
-    background: null,
-  });
+  const [form, setForm] = useState(EMPTY);
   const [
     createChannel,
     {
@@ -33,168 +26,85 @@ function AddChannelModal() {
       error: errorPost,
     },
   ] = useCreateChannelMutation();
-  const handleUploadImg = () => {
-    if (imgRef?.current) {
-      imgRef.current.click();
-    }
-  };
-  const handleFileSelected = (e) => {
-    const file = e.target.files?.[0];
-    setForm({ ...form, background: file });
-  };
+
+  const close = useCallback(
+    () => setVisibleModal('visibleAddChannelModal'),
+    [setVisibleModal]
+  );
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
       const data = new FormData();
       data.append('name', form.name);
       data.append('intro', form.intro);
-      form.background && data.append('images', form.background);
+      if (form.background) data.append('images', form.background);
       await createChannel(data);
     },
     [createChannel, form]
   );
-  useEffect(() => {
-    if (state.visibleAddChannelModal) {
-      setForm({
-        name: '',
-        background: null,
-        intro: '',
-      });
-    }
-  }, [state.visibleAddChannelModal]);
-  useMutationToast({
-    data: postData,
-    error: errorPost,
-    isSuccess: isSuccessPost,
-    isError: isErrorPost,
-  });
-  return (
-    <Modal>
-      <section
-        style={{ backgroundColor: 'rgba(51,51,51,0.9)' }}
-        className={`fixed right-0 top-0 w-full h-full z-[100] flex justify-end overflow-hidden transition-all duration-200 ${
-          state.visibleAddChannelModal ? 'translate-x-0' : 'translate-x-[100%]'
-        } `}
-        onClick={clickOutside}
-        aria-disabled={isLoadingPost}
-      >
-        <form
-          className='w-full lg:w-1/2 h-full bg-slate-50 dark:bg-neutral-800 dark:text-neutral-100 flex flex-col gap-12'
-          ref={modalRef}
-          onSubmit={handleSubmit}
-        >
-          <div className='px-4 py-4 sm:py-6 flex justify-between items-center gap-4 bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-100'>
-            <h1 className='text-xl sm:text-2xl font-bold'>{t('add.title')}</h1>
-            <button
-              type='button'
-              aria-label={t('common:actions.closeModal')}
-              onClick={() => setVisibleModal('visibleAddChannelModal')}
-            >
-              <FaXmark className='text-2xl sm:text-3xl' />
-            </button>
-          </div>
-          <div className='h-full flex flex-col gap-6 p-4 overflow-y-auto'>
-            <div className='grid grid-cols-6 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6'>
-              <label
-                htmlFor='background'
-                className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >{t('field.background')}</label>
-              <div className='col-span-8 sm:col-span-4 flex flex-col gap-4'>
-                <div className='border-2 border-dotted border-neutral-300 rounded-lg'>
-                  <div
-                    className='w-full h-full p-4 cursor-pointer flex flex-col items-center gap-2'
-                    role='presentation'
-                    onClick={handleUploadImg}
-                  >
-                    <IoCloudUploadOutline className='text-2xl text-blue-500' />
-                    <p className='font-bold'>{t('add.uploadHere')}</p>
-                    <p className='italic text-sm'>
-                      {t('common:upload.imageHint')}
-                    </p>
-                  </div>
-                  <input
-                    ref={imgRef}
-                    accept='image/*,.jpeg,.jpg,.png,.webp'
-                    type='file'
-                    style={{ display: 'none' }}
-                    onChange={handleFileSelected}
-                  />
-                </div>
-                {form?.background && (
-                  <div className='relative w-[96px] h-[96px]'>
-                    <img
-                      className='w-full h-full object-cover'
-                      src={URL.createObjectURL(form.background)}
-                      alt={form.background.name}
-                      {...{ fetchPriority: 'low' }}
-                    />
-                    <button
-                      className='absolute top-1 right-1 border border-red-500 text-red-500 rounded-full p-1'
-                      aria-label={t('add.removeImage')}
-                      type='button'
-                      onClick={() =>
-                        setForm({
-                          ...form,
-                          background: null,
-                        })
-                      }
-                    >
-                      <FaXmark />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className='grid grid-cols-6 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6'>
-              <label
-                htmlFor='name'
-                className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >{t('field.name')}</label>
-              <div className='col-span-8 sm:col-span-4'>
-                <input
-                  id='name'
-                  name='name'
-                  className='block w-full h-12 border px-3 py-1 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200'
-                  type='text'
-                  placeholder={t('add.namePlaceholder')}
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className='grid grid-cols-6 gap-3 md:gap-5 xl:gap-6 lg:gap-6 mb-6'>
-              <label
-                htmlFor='intro'
-                className='block text-sm col-span-4 sm:col-span-2 font-medium'
-              >{t('field.intro')}</label>
-              <div className='col-span-8 sm:col-span-4'>
-                <textarea
-                  id='intro'
-                  name='name'
-                  className='block w-full h-12 border p-3 text-sm leading-5 rounded-md bg-gray-100 dark:bg-neutral-800 focus:border-gray-200 border-gray-200'
-                  placeholder={t('add.introPlaceholder')}
-                  value={form.intro}
-                  onChange={(e) => setForm({ ...form, intro: e.target.value })}
-                  rows={5}
-                />
-              </div>
-            </div>
 
-            <div className='mt-auto flex justify-end items-stretch gap-4 font-bold'>
-              <button
-                type='button'
-                className='border border-neutral-700 rounded px-4 py-2 hover:border-red-300 hover:text-red-400 transition-colors'
-                onClick={() => setVisibleModal('visibleAddChannelModal')}
-              >{t('common:actions.cancel')}</button>
-              <button
-                type='submit'
-                className='bg-neutral-700 text-white rounded px-4 py-2 hover:bg-blue-500 transition-colors'
-              >{t('add.title')}</button>
-            </div>
-          </div>
-        </form>
-      </section>
-    </Modal>
+  useMutationToast(
+    { data: postData, error: errorPost, isSuccess: isSuccessPost, isError: isErrorPost },
+    {
+      onSuccess: () => {
+        setForm(EMPTY);
+        close();
+      },
+    }
+  );
+
+  return (
+    <Dialog
+      open={Boolean(state.visibleAddChannelModal)}
+      onClose={close}
+      title={t('add.title')}
+      busy={isLoadingPost}
+      footer={
+        <>
+          <Button variant='outline' onClick={close} disabled={isLoadingPost}>
+            {t('common:actions.cancel')}
+          </Button>
+          <Button form='fu-add-channel' type='submit' loading={isLoadingPost}>
+            {t('common:actions.add')}
+          </Button>
+        </>
+      }
+    >
+      <form id='fu-add-channel' className='flex flex-col gap-4' onSubmit={handleSubmit}>
+        <Field label={t('field.background')}>
+          <ImageUpload
+            value={form.background}
+            onChange={(file) => setForm((prev) => ({ ...prev, background: file }))}
+            onRemove={() => setForm((prev) => ({ ...prev, background: null }))}
+          />
+        </Field>
+
+        <Field label={t('field.name')} required>
+          {(aria) => (
+            <Input
+              {...aria}
+              required
+              placeholder={t('add.namePlaceholder')}
+              value={form.name}
+              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+            />
+          )}
+        </Field>
+
+        <Field label={t('field.intro')}>
+          {(aria) => (
+            <Textarea
+              {...aria}
+              rows={3}
+              placeholder={t('add.introPlaceholder')}
+              value={form.intro}
+              onChange={(e) => setForm((prev) => ({ ...prev, intro: e.target.value }))}
+            />
+          )}
+        </Field>
+      </form>
+    </Dialog>
   );
 }
 

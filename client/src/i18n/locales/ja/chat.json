@@ -13,7 +13,9 @@
     "send": "送信",
     "close": "チャットを閉じる",
     "loadingOlder": "以前のメッセージを読み込んでいます…",
-    "videoCall": "ビデオ通話"
+    "videoCall": "ビデオ通話",
+    "minimize": "最小化",
+    "open": "開く"
   },
   "video": {
     "ended": "通話が終了しました",

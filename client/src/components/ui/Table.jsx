@@ -1,59 +1,49 @@
-import { useCallback, useMemo } from 'react';
-import ReactPaginate from 'react-paginate';
-import { TbChevronLeft, TbChevronRight } from 'react-icons/tb';
-import useQueryString from '../../hooks/useQueryString';
+import { useMemo } from 'react';
+import cn from '../../services/utils/cn';
+import Pagination from './Pagination';
+
+/**
+ * Bảng dữ liệu cho các trang quản trị.
+ *
+ * Điểm khác bản cũ:
+ *   - Hàng tiêu đề DÍNH khi cuộn dọc, nên cuộn tới hàng thứ 40 vẫn biết cột nào
+ *     là cột nào.
+ *   - Chỉ có đường kẻ NGANG giữa các hàng. Kẻ ô đầy đủ làm mắt phải nhảy qua
+ *     lưới mới đọc được một dòng.
+ *   - Phần phân trang dùng chung component `Pagination`, thay vì cấu hình
+ *     react-paginate lần thứ hai với kiểu dáng khác hẳn.
+ */
 const Table = ({ tHeader, renderedData, totalPage, currPage, customClass }) => {
-  const [createQueryString] = useQueryString();
-  const handlePageClick = useCallback(
-    (selectedItem) => {
-      createQueryString('page', selectedItem.selected + 1);
-    },
-    [createQueryString]
-  );
-  const tdHeader = useMemo(() => {
-    return tHeader.map((h, index) => {
-      return (
-        <td key={index} className='p-4'>
+  const tdHeader = useMemo(
+    () =>
+      tHeader.map((h, index) => (
+        <th
+          key={index}
+          scope='col'
+          className='whitespace-nowrap px-4 py-3 text-left text-2xs font-bold uppercase tracking-wider text-fg-subtle'
+        >
           {h}
-        </td>
-      );
-    });
-  }, [tHeader]);
+        </th>
+      )),
+    [tHeader]
+  );
+
   return (
-    <div className='w-full rounded-lg border border-neutral-300 dark:border-neutral-700 overflow-x-auto overflow-y-auto'>
-      <table
-        className={`relative w-full h-full whitespace-nowrap ${
-          customClass ? customClass : ''
-        }`}
-      >
-        <thead className='text-xs font-semibold tracking-wide text-left text-neutral-700 dark:text-neutral-100 uppercase border-b border-neutral-300 dark:border-neutral-700'>
-          <tr className='text-center font-bold uppercase'>{tdHeader}</tr>
-        </thead>
-        <tbody>{renderedData}</tbody>
-      </table>
-      {currPage && totalPage && totalPage > 1 && (
-        <ReactPaginate
-          forcePage={Number(currPage) - 1}
-          className='my-2 mx-4 flex justify-end items-center gap-[10px] font-bold text-neutral-700 dark:text-neutral-100 py-2'
-          nextLabel={
-            <TbChevronRight className='text-neutral-700 dark:text-neutral-100' />
-          }
-          onPageChange={handlePageClick}
-          pageRangeDisplayed={2}
-          marginPagesDisplayed={2}
-          pageCount={totalPage}
-          previousLabel={
-            <TbChevronLeft className='text-neutral-700 dark:text-neutral-100' />
-          }
-          pageClassName='text-sm w-[32px] h-[32px] flex justify-center items-center cursor-pointer'
-          pageLinkClassName='w-full h-full flex justify-center items-center'
-          nextClassName='text-neutral-700 dark:text-neutral-100'
-          breakLabel='...'
-          breakClassName='page-item'
-          containerClassName='pagination'
-          activeClassName='bg-neutral-700 dark:bg-neutral-200 rounded-[4px] dark:text-neutral-700 text-neutral-100'
-          renderOnZeroPageCount={null}
-        />
+    <div className='overflow-hidden rounded-card bg-surface ring-1 ring-inset ring-line'>
+      <div className='max-h-[70vh] overflow-auto'>
+        <table className={cn('w-full text-sm', customClass)}>
+          <thead className='sticky top-0 z-10 bg-surface-2 shadow-[0_1px_0_rgb(var(--fu-line))]'>
+            <tr>{tdHeader}</tr>
+          </thead>
+          <tbody className='divide-y divide-line [&>tr:hover]:bg-surface-2'>
+            {renderedData}
+          </tbody>
+        </table>
+      </div>
+      {currPage && totalPage > 1 && (
+        <div className='border-t border-line px-2 pb-2'>
+          <Pagination curPage={currPage} totalPage={totalPage} />
+        </div>
       )}
     </div>
   );

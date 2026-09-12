@@ -1,12 +1,27 @@
 import { useTranslation } from 'react-i18next';
+import { FaChartColumn } from 'react-icons/fa6';
 import Page from '../../Page';
+import Card from '../../../components/ui/Card';
 import Loading from '../../../components/ui/Loading';
-import { serverMessage } from '../../../services/utils/serverMessage';
+import EmptyState from '../../../components/ui/EmptyState';
+import SectionHeading from '../../../components/ui/SectionHeading';
 import BarChart from '../../../components/ui/BarChart';
+import { serverMessage } from '../../../services/utils/serverMessage';
 import { useGetJobMarketQuery } from '../../../services/redux/query/api/jobsApi';
 import { formatSalary } from '../../../services/utils/jobFormat';
 
 const OTHER = '__other__';
+
+/** Một khối biểu đồ có tiêu đề và phần chú thích tuỳ chọn bên dưới. */
+function ChartSection({ title, children, note }) {
+  return (
+    <Card className='flex flex-col gap-3'>
+      <h2 className='text-base font-bold text-fg'>{title}</h2>
+      {children}
+      {note && <p className='text-xs leading-relaxed text-fg-subtle'>{note}</p>}
+    </Card>
+  );
+}
 
 function MarketLayout() {
   const { t } = useTranslation(['market', 'job', 'common']);
@@ -30,15 +45,18 @@ function MarketLayout() {
   if (isLoading) return <Loading />;
   if (isError) {
     return (
-      <Page>
-        <p className='p-4'>{serverMessage(t, error?.data, 'loadFailed')}</p>
+      <Page rail={false}>
+        <EmptyState
+          icon={FaChartColumn}
+          title={serverMessage(t, error?.data, 'loadFailed')}
+        />
       </Page>
     );
   }
   if (!isSuccess || data.totalJobs === 0) {
     return (
-      <Page>
-        <p className='p-4'>{t('empty')}</p>
+      <Page rail={false}>
+        <EmptyState icon={FaChartColumn} title={t('empty')} />
       </Page>
     );
   }
@@ -49,18 +67,26 @@ function MarketLayout() {
   const otherSkills = data.skills.find((s) => s.skill === OTHER);
 
   return (
-    <Page>
-      <div className='border border-neutral-300 dark:border-neutral-700 rounded-lg p-4 flex flex-col gap-8'>
-        <div className='flex flex-col gap-2'>
-          <h1 className='text-xl md:text-2xl font-bold'>{t('title')}</h1>
-          <p>{t('intro', { total: data.totalJobs })}</p>
-          <p className='text-sm text-neutral-500'>
-            {t('caveat', { min: data.minGroupSize })}
-          </p>
-        </div>
+    <Page rail={false}>
+      <SectionHeading
+        title={t('title')}
+        description={t('intro', { total: data.totalJobs })}
+      />
+      <p className='mt-2 text-xs leading-relaxed text-fg-subtle'>
+        {t('caveat', { min: data.minGroupSize })}
+      </p>
 
-        <section className='flex flex-col gap-3'>
-          <h2 className='text-lg font-bold'>{t('skills.title')}</h2>
+      <div className='mt-6 flex flex-col gap-4'>
+        <ChartSection
+          title={t('skills.title')}
+          note={
+            otherSkills &&
+            t('skills.other', {
+              distinct: otherSkills.distinct,
+              jobs: otherSkills.jobs,
+            })
+          }
+        >
           <BarChart
             emptyLabel={t('empty')}
             rows={namedSkills.map((s) => ({
@@ -69,18 +95,9 @@ function MarketLayout() {
               caption: caption(s),
             }))}
           />
-          {otherSkills && (
-            <p className='text-sm text-neutral-500'>
-              {t('skills.other', {
-                distinct: otherSkills.distinct,
-                jobs: otherSkills.jobs,
-              })}
-            </p>
-          )}
-        </section>
+        </ChartSection>
 
-        <section className='flex flex-col gap-3'>
-          <h2 className='text-lg font-bold'>{t('japanese.title')}</h2>
+        <ChartSection title={t('japanese.title')} note={t('finding')}>
           <BarChart
             emptyLabel={t('empty')}
             rows={data.japanese.map((r) => ({
@@ -91,11 +108,9 @@ function MarketLayout() {
               caption: caption(r),
             }))}
           />
-          <p className='text-sm'>{t('finding')}</p>
-        </section>
+        </ChartSection>
 
-        <section className='flex flex-col gap-3'>
-          <h2 className='text-lg font-bold'>{t('prefectures.title')}</h2>
+        <ChartSection title={t('prefectures.title')}>
           <BarChart
             emptyLabel={t('empty')}
             rows={data.prefectures.map((r) => ({
@@ -104,7 +119,7 @@ function MarketLayout() {
               caption: caption(r),
             }))}
           />
-        </section>
+        </ChartSection>
       </div>
     </Page>
   );

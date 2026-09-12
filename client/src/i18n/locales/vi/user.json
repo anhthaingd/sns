@@ -8,7 +8,9 @@
     "intro": "Giới thiệu",
     "details": "Chi tiết",
     "coverAlt": "Ảnh bìa",
-    "chat": "Nhắn tin"
+    "chat": "Nhắn tin",
+    "noIntro": "Chưa có giới thiệu",
+    "noAddress": "Chưa đặt địa chỉ"
   },
   "update": {
     "title": "Sửa trang cá nhân",
@@ -37,7 +39,9 @@
   "actions": {
     "update": "Sửa",
     "delete": "Xoá",
-    "notFoundImage": "Không tìm thấy trang"
+    "notFoundImage": "Không tìm thấy trang",
+    "follow": "Theo dõi",
+    "unfollow": "Đang theo dõi"
   },
   "confirm": {
     "removeFollower": "Bạn chắc chắn muốn gỡ {{name}} khỏi danh sách người theo dõi?",

@@ -5,8 +5,8 @@
   "ruleOnlyNotice": "Ranking by rules only (Japanese, experience, skills). Semantic matching is unavailable — results are still usable, just less nuanced.",
   "qualifiedOnly": "Only show companies I already qualify for",
   "missingPrefix": "Missing:",
-  "companyGapLink": "What am I missing for this company? →",
-  "jobDetailLink": "Job details →",
+  "companyGapLink": "What am I missing for this company?",
+  "jobDetailLink": "Job details",
   "techStack": "Tech stack used here:",
   "jobTech": "Tech:",
   "openPositions": "Open positions",
@@ -70,7 +70,7 @@
     "qualified": "You meet every mandatory requirement of this role.",
     "notQualified": "Some mandatory requirements are not met yet — see the list below.",
     "employmentType": "Employment type",
-    "openOriginal": "Open the original posting on {{source}} →",
+    "openOriginal": "Open the original posting on {{source}}",
     "aboutCompany": "About {{name}}"
   },
   "companyGap": {
@@ -81,6 +81,8 @@
   "score": {
     "semantic": "Topical relevance: {{percent}}%",
     "requirement": "Requirements met:",
-    "noRequirement": "the posting states no concrete requirement"
+    "noRequirement": "the posting states no concrete requirement",
+    "label": "Match score",
+    "semanticLabel": "Semantic closeness"
   }
 }

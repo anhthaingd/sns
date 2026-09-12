@@ -27,6 +27,26 @@
     "quotesLogin": "Quotes Login"
   },
   "userPosts": {
-    "selectChannel": "Select Channel"
+    "selectChannel": "Select Channel",
+    "you": "You"
+  },
+  "table": {
+    "id": "ID",
+    "image": "Image",
+    "likes": "Likes",
+    "bookmarks": "Saves",
+    "comments": "Comments",
+    "channel": "Channel",
+    "updatedAt": "Updated",
+    "createdAt": "Created",
+    "actions": "Actions",
+    "email": "Email",
+    "avatar": "Avatar",
+    "username": "Username",
+    "role": "Role",
+    "members": "Members",
+    "name": "Name",
+    "intro": "Intro",
+    "user": "Author"
   }
 }

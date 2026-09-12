@@ -1,126 +1,167 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { getLocalStorage, setLocalStorage } from '../../services/utils/token';
-import { useDispatch } from 'react-redux';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FaMagnifyingGlass,
   FaBell,
   FaSun,
   FaMoon,
-  FaArrowRightFromBracket,
-  FaFacebookMessenger,
+  FaRightFromBracket,
+  FaRegComments,
+  FaUser,
+  FaGear,
 } from 'react-icons/fa6';
+import { setLocalStorage } from '../../services/utils/token';
 import { FetchDataContext } from '../../context/FetchDataProvider';
-import NotificationDropdown from '../dropdown/NotificationDropdown';
 import { DropdownContext } from '../../context/NotificationProvider';
+import NotificationDropdown from '../dropdown/NotificationDropdown';
 import SearchUsersDropdown from '../dropdown/SearchUsersDropdown';
+import MessagesDropdown from '../dropdown/MessagesDropdown';
 import { useLogoutUserMutation } from '../../services/redux/query/api/usersApi';
 import { getWebInfo, removeUser } from '../../services/redux/slice/userSlice';
-import { useNavigate } from 'react-router-dom';
 import { scrollElement } from '../../services/utils/scrollElement';
-import { useSelector } from 'react-redux';
-import MessagesDropdown from '../dropdown/MessagesDropdown';
 import LanguageSwitcher from './LanguageSwitcher';
-import { useTranslation } from 'react-i18next';
+import Avatar from '../ui/Avatar';
+import IconButton from '../ui/IconButton';
+import mediaUrl from '../../services/utils/media';
+import cn from '../../services/utils/cn';
+
+/** Huy hiệu số đếm trên nút chuông / tin nhắn. */
+function CountBadge({ value }) {
+  if (!value) return null;
+  return (
+    <span className='tnum pointer-events-none absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-pill bg-danger px-1 text-[0.625rem] font-bold text-white ring-2 ring-surface'>
+      {value > 99 ? '99+' : value}
+    </span>
+  );
+}
+
 function Header() {
   const { t } = useTranslation('nav');
   const webInfo = useSelector(getWebInfo);
   const { user, newestMessages } = useContext(FetchDataContext);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const searchInputRef = useRef();
-  const [isFocus, setIsFocus] = useState(false);
   const { setVisibleDropdown } = useContext(DropdownContext);
+
+  const [isFocus, setIsFocus] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [notReadNotifications, setNotReadNotifications] = useState(0);
-  const [curTheme, setTheme] = useState(
-    getLocalStorage('social_app_theme') || 'dark'
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Trạng thái ban đầu đọc từ thẻ <html>, nơi đoạn script trong index.html đã
+  // đặt lớp `.dark` trước khi React chạy. Đọc lại localStorage ở đây sẽ lệch
+  // với những gì đang hiển thị khi người dùng chưa từng chọn thủ công.
+  const [curTheme, setTheme] = useState(() =>
+    typeof document !== 'undefined' &&
+    document.documentElement.classList.contains('dark')
+      ? 'dark'
+      : 'light'
   );
-  const [isLogout, setIsLogout] = useState(false);
   const [logoutUser, { isSuccess: isSuccessLogout }] = useLogoutUserMutation();
-  const toggleTheme = useCallback(() => {
-    setTheme((prevTheme) => {
-      if (prevTheme === 'dark') return 'light';
-      if (prevTheme === 'light') return 'dark';
-      return 'dark';
-    });
-  }, [curTheme]);
-  const redirectToHomePage = () => {
-    scrollElement();
-    navigate('/');
-  };
+
+  const toggleTheme = useCallback(
+    () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark')),
+    []
+  );
+
   useEffect(() => {
-    document.title = webInfo?.website_name || 'App';
-    const favicon = document.querySelector("link[rel~='icon']");
-    if (favicon) {
-      favicon.href = `${import.meta.env.VITE_BACKEND_URL}/${
-        webInfo?.logo?.url
-      }`;
-    }
-  }, []);
-  useEffect(() => {
-    if (curTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.toggle('dark', curTheme === 'dark');
     setLocalStorage('social_app_theme', curTheme);
   }, [curTheme]);
+
   useEffect(() => {
-    if (isSuccessLogout) {
-      dispatch(removeUser());
-    }
+    if (!webInfo?.website_name) return;
+    document.title = webInfo.website_name;
+    const favicon = document.querySelector("link[rel~='icon']");
+    const logo = mediaUrl(webInfo?.logo);
+    if (favicon && logo) favicon.href = logo;
+  }, [webInfo]);
+
+  useEffect(() => {
+    if (isSuccessLogout) dispatch(removeUser());
   }, [isSuccessLogout, dispatch]);
-  const handleSetNotReadNotification = (amount) => {
-    setNotReadNotifications(amount);
-  };
+
+  // Menu tài khoản trước đây mở bằng `onMouseEnter`, tức là trên điện thoại
+  // không có cách nào đăng xuất. Giờ mở bằng cú bấm và đóng khi bấm ra ngoài.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onPointerDown = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    const onKeyDown = (e) => e.key === 'Escape' && setMenuOpen(false);
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
+
   const handleRedirectToSearch = () => {
-    navigate(`/search?s=${searchValue}&page=1`);
+    navigate(`/search?s=${encodeURIComponent(searchValue)}&page=1`);
     setIsFocus(false);
   };
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      handleRedirectToSearch();
-    }
-  };
+
+  const logo = mediaUrl(webInfo?.logo);
+  const menuItemClass =
+    'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg';
+
   return (
-    <header className='fixed top-0 left-0 w-full h-[56px] z-50 px-4 py-2 text-neutral-700 bg-neutral-100 dark:bg-neutral-700 dark:text-neutral-300 flex justify-between items-center gap-8 text-sm md:text-base border-b border-neutral-300 shadow-lg'>
-      <div className='flex items-stretch gap-4'>
-        <div className='flex items-center gap-2'>
-          <div className='size-[42px] overflow-hidden'>
+    <header className='sticky top-0 z-50 h-header border-b border-line bg-surface/85 backdrop-blur-md'>
+      <a
+        href='#fu-main'
+        className='sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-10 focus:rounded-lg focus:bg-brand focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-brand-on'
+      >
+        {t('skipToContent')}
+      </a>
+
+      <div className='mx-auto flex h-full max-w-shell items-center gap-2 px-3 sm:gap-4 sm:px-4'>
+        {/* Nhãn hiệu */}
+        <button
+          type='button'
+          className='group flex shrink-0 items-center gap-2'
+          onClick={() => {
+            scrollElement();
+            navigate('/');
+          }}
+        >
+          {logo ? (
             <img
-              className='w-full h-full cursor-pointer'
-              src={`${import.meta.env.VITE_BACKEND_URL}/${webInfo?.logo?.url}`}
-              alt={webInfo?.logo?.name}
-              onClick={redirectToHomePage}
+              className='size-8 rounded-lg object-cover transition-transform group-hover:animate-sway'
+              src={logo}
+              alt=''
             />
-          </div>
-          <h1
-            className='text-2xl font-bold'
-            style={{ color: webInfo?.color_title }}
-          >
-            {webInfo?.website_name}
-          </h1>
-        </div>
-        <div className='relative w-[240px] flex items-center'>
+          ) : (
+            <img
+              className='size-8 transition-transform group-hover:animate-sway'
+              src='/fuurin.svg'
+              alt=''
+            />
+          )}
+          <span className='hidden font-display text-lg font-black tracking-tight text-brand-text sm:block'>
+            {webInfo?.website_name || 'Fuurin'}
+          </span>
+        </button>
+
+        {/* Ô tìm kiếm — trên điện thoại thu lại thành một nút */}
+        <div className='relative ml-auto hidden w-full max-w-sm sm:block'>
           <FaMagnifyingGlass
-            className='absolute top-1/2 left-3 -translate-y-1/2  cursor-pointer'
-            onClick={handleRedirectToSearch}
+            className='pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle'
+            aria-hidden='true'
           />
           <input
-            ref={searchInputRef}
-            className='w-full py-2 px-8 rounded-3xl bg-neutral-200 dark:bg-neutral-600'
-            type='text'
+            className='h-9 w-full rounded-pill bg-surface-2 pl-9 pr-3 text-sm text-fg ring-1 ring-inset ring-transparent transition-shadow placeholder:text-fg-subtle hover:bg-surface-3 focus:bg-surface focus:ring-accent'
+            type='search'
             placeholder={t('searchPlaceholder')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
-            onClick={() => setIsFocus(true)}
-            onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocus(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) handleRedirectToSearch();
+            }}
           />
           {isFocus && (
             <SearchUsersDropdown
@@ -129,73 +170,124 @@ function Header() {
             />
           )}
         </div>
-      </div>
-      <div className='flex items-center gap-4'>
-        <LanguageSwitcher />
-        <button
-          className='size-[40px] rounded-full overflow-hidden flex justify-center items-center bg-neutral-200 dark:bg-neutral-600'
-          onClick={toggleTheme}
-          aria-label={t('theme')}
-        >
-          {curTheme === 'dark' ? (
-            <FaSun className='text-xl' />
-          ) : (
-            <FaMoon className='text-xl' />
-          )}
-        </button>
-        <div className='relative'>
-          <button
-            className='size-[40px] rounded-full overflow-hidden flex justify-center items-center bg-neutral-200 dark:bg-neutral-600'
-            onClick={() => setVisibleDropdown('visibleMessagesDropdown')}
-            aria-label={t('messages')}
+
+        <div className='ml-auto flex items-center gap-1 sm:ml-0 sm:gap-1.5'>
+          <IconButton
+            className='sm:hidden'
+            size='sm'
+            label={t('search')}
+            onClick={() => navigate('/search')}
           >
-            <FaFacebookMessenger className='text-xl' />
-          </button>
-          {newestMessages?.unread > 0 && (
-            <span className='absolute size-[20px] -top-[20%] -right-[10%] bg-red-500 text-neutral-100 text-sm rounded-full flex justify-center items-center'>
-              {newestMessages?.unread}
-            </span>
-          )}
-          <MessagesDropdown />
-        </div>
-        <div className='relative'>
-          <button
-            className='size-[40px] rounded-full overflow-hidden flex justify-center items-center bg-neutral-200 dark:bg-neutral-600'
-            onClick={() => setVisibleDropdown('visibleNotificationDropdown')}
-            aria-label={t('notifications')}
-          >
-            <FaBell className='text-xl' />
-          </button>
-          {notReadNotifications > 0 && (
-            <span className='absolute size-[20px] -top-[20%] -right-[10%] bg-red-500 text-neutral-100 text-sm rounded-full flex justify-center items-center'>
-              {notReadNotifications}
-            </span>
-          )}
-          <NotificationDropdown
-            setNotReadNotifications={handleSetNotReadNotification}
-          />
-        </div>
-        <div
-          className='relative'
-          onMouseEnter={() => setIsLogout(true)}
-          onMouseLeave={() => setIsLogout(false)}
-        >
-          <button className='size-[40px] rounded-full overflow-hidden'>
-            <img
-              className='w-full h-full object-cover'
-              src={`${import.meta.env.VITE_BACKEND_URL}/${user?.avatar?.url}`}
-              alt={user?.username}
-            />
-          </button>
-          {isLogout && (
-            <button
-              className='absolute right-0 top-[100%] px-4 py-2 flex items-center gap-4 bg-neutral-200 dark:bg-neutral-800 font-bold rounded'
-              onClick={logoutUser}
+            <FaMagnifyingGlass className='size-4' />
+          </IconButton>
+
+          <div className='hidden md:block'>
+            <LanguageSwitcher />
+          </div>
+
+          <IconButton size='sm' label={t('theme')} onClick={toggleTheme}>
+            {curTheme === 'dark' ? (
+              <FaSun className='size-4' />
+            ) : (
+              <FaMoon className='size-4' />
+            )}
+          </IconButton>
+
+          <div className='relative'>
+            <IconButton
+              size='sm'
+              label={t('messages')}
+              onClick={() => setVisibleDropdown('visibleMessagesDropdown')}
             >
-              <FaArrowRightFromBracket />
-              <span>{t('logout')}</span>
+              <FaRegComments className='size-4' />
+            </IconButton>
+            <CountBadge value={newestMessages?.unread} />
+            <MessagesDropdown />
+          </div>
+
+          <div className='relative'>
+            <IconButton
+              size='sm'
+              label={t('notifications')}
+              onClick={() => setVisibleDropdown('visibleNotificationDropdown')}
+            >
+              <FaBell className='size-4' />
+            </IconButton>
+            <CountBadge value={notReadNotifications} />
+            <NotificationDropdown setNotReadNotifications={setNotReadNotifications} />
+          </div>
+
+          <div className='relative ml-0.5' ref={menuRef}>
+            <button
+              type='button'
+              className={cn(
+                'flex rounded-full ring-2 transition-all',
+                menuOpen ? 'ring-accent' : 'ring-transparent hover:ring-line-strong'
+              )}
+              aria-haspopup='menu'
+              aria-expanded={menuOpen}
+              aria-label={user?.username}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <Avatar src={user?.avatar} name={user?.username} size='sm' />
             </button>
-          )}
+
+            {menuOpen && (
+              <div
+                role='menu'
+                className='absolute right-0 top-full z-10 mt-2 w-56 animate-pop overflow-hidden rounded-card bg-surface p-1.5 shadow-pop ring-1 ring-inset ring-line'
+              >
+                <div className='border-b border-line px-3 pb-2 pt-1.5'>
+                  <p className='truncate text-sm font-bold text-fg'>
+                    {user?.username}
+                  </p>
+                  <p className='truncate text-xs text-fg-subtle'>{user?.email}</p>
+                </div>
+                <div className='pt-1.5'>
+                  <button
+                    type='button'
+                    role='menuitem'
+                    className={menuItemClass}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate(`/profile/${user?._id}`);
+                    }}
+                  >
+                    <FaUser className='size-3.5' aria-hidden='true' />
+                    {t('profile')}
+                  </button>
+                  <button
+                    type='button'
+                    role='menuitem'
+                    className={menuItemClass}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate(
+                        user?.role?.value === 1 ? '/admin/settings' : '/users/settings'
+                      );
+                    }}
+                  >
+                    <FaGear className='size-3.5' aria-hidden='true' />
+                    {t('settings')}
+                  </button>
+                  <div className='my-1.5 border-t border-line md:hidden' />
+                  <div className='px-3 py-1 md:hidden'>
+                    <LanguageSwitcher />
+                  </div>
+                  <div className='my-1.5 border-t border-line' />
+                  <button
+                    type='button'
+                    role='menuitem'
+                    className={cn(menuItemClass, 'text-danger-text hover:bg-danger-soft hover:text-danger-text')}
+                    onClick={logoutUser}
+                  >
+                    <FaRightFromBracket className='size-3.5' aria-hidden='true' />
+                    {t('logout')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

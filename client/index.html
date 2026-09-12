@@ -2,9 +2,35 @@
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/fuurin.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>App</title>
+    <meta name="theme-color" content="#F6F5F2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0E1219" media="(prefers-color-scheme: dark)" />
+    <title>Fuurin</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap"
+    />
+
+    <script>
+      // Đặt lớp .dark TRƯỚC khi React render. Nếu để React làm trong useEffect
+      // thì người dùng chế độ tối sẽ thấy một nháy trắng ở mỗi lần tải trang.
+      (function () {
+        try {
+          var saved = localStorage.getItem('social_app_theme');
+          var dark =
+            saved === 'dark' ||
+            (!saved &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+        } catch (e) {
+          /* localStorage bị chặn — cứ để chế độ sáng */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -8,7 +8,9 @@
     "addToPost": "Add to your post",
     "addImage": "Add an image",
     "submit": "Post",
-    "imageAlt": "Attachment {{index}}"
+    "imageAlt": "Attachment {{index}}",
+    "removeImage": "Remove image",
+    "expand": "Write a post"
   },
   "update": {
     "title": "Update Post",
@@ -39,5 +41,11 @@
     "like_other": "{{count}} likes",
     "comment_one": "{{count}} comment",
     "comment_other": "{{count}} comments"
+  },
+  "comments": {
+    "placeholder": "Write a comment…",
+    "empty": "No comments yet",
+    "showAll_one": "View 1 comment",
+    "showAll_other": "View all {{count}} comments"
   }
 }

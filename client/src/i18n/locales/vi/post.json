@@ -8,7 +8,9 @@
     "addToPost": "Thêm vào bài viết",
     "addImage": "Thêm ảnh",
     "submit": "Đăng bài",
-    "imageAlt": "Ảnh đính kèm {{index}}"
+    "imageAlt": "Ảnh đính kèm {{index}}",
+    "removeImage": "Gỡ ảnh",
+    "expand": "Viết bài mới"
   },
   "update": {
     "title": "Sửa bài viết",
@@ -37,5 +39,10 @@
   "count": {
     "like_other": "{{count}} lượt thích",
     "comment_other": "{{count}} bình luận"
+  },
+  "comments": {
+    "placeholder": "Viết bình luận…",
+    "empty": "Chưa có bình luận nào",
+    "showAll_other": "Xem tất cả {{count}} bình luận"
   }
 }
