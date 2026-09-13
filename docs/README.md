@@ -20,6 +20,7 @@ Nếu bạn mới tiếp cận dự án, đọc lần lượt từ trên xuống
 | 8 | [Lỗi, log và kiểm thử](08-loi-log-va-kiem-thu.md) | Có lỗi thì tra ở đâu? Làm sao biết code không hỏng? |
 | 9 | [Đa ngôn ngữ](09-da-ngon-ngu.md) | Giao diện nói ba thứ tiếng bằng cách nào? Thêm một câu chữ mới thì sửa ở đâu? |
 | 10 | [Mô phỏng đối chứng](10-mo-phong-doi-chung.md) | "Nếu tôi học thêm X thì mở ra bao nhiêu cơ hội?" tính bằng cách nào? |
+| 11 | [Sổ tay giao diện](11-so-tay-giao-dien.md) | Mỗi màn hình trông thế nào và làm gì? Bộ test nào đang bảo vệ nó? |
 
 ## Dự án này là gì
 
@@ -41,10 +42,10 @@ Nhật, chuẩn hoá lại, rồi so khớp với CV của người dùng để 
 | Endpoint API | 63 |
 | Bảng dữ liệu (collection) | 14 |
 | Trang phía người dùng | 20 |
-| File giao diện | 82 |
-| Test tự động | 336 test API + 15 test giao diện |
+| File giao diện | 106 |
+| Test tự động | 345 test API + 15 test giao diện |
 | Tin tuyển dụng trong kho | 430 tin từ 4 nguồn |
-| Ngôn ngữ giao diện | 3 (Nhật · Việt · Anh) — 509 khoá mỗi ngôn ngữ |
+| Ngôn ngữ giao diện | 3 (Nhật · Việt · Anh) — 572 khoá mỗi ngôn ngữ |
 
 ## Quy ước trong tài liệu
 

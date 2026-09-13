@@ -1,0 +1,236 @@
+[
+  {
+    "file": "01-dang-nhap.png",
+    "title": "Đăng nhập",
+    "group": "Xác thực",
+    "note": "Tên và mô tả website lấy từ API `GET /api/website`, không viết cứng ở frontend."
+  },
+  {
+    "file": "02-dang-ky.png",
+    "title": "Đăng ký",
+    "group": "Xác thực",
+    "note": "Cùng khung nền với trang đăng nhập; ba luận điểm giá trị nằm ở cột trái."
+  },
+  {
+    "file": "03-khong-tim-thay.png",
+    "title": "Trang không tồn tại",
+    "group": "Xác thực",
+    "note": "Đường dẫn lạ rơi vào màn hình 404 có lối quay lại, không phải màn hình trắng."
+  },
+  {
+    "file": "10-bang-tin.png",
+    "title": "Bảng tin",
+    "group": "Mạng xã hội",
+    "note": "Ba cột: điều hướng trái, dòng bài giữa, gợi ý phải. Cột phải ẩn dưới 1280px."
+  },
+  {
+    "file": "11-soan-bai.png",
+    "title": "Soạn bài viết",
+    "group": "Mạng xã hội",
+    "note": "Ô soạn bài mặc định thu gọn một dòng; bấm mới mở trình soạn thảo Quill và ô chọn channel."
+  },
+  {
+    "file": "12-danh-sach-channel.png",
+    "title": "Danh sách channel",
+    "group": "Mạng xã hội",
+    "note": "Mỗi thẻ có ảnh bìa, số thành viên và nút tham gia; trạng thái đang xử lý bám theo từng thẻ."
+  },
+  {
+    "file": "13-chi-tiet-channel.png",
+    "title": "Chi tiết channel",
+    "group": "Mạng xã hội",
+    "note": "Ảnh bìa seigaiha, phần giới thiệu, danh sách thành viên và dòng bài của riêng channel."
+  },
+  {
+    "file": "14-chi-tiet-bai-viet.png",
+    "title": "Chi tiết bài viết & bình luận",
+    "group": "Mạng xã hội",
+    "note": "Bình luận hiển thị 2 dòng đầu rồi gập lại; ô nhập là `<input>` thật chứ không phải contentEditable."
+  },
+  {
+    "file": "15-da-luu.png",
+    "title": "Bài đã lưu",
+    "group": "Mạng xã hội",
+    "note": "Danh sách bài người dùng đã đánh dấu, dùng lại đúng component bài viết của bảng tin."
+  },
+  {
+    "file": "16-trang-ca-nhan.png",
+    "title": "Trang cá nhân",
+    "group": "Mạng xã hội",
+    "note": "Ảnh bìa, thông tin, số người theo dõi và các bài đã đăng."
+  },
+  {
+    "file": "17-tim-nguoi-dung.png",
+    "title": "Tìm kiếm — người dùng",
+    "group": "Mạng xã hội",
+    "note": "Kết quả người dùng kèm nút theo dõi và nhắn tin ngay trên từng dòng."
+  },
+  {
+    "file": "18-tim-bai-viet.png",
+    "title": "Tìm kiếm — bài viết",
+    "group": "Mạng xã hội",
+    "note": "Cùng ô tìm kiếm, đổi tab sang bài viết; từ khoá nằm ở tham số `s` trên URL nên chia sẻ được."
+  },
+  {
+    "file": "19-cai-dat-tai-khoan.png",
+    "title": "Cài đặt tài khoản",
+    "group": "Mạng xã hội",
+    "note": "Ba tab: bài viết của tôi, người theo dõi, đang theo dõi."
+  },
+  {
+    "file": "20-thong-bao.png",
+    "title": "Thông báo",
+    "group": "Mạng xã hội",
+    "note": "Huy hiệu đếm số chưa đọc hiện ngay khi tải trang, không chờ tới lúc mở bảng."
+  },
+  {
+    "file": "21-hop-thu.png",
+    "title": "Hộp thư",
+    "group": "Mạng xã hội",
+    "note": "Danh sách hội thoại lấy qua Socket.io; tin nhắn mới đẩy thẳng xuống client."
+  },
+  {
+    "file": "22-tro-chuyen.png",
+    "title": "Trò chuyện",
+    "group": "Mạng xã hội",
+    "note": "Hộp thoại chat thời gian thực, có cả nút gọi video (simple-peer)."
+  },
+  {
+    "file": "30-tin-tuyen-dung.png",
+    "title": "Tin tuyển dụng",
+    "group": "Tuyển dụng",
+    "note": "Dữ liệu đã qua ETL vào DB; cột lọc bên phải dính theo cuộn."
+  },
+  {
+    "file": "31-loc-tin-tuyen-dung.png",
+    "title": "Lọc tin tuyển dụng",
+    "group": "Tuyển dụng",
+    "note": "Mỗi bộ lọc đang bật thành một chip bỏ được; bộ lọc ghi vào URL nên F5 không mất."
+  },
+  {
+    "file": "32-ho-so-cv.png",
+    "title": "Hồ sơ CV",
+    "group": "Tuyển dụng",
+    "note": "Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án."
+  },
+  {
+    "file": "33-xem-truoc-cv-mau-1.png",
+    "title": "Xem trước CV — mẫu 1",
+    "group": "Tuyển dụng",
+    "note": "Bản xem trước luôn giữ nền trắng chữ đen kể cả ở chế độ tối: đây là bản sẽ in ra giấy."
+  },
+  {
+    "file": "34-xem-truoc-cv-mau-2.png",
+    "title": "Xem trước CV — mẫu 2",
+    "group": "Tuyển dụng",
+    "note": "Mẫu thứ hai cùng dữ liệu, đổi bố cục sang hai cột."
+  },
+  {
+    "file": "40-cong-ty-phu-hop.png",
+    "title": "Công ty phù hợp",
+    "group": "So khớp",
+    "note": "Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu."
+  },
+  {
+    "file": "41-thieu-sot-cong-ty.png",
+    "title": "Phân tích thiếu sót — công ty",
+    "group": "So khớp",
+    "note": "Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất."
+  },
+  {
+    "file": "42-thieu-sot-viec-lam.png",
+    "title": "Phân tích thiếu sót — tin tuyển dụng",
+    "group": "So khớp",
+    "note": "Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể."
+  },
+  {
+    "file": "43-mo-phong.png",
+    "title": "Mô phỏng “Nếu tôi học thêm”",
+    "group": "So khớp",
+    "note": "Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn."
+  },
+  {
+    "file": "44-mo-phong-ket-qua.png",
+    "title": "Mô phỏng — kết quả kết hợp",
+    "group": "So khớp",
+    "note": "Chọn nhiều phương án thì thẻ kết quả kết hợp dính ở mép dưới, không phải cuộn đi tìm."
+  },
+  {
+    "file": "45-ban-do-thi-truong.png",
+    "title": "Bản đồ thị trường",
+    "group": "So khớp",
+    "note": "Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=."
+  },
+  {
+    "file": "60-toi-bang-tin.png",
+    "title": "Chế độ tối — bảng tin",
+    "group": "Giao diện",
+    "note": "Nền sumi(墨) #0E1219; các token màu đổi giá trị chứ không phải lật ngược màu."
+  },
+  {
+    "file": "61-toi-tin-tuyen-dung.png",
+    "title": "Chế độ tối — tin tuyển dụng",
+    "group": "Giao diện",
+    "note": "Sắc thương hiệu chuyển sang bậc nhạt hơn (ai-500) để giữ tương phản trên nền tối."
+  },
+  {
+    "file": "62-toi-bieu-do.png",
+    "title": "Chế độ tối — biểu đồ",
+    "group": "Giao diện",
+    "note": "Bảng màu biểu đồ được chọn riêng cho nền tối, không dùng lại bảng của nền sáng."
+  },
+  {
+    "file": "50-quan-tri-website.png",
+    "title": "Quản trị — cấu hình website",
+    "group": "Quản trị",
+    "note": "Tên, mô tả và logo của website sửa tại đây rồi áp dụng cho mọi trang."
+  },
+  {
+    "file": "51-quan-tri-nguoi-dung.png",
+    "title": "Quản trị — người dùng",
+    "group": "Quản trị",
+    "note": "Mã người dùng đứng cột cuối, cỡ chữ nhỏ: thứ chỉ dùng khi tra sự cố không nên chiếm chỗ dễ đọc nhất."
+  },
+  {
+    "file": "52-quan-tri-channel.png",
+    "title": "Quản trị — channel",
+    "group": "Quản trị",
+    "note": "Danh sách channel kèm số thành viên và thao tác xoá."
+  },
+  {
+    "file": "53-quan-tri-bai-viet.png",
+    "title": "Quản trị — bài viết",
+    "group": "Quản trị",
+    "note": "Bài viết của toàn hệ thống, tìm theo từ khoá và phân trang phía máy chủ."
+  },
+  {
+    "file": "54-quan-tri-ca-nhan.png",
+    "title": "Quản trị — trang cá nhân",
+    "group": "Quản trị",
+    "note": "Tab bài viết / người theo dõi / đang theo dõi của chính tài khoản quản trị."
+  },
+  {
+    "file": "70-dt-bang-tin.png",
+    "title": "Điện thoại — bảng tin",
+    "group": "Giao diện",
+    "note": "Dưới 1024px hai cột bên thu lại, thanh điều hướng chuyển xuống mép dưới."
+  },
+  {
+    "file": "71-dt-menu.png",
+    "title": "Điện thoại — menu",
+    "group": "Giao diện",
+    "note": "Thanh dưới chỉ chứa 4 mục hay dùng; phần còn lại nằm trong ngăn kéo “Thêm”."
+  },
+  {
+    "file": "72-dt-tin-tuyen-dung.png",
+    "title": "Điện thoại — tin tuyển dụng",
+    "group": "Giao diện",
+    "note": "Bộ lọc xếp dọc thành khối gập được thay vì cột dính bên phải."
+  },
+  {
+    "file": "73-dt-cong-ty-phu-hop.png",
+    "title": "Điện thoại — công ty phù hợp",
+    "group": "Giao diện",
+    "note": "Thẻ điểm phù hợp giữ nguyên vòng cung, chỉ đổi cách xếp khối."
+  }
+]
