@@ -22,6 +22,7 @@ from app.routes.users import router as users_router
 from app.routes.web import router as web_router
 from app.services.browser import browser_service
 from app.services.embedding import close_embedder
+from app.services.llm import close_llm
 from app.sockets.handlers import register_handlers
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -52,6 +53,7 @@ async def lifespan(_: FastAPI):
         logger.exception("Không khởi động sẵn được browser, sẽ thử lại khi có request crawl")
     yield
     await close_embedder()
+    await close_llm()
     await browser_service.stop()
     await close_redis()
     await close_db()

@@ -1,6 +1,12 @@
 from fastapi import APIRouter, Body, Depends, Query
 
 from app.controllers.admin_etl import etl_status, start_etl
+from app.controllers.advice import (
+    company_advice,
+    job_advice,
+    overview_advice,
+    whatif_advice,
+)
 from app.controllers.match import (
     company_gap,
     job_gap,
@@ -12,6 +18,7 @@ from app.controllers.match import (
 from app.middleware.auth import get_current_user
 from app.schemas.responses import (
     ERROR_RESPONSES,
+    AdviceResponse,
     CompanyGapResponse,
     CompanyMatchResponse,
     EtlStatusResponse,
@@ -60,6 +67,47 @@ async def route_whatif_simulate(
     decoded=Depends(get_current_user),
 ):
     return await whatif_simulate(decoded, actions)
+
+
+# --- Lời khuyên bằng LLM ----------------------------------------------------
+# Endpoint RIÊNG, không gộp vào /gap: /gap trả về trong ~15ms, gộp lời gọi LLM
+# vào đó thì màn hình phải đợi 2-5 giây mới hiện được cả những thứ đã tính xong
+# từ lâu. Xem docs/12-loi-khuyen-bang-llm.md muc 12.11.
+
+
+@router.get("/api/match/advice/overview", response_model=AdviceResponse)
+async def route_overview_advice(
+    page: int | None = Query(1, ge=1),
+    lang: str | None = Query(None, description="ja | vi | en"),
+    decoded=Depends(get_current_user),
+):
+    return await overview_advice(decoded, page or 1, lang)
+
+
+@router.get("/api/match/jobs/{job_id}/advice", response_model=AdviceResponse)
+async def route_job_advice(
+    job_id: str,
+    lang: str | None = Query(None, description="ja | vi | en"),
+    decoded=Depends(get_current_user),
+):
+    return await job_advice(decoded, job_id, lang)
+
+
+@router.get("/api/match/companies/{company_id}/advice", response_model=AdviceResponse)
+async def route_company_advice(
+    company_id: str,
+    lang: str | None = Query(None, description="ja | vi | en"),
+    decoded=Depends(get_current_user),
+):
+    return await company_advice(decoded, company_id, lang)
+
+
+@router.get("/api/match/whatif/advice", response_model=AdviceResponse)
+async def route_whatif_advice(
+    lang: str | None = Query(None, description="ja | vi | en"),
+    decoded=Depends(get_current_user),
+):
+    return await whatif_advice(decoded, lang)
 
 
 # --- Quản trị dữ liệu -------------------------------------------------------

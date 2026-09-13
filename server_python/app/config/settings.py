@@ -90,6 +90,53 @@ RATE_LIMIT_ENABLED = _bool_env("RATE_LIMIT_ENABLED", True)
 EMBEDDER_URL = os.getenv("EMBEDDER_URL", "")
 EMBEDDER_TIMEOUT_SECONDS = _int_env("EMBEDDER_TIMEOUT_SECONDS", 30)
 
+# --- Lời khuyên bằng LLM ---------------------------------------------------
+# Xem docs/12-loi-khuyen-bang-llm.md. Phần này CHỈ viết lời khuyên; điểm số và
+# việc phát hiện thiếu sót vẫn 100% do app/services/matching.py quyết định.
+#
+# Không có key thì tính năng tự tắt: endpoint vẫn trả 200 kèm `advice: null`,
+# giao diện ẩn thẻ gợi ý. Giống hệt cách EMBEDDER_URL trống làm phần xếp hạng
+# ngữ nghĩa tự tắt mà không màn hình nào báo lỗi.
+LLM_ENABLED = _bool_env("LLM_ENABLED", True)
+
+# Tên model CỐ Ý nằm ở biến môi trường. Đo ngày 13/09/2026: hai tên model chọn
+# lúc thiết kế (`gemini-2.5-flash`, `llama-3.3-70b-versatile`) đều đã 404 —
+# một cái "không còn mở cho người dùng mới", một cái bị gỡ hẳn. Ghim tên model
+# vào code là hẹn giờ cho một lỗi khó hiểu sau vài tháng.
+LLM_PRIMARY_BASE_URL = os.getenv("LLM_PRIMARY_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai")
+LLM_PRIMARY_MODEL = os.getenv("LLM_PRIMARY_MODEL", "gemini-3.1-flash-lite")
+LLM_PRIMARY_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+LLM_FALLBACK_BASE_URL = os.getenv("LLM_FALLBACK_BASE_URL", "https://api.groq.com/openai/v1")
+LLM_FALLBACK_MODEL = os.getenv("LLM_FALLBACK_MODEL", "qwen/qwen3.8-27b")
+LLM_FALLBACK_API_KEY = os.getenv("GROQ_API_KEY", "")
+
+LLM_TIMEOUT_SECONDS = _int_env("LLM_TIMEOUT_SECONDS", 12)
+
+# Rộng rãi có chủ đích. Model có bước "suy nghĩ" tiêu hết hạn mức cho phần nghĩ
+# rồi trả về JSON bị cắt ngang — đo được: gemini-3.5-flash tốn 1200-1600 token
+# nghĩ để viết ra 200 token. Hạn mức thừa không tốn gì, thiếu thì hỏng âm thầm.
+LLM_MAX_TOKENS = _int_env("LLM_MAX_TOKENS", 2000)
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.3"))
+
+# Cache 7 ngày. Khoá băm từ chính dữ liệu đầu vào nên sửa CV là khoá đổi theo,
+# không bao giờ phải xoá cache thủ công.
+LLM_CACHE_TTL_SECONDS = _int_env("LLM_CACHE_TTL_SECONDS", 7 * 24 * 3600)
+
+# Chặn một người bấm loạn đốt hết hạn mức của cả hệ thống.
+LLM_USER_RATE_LIMIT_MAX = _int_env("LLM_USER_RATE_LIMIT_MAX", 20)
+LLM_USER_RATE_LIMIT_WINDOW_SECONDS = _int_env("LLM_USER_RATE_LIMIT_WINDOW_SECONDS", 3600)
+
+# Chốt chặn cuối để không vượt gói miễn phí.
+LLM_DAILY_MAX = _int_env("LLM_DAILY_MAX", 400)
+
+# Cầu dao: hỏng liên tiếp bấy nhiêu lần thì ngừng gọi nhà cung cấp đó một lúc.
+# Hết hạn mức ngày là trạng thái kéo dài hàng giờ — không có cầu dao thì mọi
+# request sau đó vẫn phải chờ hết timeout rồi mới bỏ cuộc.
+LLM_BREAKER_THRESHOLD = _int_env("LLM_BREAKER_THRESHOLD", 3)
+LLM_BREAKER_COOLDOWN_SECONDS = _int_env("LLM_BREAKER_COOLDOWN_SECONDS", 15 * 60)
+
+
 # --- Crawl ----------------------------------------------------------------
 # Trang tuyển dụng cập nhật theo ngày; 10 phút là đủ mới mà vẫn cứu được người
 # dùng khi nguồn chặn tạm thời (LinkedIn hay chặn khi bị gọi liên tục).

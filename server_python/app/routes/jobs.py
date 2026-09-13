@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 
+from app.controllers.advice import market_advice
 from app.controllers.jobs import (
     get_companies,
     get_company_details,
@@ -11,6 +12,7 @@ from app.controllers.jobs import (
 from app.middleware.auth import get_current_user
 from app.schemas.responses import (
     ERROR_RESPONSES,
+    AdviceResponse,
     CompanyDetailsResponse,
     CompanyListResponse,
     JobDetailsResponse,
@@ -54,6 +56,14 @@ async def route_get_job_filters(decoded=Depends(get_current_user)):
 @router.get("/api/jobs/market", response_model=MarketResponse)
 async def route_job_market(decoded=Depends(get_current_user)):
     return await job_market(decoded)
+
+
+@router.get("/api/jobs/market/advice", response_model=AdviceResponse)
+async def route_market_advice(
+    lang: str | None = Query(None, description="ja | vi | en"),
+    decoded=Depends(get_current_user),
+):
+    return await market_advice(decoded, lang)
 
 
 @router.get("/api/jobs/{job_id}", response_model=JobDetailsResponse)

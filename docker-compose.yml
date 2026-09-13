@@ -70,6 +70,16 @@ services:
       # De trong thi phan xep hang theo ngu nghia tu tat, he thong chuyen
       # sang cham diem thuan luat chu khong bao loi.
       EMBEDDER_URL: http://embedder:8001
+      # Loi khuyen bang LLM (docs/12-loi-khuyen-bang-llm.md). De trong thi tinh
+      # nang tu tat: endpoint van tra 200 kem `advice: null`, giao dien an the
+      # goi y, KHONG co man hinh loi nao. Lay key mien phi:
+      #   Gemini: https://aistudio.google.com/apikey
+      #   Groq:   https://console.groq.com/keys
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      # Ten model doi kha nhanh, nen de o day de doi ma khong phai sua code.
+      LLM_PRIMARY_MODEL: ${LLM_PRIMARY_MODEL:-gemini-3.1-flash-lite}
+      LLM_FALLBACK_MODEL: ${LLM_FALLBACK_MODEL:-qwen/qwen3.8-27b}
       # Chay duoc ngay voi secret mac dinh cho dev.
       # Muon dung secret rieng (production): tao file .env o thu muc goc de ghi de.
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_change_in_production}

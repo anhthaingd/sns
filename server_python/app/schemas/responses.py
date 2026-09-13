@@ -212,6 +212,18 @@ class CompanyGapResponse(ApiEnvelope):
     combinedGaps: list[dict[str, Any]]
 
 
+class AdviceResponse(ApiEnvelope):
+    """Lời khuyên do LLM viết — phần phụ, có thể vắng mặt.
+
+    `advice` là `None` khi chưa cấu hình key, hết hạn mức, hoặc nhà cung cấp
+    đang hỏng. Endpoint vẫn trả 200 và `reason` nói rõ vì sao, để giao diện ẩn
+    thẻ gợi ý thay vì hiện màn hình lỗi cho một thứ chỉ là điểm cộng.
+    """
+
+    advice: dict[str, Any] | None = None
+    reason: str
+
+
 class WhatIfSuggestionsResponse(ApiEnvelope):
     totalJobs: int
     baseline: dict[str, Any]

@@ -7,6 +7,7 @@ from app.config.settings import (
     REGISTER_RATE_LIMIT_MAX,
     REGISTER_RATE_LIMIT_WINDOW_SECONDS,
 )
+from app.controllers.advice import resume_advice
 
 # Controller đã tách theo mối quan tâm, nhưng ROUTER thì cố ý vẫn là một file:
 # thứ tự khai báo ở đây có ý nghĩa. `/api/users/refresh` phải được khai báo
@@ -39,6 +40,7 @@ from app.schemas.requests import LoginRequest, RegisterRequest
 from app.schemas.responses import (
     ERROR_RESPONSES,
     AdminUserListResponse,
+    AdviceResponse,
     CurrentUserResponse,
     FollowersResponse,
     FollowingResponse,
@@ -179,6 +181,14 @@ async def route_remove_followers(target_id: str, decoded=Depends(get_current_use
 @router.get("/api/resume", response_model=ResumeResponse)
 async def route_get_resume(decoded=Depends(get_current_user)):
     return await get_resume(decoded)
+
+
+@router.get("/api/resume/advice", response_model=AdviceResponse)
+async def route_resume_advice(
+    lang: str | None = Query(None, description="ja | vi | en"),
+    decoded=Depends(get_current_user),
+):
+    return await resume_advice(decoded, lang)
 
 
 @router.post("/api/resume", response_model=MessageResponse)
