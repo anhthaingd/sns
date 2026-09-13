@@ -17,16 +17,28 @@ async def test_update_website_requires_admin(client, user, db):
 
 
 async def test_admin_updates_website(client, admin, db):
+    """Quản trị viên đổi được cấu hình website — và test TRẢ LẠI nguyên trạng.
+
+    Cấu hình website là bản ghi DÙNG CHUNG, chỉ có đúng một bản trong DB. Bản cũ
+    của test này đặt tên thành `Fuurin-<hex>` rồi bỏ đó, nên sau mỗi lần chạy bộ
+    test, môi trường phát triển mang một cái tên vô nghĩa và mọi ảnh chụp màn
+    hình sau đó đều dính. Không phải lỗi của ứng dụng, nhưng người nhìn thấy
+    tưởng là lỗi.
+    """
     web = await db.webs.find_one({})
+    before = {k: v for k, v in web.items() if k != "_id"}
     name = f"Fuurin-{uuid.uuid4().hex[:5]}"
-    r = await client.put(
-        f"/api/website/{web['_id']}",
-        headers=admin.headers,
-        data={"website_name": name, "color_title": "#123456"},
-    )
-    assert r.status_code == 200, r.text
-    r = await client.get("/api/website")
-    assert r.json()["website"]["website_name"] == name
+    try:
+        r = await client.put(
+            f"/api/website/{web['_id']}",
+            headers=admin.headers,
+            data={"website_name": name, "color_title": "#123456"},
+        )
+        assert r.status_code == 200, r.text
+        r = await client.get("/api/website")
+        assert r.json()["website"]["website_name"] == name
+    finally:
+        await db.webs.update_one({"_id": web["_id"]}, {"$set": before})
 
 
 async def test_newest_messages_empty(client, user):

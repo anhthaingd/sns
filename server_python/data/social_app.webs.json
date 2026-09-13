@@ -4,12 +4,9 @@
       "$oid": "665318e0b2f9575d3c98afa1"
     },
     "website_name": "Fuurin",
-    "logo": {
-      "name": "1716723927499-3656773-png-transparent-us-flag-american-us-flag-symbol-united-stars-stripes-patriotic-freedom-thumbnail.png",
-      "url": "public/uploads/1716723927499-3656773-png-transparent-us-flag-american-us-flag-symbol-united-stars-stripes-patriotic-freedom-thumbnail.png"
-    },
-    "website_quotes_register": " Lorem ipsum dolor sit amet consectetur, adipisicing elit. Recusandae eos ratione qui, eaque ipsum in mollitia, voluptatibus beatae architecto sint ipsa rerum nesciunt officia voluptate fugiat distinctio quas animi corrupti?",
-    "website_quotes_login": " Lorem ipsum dolor sit amet consectetur, adipisicing elit. Recusandae eos ratione qui, eaque ipsum in mollitia, voluptatibus beatae architecto sint ipsa rerum nesciunt officia voluptate fugiat distinctio quas animi corrupti?",
-    "color_title": "#21ca43"
+    "logo": null,
+    "website_quotes_register": "Tạo hồ sơ một lần, để hệ thống tìm công ty phù hợp với bạn.",
+    "website_quotes_login": "Chào mừng trở lại. Thị trường việc làm Nhật Bản đang chờ bạn.",
+    "color_title": "#274A78"
   }
 ]
