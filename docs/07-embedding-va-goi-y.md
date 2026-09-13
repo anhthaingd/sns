@@ -344,6 +344,10 @@ Chức năng kém tinh đi một chút, nhưng **không có màn hình lỗi nà
 
 ## 7.9. Sau này muốn thêm LLM thì cắm vào đâu
 
+> 📄 Bản thiết kế đầy đủ cho phần này nằm ở
+> [tài liệu 12 — Lời khuyên bằng LLM](12-loi-khuyen-bang-llm.md).
+> Mục này chỉ nêu nguyên tắc; tài liệu 12 nêu cách làm.
+
 Chỗ chừa sẵn nằm ở `matching.py`. Khi có API key, LLM chỉ nên làm **một việc**:
 viết lại phần `gaps` cho mượt và gợi ý lộ trình học.
 

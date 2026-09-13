@@ -21,6 +21,7 @@ Nếu bạn mới tiếp cận dự án, đọc lần lượt từ trên xuống
 | 9 | [Đa ngôn ngữ](09-da-ngon-ngu.md) | Giao diện nói ba thứ tiếng bằng cách nào? Thêm một câu chữ mới thì sửa ở đâu? |
 | 10 | [Mô phỏng đối chứng](10-mo-phong-doi-chung.md) | "Nếu tôi học thêm X thì mở ra bao nhiêu cơ hội?" tính bằng cách nào? |
 | 11 | [Sổ tay giao diện](11-so-tay-giao-dien.md) | Mỗi màn hình trông thế nào và làm gì? Bộ test nào đang bảo vệ nó? |
+| 12 | [Lời khuyên bằng LLM](12-loi-khuyen-bang-llm.md) | Cắm mô hình ngôn ngữ vào phần phân tích thì cắm ở đâu, và không được cắm vào đâu? |
 
 ## Dự án này là gì
 
