@@ -395,6 +395,20 @@ async def shot(page, name, title, group, note, full_page=False, wait=1400):
     print(f"[shot] {name}  ({title})")
 
 
+async def wait_for_advice(page, timeout=30000):
+    """Chờ thẻ gợi ý của LLM xong việc rồi mới chụp.
+
+    Không có bước này thì ảnh tư liệu chụp đúng lúc khung chờ đang quay. Chờ
+    khung chờ BIẾN MẤT (chứ không chờ thẻ hiện ra) là cách duy nhất đúng cho cả
+    hai trường hợp: có cấu hình LLM thì thẻ hiện, không cấu hình thì thẻ không
+    bao giờ hiện và chờ nó là treo vô ích.
+    """
+    try:
+        await page.wait_for_selector("[data-testid='advice-skeleton']", state="detached", timeout=timeout)
+    except Exception as err:  # noqa: BLE001 - ảnh vẫn chụp được, chỉ là có khung chờ
+        print(f"[warn] thẻ gợi ý chưa xong sau {timeout}ms: {err}")
+
+
 async def goto(page, path, wait=1600):
     await page.goto(f"{APP_URL}{path}", wait_until="domcontentloaded")
     await page.wait_for_timeout(wait)
@@ -608,6 +622,7 @@ async def capture_main(browser, w):
         )
 
         await goto(page, "/resume")
+        await wait_for_advice(page)
         await shot(
             page,
             "32-ho-so-cv.png",
@@ -642,6 +657,7 @@ async def capture_main(browser, w):
 
         # --- So khớp ---
         await goto(page, "/match")
+        await wait_for_advice(page)
         await shot(
             page,
             "40-cong-ty-phu-hop.png",
@@ -653,6 +669,7 @@ async def capture_main(browser, w):
 
         if w["company"]:
             await goto(page, f"/match/companies/{w['company']}")
+            await wait_for_advice(page)
             await shot(
                 page,
                 "41-thieu-sot-cong-ty.png",
@@ -664,6 +681,7 @@ async def capture_main(browser, w):
             )
         if w["job"]:
             await goto(page, f"/match/jobs/{w['job']}")
+            await wait_for_advice(page)
             await shot(
                 page,
                 "42-thieu-sot-viec-lam.png",
@@ -674,6 +692,7 @@ async def capture_main(browser, w):
             )
 
         await goto(page, "/match/whatif")
+        await wait_for_advice(page)
         await shot(
             page,
             "43-mo-phong.png",
@@ -699,6 +718,7 @@ async def capture_main(browser, w):
             )
 
         await goto(page, "/market")
+        await wait_for_advice(page)
         await shot(
             page,
             "45-ban-do-thi-truong.png",
@@ -727,6 +747,7 @@ async def capture_main(browser, w):
             "Sắc thương hiệu chuyển sang bậc nhạt hơn (ai-500) để giữ tương phản trên nền tối.",
         )
         await goto(page, "/market")
+        await wait_for_advice(page)
         await shot(
             page,
             "62-toi-bieu-do.png",
@@ -839,6 +860,7 @@ async def capture_mobile(browser, w):
         )
 
         await goto(page, "/match")
+        await wait_for_advice(page)
         await shot(
             page,
             "73-dt-cong-ty-phu-hop.png",

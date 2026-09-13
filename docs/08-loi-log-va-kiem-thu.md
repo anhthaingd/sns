@@ -294,8 +294,8 @@ CI được cấu hình tự lưu ảnh màn hình khi test E2E thất bại
 | `client/src/components/common/ErrorScreen.jsx` | Màn hình khi trang gặp sự cố |
 | `client/src/hooks/useMutationToast.jsx` | Thông báo sau khi lưu/xoá, kèm ghi log |
 | `.github/workflows/ci.yml` | Cấu hình kiểm tự động |
-| `server_python/tests/` | 336 test API |
-| `e2e/test_e2e.py` | 15 test giao diện |
+| `server_python/tests/` | 384 test API |
+| `e2e/test_e2e.py` | 18 test giao diện |
 
 ---
 

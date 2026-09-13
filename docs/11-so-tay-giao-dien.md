@@ -46,14 +46,14 @@ tạo:
 
 | Bộ test | Số lượng | Kết quả | Câu lệnh |
 |---|---|---|---|
-| API (pytest, gọi thẳng FastAPI) | 351 | **345 chạy qua, 6 bỏ qua** | `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests` |
-| Giao diện (Playwright, trình duyệt thật) | 15 | **15 chạy qua** | `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests` |
+| API (pytest, gọi thẳng FastAPI) | 384 | **378 chạy qua, 6 bỏ qua** | `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests` |
+| Giao diện (Playwright, trình duyệt thật) | 18 | **18 chạy qua** | `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests` |
 
 6 test bị bỏ qua là nhóm thu thập tin tuyển dụng từ trang ngoài — chúng chỉ
 chạy khi đặt `RUN_CRAWL_TESTS=1`, vì phụ thuộc vào mạng và vào việc trang nguồn
 có đổi cấu trúc hay không.
 
-Bộ 15 test giao diện đi qua những việc sau, mỗi việc trên một trình duyệt thật:
+Bộ 18 test giao diện đi qua những việc sau, mỗi việc trên một trình duyệt thật:
 
 | # | Test | Kiểm điều gì |
 |---|---|---|
@@ -72,6 +72,9 @@ Bộ 15 test giao diện đi qua những việc sau, mỗi việc trên một tr
 | 13 | `whatif_needs_a_resume_first` | Chưa có CV thì nói rõ, bằng câu chữ của backend |
 | 14 | `market_page_shows_the_sample_size_next_to_every_median` | Không trung vị nào đứng một mình — luôn kèm cỡ mẫu |
 | 15 | `switching_language_changes_the_whole_interface` | Đổi ngôn ngữ đổi cả chữ tĩnh lẫn câu do backend sinh, và nhớ qua F5 |
+| 16 | `advice_card_shows_exactly_what_the_api_returned` | Thẻ gợi ý AI hiện đúng chữ API trả về, không phải chữ viết cứng ở client |
+| 17 | `every_page_survives_a_dead_advice_endpoint` | **Chặn thẳng endpoint gợi ý ở tầng mạng**: mọi trang vẫn nguyên vẹn, không toast lỗi, khung chờ biến mất |
+| 18 | `advice_is_requested_in_the_interface_language` | Request mang đúng `?lang` của giao diện đang dùng |
 
 Chín test API trong số trên là **mới**, viết cùng lúc với năm bản vá ở mục 11.9 —
 mỗi lỗi được vá đều kèm một test canh cho nó không quay lại.
@@ -217,6 +220,12 @@ Mẫu thứ hai cùng dữ liệu, đổi bố cục sang hai cột.
 ## 11.6. So khớp và phân tích
 
 Bốn màn hình trả lời: CV này hợp với ai, còn thiếu gì, bù chỗ nào thì lợi nhất, và thị trường đang trả bao nhiêu.
+
+> ✨ **Thẻ "Gợi ý từ AI" ở cuối các màn hình này** là phần do mô hình ngôn ngữ
+> viết, thêm vào sau — xem [tài liệu 12](12-loi-khuyen-bang-llm.md). Nó luôn
+> nằm **dưới** phần tính bằng luật, vì thứ tự trên màn hình nói lên thứ tự đáng
+> tin, và luôn kèm một dòng nhắc rằng điểm số không thay đổi theo đoạn văn đó.
+> Không cấu hình API key thì thẻ này không xuất hiện và mọi thứ khác giữ nguyên.
 
 ### Công ty phù hợp
 
