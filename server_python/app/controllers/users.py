@@ -69,6 +69,9 @@ async def get_user_details(user_id: str):
 async def update_user(
     user_id: str,
     decoded_user: dict,
+    # Tên các field có mặt trong form. Xem chỗ dựng `update_data` bên dưới để
+    # biết vì sao không thể suy ra từ giá trị.
+    submitted: set[str] | None = None,
     username: str = None,
     old_password: str = None,
     new_password: str = None,
@@ -81,6 +84,8 @@ async def update_user(
 ):
     from datetime import datetime
 
+    submitted = submitted if submitted is not None else set()
+
     if str(decoded_user.get("_id")) != str(user_id):
         raise ApiError(403, code="user.cannotEditOthers")
 
@@ -88,12 +93,23 @@ async def update_user(
     parse_old_avatar = parse_json(old_avatar)
     parse_old_cover_bg = parse_json(old_cover_bg)
 
-    update_data = {
-        "username": username,
-        "address": address,
-        "intro": intro,
-        "updated_at": datetime.utcnow(),
-    }
+    # CHỈ ghi những trường request thực sự gửi lên.
+    #
+    # Bản cũ gán cả ba vô điều kiện rồi `$set` nguyên khối, nên một request chỉ
+    # muốn đổi ảnh đại diện sẽ ghi `username=None` và xoá trắng tên tài khoản.
+    # Chưa ai gặp vì `UpdateProfileModal.jsx` luôn gửi đủ ba trường — nhưng đó
+    # là may mắn, không phải thiết kế: thêm một client khác, hoặc một lần sửa
+    # giao diện quên đính một ô, là mất dữ liệu.
+    #
+    # Phân biệt "không gửi" với "gửi chuỗi rỗng" — hai chuyện khác hẳn nhau.
+    # KHÔNG dùng được `value is not None` để phân biệt: FastAPI đưa một field
+    # gửi rỗng (`intro=`) tới đây dưới dạng None y hệt field vắng mặt, nên dựa
+    # vào đó thì người dùng mất luôn khả năng xoá sạch phần giới thiệu.
+    # `submitted` là tên các field thật sự có trong form (xem app/utils/forms.py).
+    update_data = {"updated_at": datetime.utcnow()}
+    for field_name, value in (("username", username), ("address", address), ("intro", intro)):
+        if field_name in submitted:
+            update_data[field_name] = value if value is not None else ""
 
     if new_password and new_password != old_password:
         current = await User.get(user_oid)

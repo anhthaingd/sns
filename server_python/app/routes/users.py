@@ -35,6 +35,7 @@ from app.controllers.users import (
 )
 from app.middleware.auth import get_current_user
 from app.middleware.upload import save_uploaded_files
+from app.utils.forms import submitted_fields
 from app.schemas.requests import LoginRequest, RegisterRequest
 from app.schemas.responses import (
     ERROR_RESPONSES,
@@ -114,10 +115,12 @@ async def route_update_user(
     update_images: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
+    submitted: set[str] = Depends(submitted_fields),
 ):
     return await update_user(
         user_id=user_id,
         decoded_user=decoded,
+        submitted=submitted,
         username=username,
         old_password=oldPassword,
         new_password=newPassword,
