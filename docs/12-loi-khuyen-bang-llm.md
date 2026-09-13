@@ -103,10 +103,14 @@ gọi, mở lại các trang cũ là 0. Thoải mái nằm trong tier free.
 | | Chính | Dự phòng |
 |---|---|---|
 | Nhà cung cấp | Google AI Studio | Groq |
-| Model | `gemini-2.5-flash` | `llama-3.3-70b-versatile` |
+| Model | `gemini-3.1-flash-lite` | `qwen/qwen3.8-27b` |
 | Base URL | `generativelanguage.googleapis.com/v1beta/openai` | `api.groq.com/openai/v1` |
 | Biến môi trường | `GEMINI_API_KEY` | `GROQ_API_KEY` |
-| Chọn vì | tiếng Nhật tốt nhất trong nhóm miễn phí | nhanh, hạn mức tính riêng |
+| Đo được | 1.8 giây · 750 token/lượt | 0.8 giây · 720 token/lượt |
+
+Hai tên model này **đo rồi mới chọn**, không chọn theo tiếng tăm — xem
+[12.5.1](#1251-số-đo-bước-0). Và chúng nằm trong biến môi trường chứ không nằm
+trong code, vì lý do ở ngay dưới đây.
 
 Cả hai đều nói **giao thức tương thích OpenAI**, nên chỉ cần một hàm gọi duy
 nhất và hai bộ cấu hình. Đổi sang nhà cung cấp thứ ba sau này là sửa biến môi
@@ -114,6 +118,45 @@ trường, không sửa code.
 
 Hạn mức tier free của cả hai bên thay đổi theo thời gian — đừng chép con số vào
 code, cứ để `LLM_DAILY_MAX` trong cấu hình và chỉnh khi cần.
+
+### 12.5.1. Số đo bước 0
+
+Đo ngày 13/09/2026, bằng đúng dữ liệu `gaps` của tin *AWS Cloud Engineer* với CV
+demo, ba ngôn ngữ, `response_format: json_schema`:
+
+| Model | Thời gian | Token/lượt | Kết luận |
+|---|---|---|---|
+| `gemini-3.8-flash` | — | — | **503 cả 8/8 lần** với payload thật, dù ping nhỏ vẫn 200. Quá tải ở tier free |
+| `gemini-3.5-flash` | 7–8 giây | 1571–2003 | Là model **có bước suy nghĩ**: tốn 1200–1600 token nghĩ để viết ra 200 token. Chậm gấp bốn mà không hay hơn |
+| **`gemini-3.1-flash-lite`** | **1.8 giây** | **750** | Ổn định, tiếng Nhật đúng thể です・ます. **Chọn làm chính** |
+| `openai/gpt-oss-120b` | 1.5–2.4 giây | 1191–1519 | Tốt, nhưng tốn gấp đôi token của Qwen mà không hay hơn rõ rệt |
+| **`qwen/qwen3.8-27b`** | **0.8 giây** | **720** | Nhanh nhất. **Chọn làm dự phòng** — lúc dự phòng chạy là lúc người dùng đã chờ sẵn rồi |
+
+Bốn điều học được, đều đã đổi thiết kế:
+
+**1. `json_schema` chạy được ở CẢ HAI bên.** Đây là câu hỏi treo lớn nhất của
+bản thiết kế ban đầu, nay đã có đáp án chắc chắn. Tầng validate bằng Pydantic ở
+[12.7](#127-ép-đầu-ra-theo-schema) vẫn giữ, nhưng nó là lưới an toàn chứ không
+còn là đường đi chính.
+
+**2. Tên model lỗi thời nhanh hơn tài liệu.** Hai cái tên trong bản thiết kế đầu
+tiên — `gemini-2.5-flash` và `llama-3.3-70b-versatile` — đều **404** khi gọi
+thật: một cái "không còn mở cho người dùng mới", một cái bị gỡ hẳn. Vì vậy tên
+model **phải nằm trong biến môi trường**, và cần một lệnh kiểm tra để biết khi
+nào nó chết. Ghim tên model vào code là hẹn giờ cho một lỗi khó hiểu sau vài
+tháng.
+
+**3. Model "biết nghĩ" là bẫy ở đây.** `gemini-3.5-flash` với `max_tokens=800`
+trả về **JSON bị cắt ngang** — phần suy nghĩ ăn hết hạn mức trước khi kịp viết
+xong dấu ngoặc cuối. Nếu không đo mà cứ thế triển khai, lỗi này sẽ hiện ra dưới
+dạng "thỉnh thoảng thẻ gợi ý không hiện" và rất khó lần ra. Nên đặt
+`LLM_MAX_TOKENS` mặc định **2000** dù model đang dùng chỉ cần 250: hạn mức thừa
+thì không tốn gì, thiếu thì hỏng âm thầm.
+
+**4. 429/503 rải rác là chuyện thường ở tier free.** Gọi `gemini-flash-latest`
+ba lần thì lần thứ hai dính 429. Đây không phải sự cố, đây là trạng thái bình
+thường — nên chuỗi dự phòng dưới đây là thứ bắt buộc phải có, không phải phần
+làm cho đẹp.
 
 ### Chuỗi thất bại
 
@@ -191,11 +234,11 @@ cách nào kiểm chứng nơi nó dẫn tới.
 Nguyên tắc thứ ba — **đầu ra không kích hoạt hành động nào** — được bảo đảm bởi
 kiến trúc: endpoint chỉ đọc, và kết quả chỉ đi vào một thẻ hiển thị.
 
-> ⚠️ **Cần kiểm trước khi viết code:** hai nhà cung cấp mô tả `response_format:
-> json_schema` khác nhau và tài liệu của họ không khớp nhau. Bước 0 trong
-> [12.13](#1213-thứ-tự-làm) là một script ngắn gọi thử cả hai để biết chắc,
-> thay vì xây trên giả định. Dù có hay không thì tầng validate trên vẫn cần —
-> chỉ là mất thêm một lần thử lại.
+> ✅ **Đã kiểm ở bước 0:** cả hai nhà cung cấp đều nhận `response_format:
+> json_schema` và trả về JSON đúng schema ở cả ba ngôn ngữ. Tầng validate trên
+> vẫn giữ nguyên — nó còn bắt được cả trường hợp JSON bị cắt ngang vì hết
+> `max_tokens`, thứ đã thật sự xảy ra khi đo (xem
+> [12.5.1](#1251-số-đo-bước-0)).
 
 ## 12.8. Cache, giới hạn, trần ngày
 
@@ -214,7 +257,18 @@ Cache còn một tác dụng phụ quan trọng: **cùng một màn hình luôn 
 lời khuyên**. LLM vốn không tất định, nhưng người dùng thì không nên thấy lời
 khuyên đổi giọng mỗi lần F5.
 
-## 12.9. Đa ngôn ngữ
+## 12.9. Đa ngôn ngữ và giọng văn
+
+Giọng văn đã chốt:
+
+| Ngôn ngữ | Giọng |
+|---|---|
+| Nhật | thể **です・ます**, không dùng kính ngữ nặng hơn |
+| Việt · Anh | cố vấn nghề nghiệp, ngắn gọn |
+
+Độ dài: **một đoạn tóm tắt khoảng 3 câu + 1–3 bước lộ trình**, mỗi bước một dòng
+kèm số tháng. Dài hơn thì không ai đọc, ngắn hơn thì thành sáo rỗng.
+
 
 Phần `gaps` gửi `code` + `params` để giao diện tự ghép câu theo ngôn ngữ đang
 chọn — lý do ở [tài liệu 9](09-da-ngon-ngu.md).
@@ -287,12 +341,15 @@ phải đợi.
 # báo lỗi — giống hệt cách EMBEDDER_URL trống làm phần ngữ nghĩa tự tắt.
 LLM_ENABLED            = _bool_env("LLM_ENABLED", False)
 LLM_PRIMARY_BASE_URL   = os.getenv("LLM_PRIMARY_BASE_URL", "")
-LLM_PRIMARY_MODEL      = os.getenv("LLM_PRIMARY_MODEL", "gemini-2.5-flash")
+LLM_PRIMARY_MODEL      = os.getenv("LLM_PRIMARY_MODEL", "gemini-3.1-flash-lite")
 LLM_PRIMARY_API_KEY    = os.getenv("GEMINI_API_KEY", "")
 LLM_FALLBACK_BASE_URL  = os.getenv("LLM_FALLBACK_BASE_URL", "")
-LLM_FALLBACK_MODEL     = os.getenv("LLM_FALLBACK_MODEL", "llama-3.3-70b-versatile")
+LLM_FALLBACK_MODEL     = os.getenv("LLM_FALLBACK_MODEL", "qwen/qwen3.8-27b")
 LLM_FALLBACK_API_KEY   = os.getenv("GROQ_API_KEY", "")
 LLM_TIMEOUT_SECONDS    = _int_env("LLM_TIMEOUT_SECONDS", 12)
+# Rong rai co chu dich: model co buoc "suy nghi" an het han muc roi tra ve
+# JSON cat ngang. Thua thi khong ton gi, thieu thi hong am tham.
+LLM_MAX_TOKENS         = _int_env("LLM_MAX_TOKENS", 2000)
 LLM_DAILY_MAX          = _int_env("LLM_DAILY_MAX", 400)
 LLM_CACHE_TTL_SECONDS  = _int_env("LLM_CACHE_TTL_SECONDS", 7 * 24 * 3600)
 ```
@@ -332,8 +389,9 @@ Test cuối cùng là quan trọng nhất trong cả bộ: nó khoá đúng ranh
 Mỗi bước là một commit chạy được và CI xanh. Dừng ở bước 3 vẫn có API dùng
 được; dừng ở bước 4 là tính năng đã xong.
 
-- [ ] **Bước 0** — Script ngắn gọi thử cả hai nhà cung cấp, chốt xem
-      `json_schema` có dùng được không *(~10 phút)*
+- [x] **Bước 0** — ~~Script gọi thử cả hai nhà cung cấp, chốt `json_schema`~~
+      **Xong 13/09/2026.** Có dùng được ở cả hai bên; đổi cả hai tên model vì
+      tên cũ đã 404. Số đo ở [12.5.1](#1251-số-đo-bước-0)
 - [ ] **Bước 1** — `settings.py` + `llm.py` + `test_llm_client.py` *(~1 giờ)*
 - [ ] **Bước 2** — `llm_advice.py`: prompt, schema, cache, quota, sáu kiểu lời
       khuyên + test *(~2.5 giờ)*
