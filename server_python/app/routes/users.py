@@ -35,7 +35,6 @@ from app.controllers.users import (
 )
 from app.middleware.auth import get_current_user
 from app.middleware.upload import save_uploaded_files
-from app.utils.forms import submitted_fields
 from app.schemas.requests import LoginRequest, RegisterRequest
 from app.schemas.responses import (
     ERROR_RESPONSES,
@@ -50,6 +49,7 @@ from app.schemas.responses import (
     UserListResponse,
 )
 from app.services.rate_limit import client_ip, rate_limit
+from app.utils.forms import submitted_fields
 
 router = APIRouter(tags=["users"], responses=ERROR_RESPONSES)
 

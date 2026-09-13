@@ -79,6 +79,7 @@ def cover_png(width=960, height=320):
     """
     a, b = (0x1E, 0x3A, 0x60), (0x0A, 0x70, 0x70)
     r = 72
+
     def pixel(x, y):
         t = x / width * 0.65 + y / height * 0.35
         base = [int(a[i] + (b[i] - a[i]) * t) for i in range(3)]
@@ -87,6 +88,7 @@ def cover_png(width=960, height=320):
         if d < r and (d % (r / 3)) / (r / 3) > 0.74:
             base = [min(255, c + 30) for c in base]
         return base
+
     return _png(width, height, pixel)
 
 
@@ -155,7 +157,7 @@ RESUME = {
     "phone": "090-1234-5678",
     "github": "https://github.com/anhthai",
     "objective": "Trở thành kỹ sư cầu nối giữa đội phát triển Việt Nam và "
-                 "khách hàng Nhật Bản, tập trung vào hệ thống backend chịu tải cao.",
+    "khách hàng Nhật Bản, tập trung vào hệ thống backend chịu tải cao.",
     "educationName": "Đại học Bách khoa Hà Nội",
     "educationMajor": "Công nghệ thông tin",
     "educationCompletion": "2020",
@@ -174,7 +176,7 @@ RESUME = {
             "endTime": "Hiện tại",
             "position": "Backend Engineer",
             "description": "Phát triển API cho hệ thống tuyển dụng phục vụ thị "
-                           "trường Nhật, tối ưu truy vấn Mongo giảm 60% thời gian phản hồi.",
+            "trường Nhật, tối ưu truy vấn Mongo giảm 60% thời gian phản hồi.",
         },
         {
             "name": "FPT Software",
@@ -189,7 +191,7 @@ RESUME = {
             "name": "Fuurin — nền tảng tuyển dụng kết hợp mạng xã hội",
             "tech": "FastAPI, MongoDB, React, Docker",
             "description": "So khớp CV với tin tuyển dụng bằng embedding kết hợp luật, "
-                           "kèm mô phỏng đối chứng “nếu tôi học thêm”.",
+            "kèm mô phỏng đối chứng “nếu tôi học thêm”.",
         },
     ],
 }
@@ -266,9 +268,7 @@ async def seed(api, db):
     # DB dev bị bộ test API đổi tên website thành "Fuurin-<hex>" và thay logo.
     # Trả về đúng giá trị của `server_python/data/social_app.webs.json` để ảnh
     # chụp khớp với một lần cài đặt sạch.
-    seed_web = json.loads(
-        pathlib.Path("/work/server_python/data/social_app.webs.json").read_text(encoding="utf-8")
-    )[0]
+    seed_web = json.loads(pathlib.Path("/work/server_python/data/social_app.webs.json").read_text(encoding="utf-8"))[0]
     await db.webs.update_one(
         {},
         {"$set": {k: v for k, v in seed_web.items() if k != "_id"}},
@@ -291,7 +291,7 @@ async def seed(api, db):
             data={
                 "name": channel_name,
                 "intro": "Nơi trao đổi kinh nghiệm phỏng vấn, JLPT và văn hoá làm việc "
-                         "cho kỹ sư Việt Nam đang tìm việc tại Nhật Bản.",
+                "cho kỹ sư Việt Nam đang tìm việc tại Nhật Bản.",
             },
             files={"images": ("cover.png", cover_png(), "image/png")},
         )
@@ -304,7 +304,7 @@ async def seed(api, db):
         await api.post(f"/api/channels/{channel_id}", headers=auth(tokens[key]))
 
     authors = ["main", "friend", "extra1", "main"]
-    for content, who in zip(POSTS, authors):
+    for content, who in zip(POSTS, authors, strict=True):
         r = await api.post(
             f"/api/posts/{channel_id}",
             headers=auth(tokens[who]),
@@ -317,7 +317,7 @@ async def seed(api, db):
     featured = str(posts[-1]["_id"])  # bài cũ nhất trong loạt vừa đăng: bài có bình luận
     print(f"[seed] {len(posts)} bài viết")
 
-    for who, text in zip(("friend", "extra1"), COMMENTS):
+    for who, text in zip(("friend", "extra1"), COMMENTS, strict=True):
         await api.post(
             f"/api/posts/{channel_id}/{featured}/comments",
             headers=auth(tokens[who]),
@@ -422,14 +422,29 @@ async def capture_auth(browser):
     page = await ctx.new_page()
     try:
         await goto(page, "/login")
-        await shot(page, "01-dang-nhap.png", "Đăng nhập", "Xác thực",
-                   "Tên và mô tả website lấy từ API `GET /api/website`, không viết cứng ở frontend.")
+        await shot(
+            page,
+            "01-dang-nhap.png",
+            "Đăng nhập",
+            "Xác thực",
+            "Tên và mô tả website lấy từ API `GET /api/website`, không viết cứng ở frontend.",
+        )
         await goto(page, "/register")
-        await shot(page, "02-dang-ky.png", "Đăng ký", "Xác thực",
-                   "Cùng khung nền với trang đăng nhập; ba luận điểm giá trị nằm ở cột trái.")
+        await shot(
+            page,
+            "02-dang-ky.png",
+            "Đăng ký",
+            "Xác thực",
+            "Cùng khung nền với trang đăng nhập; ba luận điểm giá trị nằm ở cột trái.",
+        )
         await goto(page, "/khong-ton-tai")
-        await shot(page, "03-khong-tim-thay.png", "Trang không tồn tại", "Xác thực",
-                   "Đường dẫn lạ rơi vào màn hình 404 có lối quay lại, không phải màn hình trắng.")
+        await shot(
+            page,
+            "03-khong-tim-thay.png",
+            "Trang không tồn tại",
+            "Xác thực",
+            "Đường dẫn lạ rơi vào màn hình 404 có lối quay lại, không phải màn hình trắng.",
+        )
     finally:
         await ctx.close()
 
@@ -440,139 +455,286 @@ async def capture_main(browser, w):
     try:
         await login(page, w["emails"]["main"])
 
-        await shot(page, "10-bang-tin.png", "Bảng tin", "Mạng xã hội",
-                   "Ba cột: điều hướng trái, dòng bài giữa, gợi ý phải. Cột phải ẩn dưới 1280px.")
+        await shot(
+            page,
+            "10-bang-tin.png",
+            "Bảng tin",
+            "Mạng xã hội",
+            "Ba cột: điều hướng trái, dòng bài giữa, gợi ý phải. Cột phải ẩn dưới 1280px.",
+        )
 
         await page.locator("[data-testid='composer-open']").first.click()
-        await shot(page, "11-soan-bai.png", "Soạn bài viết", "Mạng xã hội",
-                   "Ô soạn bài mặc định thu gọn một dòng; bấm mới mở trình soạn thảo Quill và ô chọn channel.")
+        await shot(
+            page,
+            "11-soan-bai.png",
+            "Soạn bài viết",
+            "Mạng xã hội",
+            "Ô soạn bài mặc định thu gọn một dòng; bấm mới mở trình soạn thảo Quill và ô chọn channel.",
+        )
         await page.keyboard.press("Escape")
 
         await goto(page, "/channels")
-        await shot(page, "12-danh-sach-channel.png", "Danh sách channel", "Mạng xã hội",
-                   "Mỗi thẻ có ảnh bìa, số thành viên và nút tham gia; trạng thái đang xử lý bám theo từng thẻ.")
+        await shot(
+            page,
+            "12-danh-sach-channel.png",
+            "Danh sách channel",
+            "Mạng xã hội",
+            "Mỗi thẻ có ảnh bìa, số thành viên và nút tham gia; trạng thái đang xử lý bám theo từng thẻ.",
+        )
 
         await goto(page, f"/channels/{w['channel']}")
-        await shot(page, "13-chi-tiet-channel.png", "Chi tiết channel", "Mạng xã hội",
-                   "Ảnh bìa seigaiha, phần giới thiệu, danh sách thành viên và dòng bài của riêng channel.",
-                   full_page=True)
+        await shot(
+            page,
+            "13-chi-tiet-channel.png",
+            "Chi tiết channel",
+            "Mạng xã hội",
+            "Ảnh bìa seigaiha, phần giới thiệu, danh sách thành viên và dòng bài của riêng channel.",
+            full_page=True,
+        )
 
         await goto(page, f"/channels/{w['channel']}/posts/{w['post']}")
-        await shot(page, "14-chi-tiet-bai-viet.png", "Chi tiết bài viết & bình luận", "Mạng xã hội",
-                   "Bình luận hiển thị 2 dòng đầu rồi gập lại; ô nhập là `<input>` thật chứ không phải contentEditable.",
-                   full_page=True)
+        await shot(
+            page,
+            "14-chi-tiet-bai-viet.png",
+            "Chi tiết bài viết & bình luận",
+            "Mạng xã hội",
+            "Bình luận hiển thị 2 dòng đầu rồi gập lại; ô nhập là `<input>` thật chứ không phải contentEditable.",
+            full_page=True,
+        )
 
         await goto(page, "/bookmarks")
-        await shot(page, "15-da-luu.png", "Bài đã lưu", "Mạng xã hội",
-                   "Danh sách bài người dùng đã đánh dấu, dùng lại đúng component bài viết của bảng tin.")
+        await shot(
+            page,
+            "15-da-luu.png",
+            "Bài đã lưu",
+            "Mạng xã hội",
+            "Danh sách bài người dùng đã đánh dấu, dùng lại đúng component bài viết của bảng tin.",
+        )
 
         await goto(page, f"/profile/{w['ids']['main']}")
-        await shot(page, "16-trang-ca-nhan.png", "Trang cá nhân", "Mạng xã hội",
-                   "Ảnh bìa, thông tin, số người theo dõi và các bài đã đăng.", full_page=True)
+        await shot(
+            page,
+            "16-trang-ca-nhan.png",
+            "Trang cá nhân",
+            "Mạng xã hội",
+            "Ảnh bìa, thông tin, số người theo dõi và các bài đã đăng.",
+            full_page=True,
+        )
 
         await goto(page, f"/search?s={w['search']}&tab=users")
-        await shot(page, "17-tim-nguoi-dung.png", "Tìm kiếm — người dùng", "Mạng xã hội",
-                   "Kết quả người dùng kèm nút theo dõi và nhắn tin ngay trên từng dòng.")
+        await shot(
+            page,
+            "17-tim-nguoi-dung.png",
+            "Tìm kiếm — người dùng",
+            "Mạng xã hội",
+            "Kết quả người dùng kèm nút theo dõi và nhắn tin ngay trên từng dòng.",
+        )
 
         await goto(page, "/search?s=JLPT&tab=posts")
-        await shot(page, "18-tim-bai-viet.png", "Tìm kiếm — bài viết", "Mạng xã hội",
-                   "Cùng ô tìm kiếm, đổi tab sang bài viết; từ khoá nằm ở tham số `s` trên URL nên chia sẻ được.")
+        await shot(
+            page,
+            "18-tim-bai-viet.png",
+            "Tìm kiếm — bài viết",
+            "Mạng xã hội",
+            "Cùng ô tìm kiếm, đổi tab sang bài viết; từ khoá nằm ở tham số `s` trên URL nên chia sẻ được.",
+        )
 
         await goto(page, "/users/settings")
-        await shot(page, "19-cai-dat-tai-khoan.png", "Cài đặt tài khoản", "Mạng xã hội",
-                   "Ba tab: bài viết của tôi, người theo dõi, đang theo dõi.")
+        await shot(
+            page,
+            "19-cai-dat-tai-khoan.png",
+            "Cài đặt tài khoản",
+            "Mạng xã hội",
+            "Ba tab: bài viết của tôi, người theo dõi, đang theo dõi.",
+        )
 
         await goto(page, "/")
         await page.get_by_role("button", name=tr("nav", "notifications")).click()
-        await shot(page, "20-thong-bao.png", "Thông báo", "Mạng xã hội",
-                   "Huy hiệu đếm số chưa đọc hiện ngay khi tải trang, không chờ tới lúc mở bảng.", wait=1200)
+        await shot(
+            page,
+            "20-thong-bao.png",
+            "Thông báo",
+            "Mạng xã hội",
+            "Huy hiệu đếm số chưa đọc hiện ngay khi tải trang, không chờ tới lúc mở bảng.",
+            wait=1200,
+        )
         await page.keyboard.press("Escape")
 
         await page.get_by_role("button", name=tr("nav", "messages")).click()
         await page.wait_for_timeout(1200)
-        await shot(page, "21-hop-thu.png", "Hộp thư", "Mạng xã hội",
-                   "Danh sách hội thoại lấy qua Socket.io; tin nhắn mới đẩy thẳng xuống client.", wait=600)
+        await shot(
+            page,
+            "21-hop-thu.png",
+            "Hộp thư",
+            "Mạng xã hội",
+            "Danh sách hội thoại lấy qua Socket.io; tin nhắn mới đẩy thẳng xuống client.",
+            wait=600,
+        )
         try:
             await page.get_by_text("Trần Minh Khoa").first.click()
-            await shot(page, "22-tro-chuyen.png", "Trò chuyện", "Mạng xã hội",
-                       "Hộp thoại chat thời gian thực, có cả nút gọi video (simple-peer).", wait=1800)
+            await shot(
+                page,
+                "22-tro-chuyen.png",
+                "Trò chuyện",
+                "Mạng xã hội",
+                "Hộp thoại chat thời gian thực, có cả nút gọi video (simple-peer).",
+                wait=1800,
+            )
             await page.keyboard.press("Escape")
         except Exception as err:
             print(f"[warn] không mở được hộp thoại chat: {err}")
 
         # --- Tuyển dụng ---
         await goto(page, "/recruitment")
-        await shot(page, "30-tin-tuyen-dung.png", "Tin tuyển dụng", "Tuyển dụng",
-                   "Dữ liệu đã qua ETL vào DB; cột lọc bên phải dính theo cuộn.", full_page=True)
+        await shot(
+            page,
+            "30-tin-tuyen-dung.png",
+            "Tin tuyển dụng",
+            "Tuyển dụng",
+            "Dữ liệu đã qua ETL vào DB; cột lọc bên phải dính theo cuộn.",
+            full_page=True,
+        )
 
         await page.locator("[data-testid='filter-japanese']").select_option("business")
         await page.wait_for_timeout(1500)
         await page.locator("[data-testid='filter-prefecture']").select_option("Tokyo")
-        await shot(page, "31-loc-tin-tuyen-dung.png", "Lọc tin tuyển dụng", "Tuyển dụng",
-                   "Mỗi bộ lọc đang bật thành một chip bỏ được; bộ lọc ghi vào URL nên F5 không mất.", wait=2000)
+        await shot(
+            page,
+            "31-loc-tin-tuyen-dung.png",
+            "Lọc tin tuyển dụng",
+            "Tuyển dụng",
+            "Mỗi bộ lọc đang bật thành một chip bỏ được; bộ lọc ghi vào URL nên F5 không mất.",
+            wait=2000,
+        )
 
         await goto(page, "/resume")
-        await shot(page, "32-ho-so-cv.png", "Hồ sơ CV", "Tuyển dụng",
-                   "Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án.", full_page=True)
+        await shot(
+            page,
+            "32-ho-so-cv.png",
+            "Hồ sơ CV",
+            "Tuyển dụng",
+            "Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án.",
+            full_page=True,
+        )
 
         try:
             await page.get_by_role("button", name=tr("resume", "actions.downloadPreview")).first.click()
             await page.wait_for_timeout(2000)
-            await shot(page, "33-xem-truoc-cv-mau-1.png", "Xem trước CV — mẫu 1", "Tuyển dụng",
-                       "Bản xem trước luôn giữ nền trắng chữ đen kể cả ở chế độ tối: đây là bản sẽ in ra giấy.")
+            await shot(
+                page,
+                "33-xem-truoc-cv-mau-1.png",
+                "Xem trước CV — mẫu 1",
+                "Tuyển dụng",
+                "Bản xem trước luôn giữ nền trắng chữ đen kể cả ở chế độ tối: đây là bản sẽ in ra giấy.",
+            )
             await page.get_by_role("button", name=tr("resume", "template.pick2")).click()
-            await shot(page, "34-xem-truoc-cv-mau-2.png", "Xem trước CV — mẫu 2", "Tuyển dụng",
-                       "Mẫu thứ hai cùng dữ liệu, đổi bố cục sang hai cột.", wait=1500)
+            await shot(
+                page,
+                "34-xem-truoc-cv-mau-2.png",
+                "Xem trước CV — mẫu 2",
+                "Tuyển dụng",
+                "Mẫu thứ hai cùng dữ liệu, đổi bố cục sang hai cột.",
+                wait=1500,
+            )
             await page.keyboard.press("Escape")
         except Exception as err:
             print(f"[warn] không mở được xem trước CV: {err}")
 
         # --- So khớp ---
         await goto(page, "/match")
-        await shot(page, "40-cong-ty-phu-hop.png", "Công ty phù hợp", "So khớp",
-                   "Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu.", full_page=True)
+        await shot(
+            page,
+            "40-cong-ty-phu-hop.png",
+            "Công ty phù hợp",
+            "So khớp",
+            "Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu.",
+            full_page=True,
+        )
 
         if w["company"]:
             await goto(page, f"/match/companies/{w['company']}")
-            await shot(page, "41-thieu-sot-cong-ty.png", "Phân tích thiếu sót — công ty", "So khớp",
-                       "Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp "
-                       "theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất.",
-                       full_page=True)
+            await shot(
+                page,
+                "41-thieu-sot-cong-ty.png",
+                "Phân tích thiếu sót — công ty",
+                "So khớp",
+                "Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp "
+                "theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất.",
+                full_page=True,
+            )
         if w["job"]:
             await goto(page, f"/match/jobs/{w['job']}")
-            await shot(page, "42-thieu-sot-viec-lam.png", "Phân tích thiếu sót — tin tuyển dụng", "So khớp",
-                       "Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể.", full_page=True)
+            await shot(
+                page,
+                "42-thieu-sot-viec-lam.png",
+                "Phân tích thiếu sót — tin tuyển dụng",
+                "So khớp",
+                "Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể.",
+                full_page=True,
+            )
 
         await goto(page, "/match/whatif")
-        await shot(page, "43-mo-phong.png", "Mô phỏng “Nếu tôi học thêm”", "So khớp",
-                   "Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn.", full_page=True)
+        await shot(
+            page,
+            "43-mo-phong.png",
+            "Mô phỏng “Nếu tôi học thêm”",
+            "So khớp",
+            "Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn.",
+            full_page=True,
+        )
         options = page.locator("[data-testid='whatif-option']")
         if await options.count() > 0:
             await options.first.click()
             await page.wait_for_timeout(1500)
             if await options.count() > 1:
                 await options.nth(1).click()
-            await shot(page, "44-mo-phong-ket-qua.png", "Mô phỏng — kết quả kết hợp", "So khớp",
-                       "Chọn nhiều phương án thì thẻ kết quả kết hợp dính ở mép dưới, không phải cuộn đi tìm.",
-                       full_page=True, wait=2200)
+            await shot(
+                page,
+                "44-mo-phong-ket-qua.png",
+                "Mô phỏng — kết quả kết hợp",
+                "So khớp",
+                "Chọn nhiều phương án thì thẻ kết quả kết hợp dính ở mép dưới, không phải cuộn đi tìm.",
+                full_page=True,
+                wait=2200,
+            )
 
         await goto(page, "/market")
-        await shot(page, "45-ban-do-thi-truong.png", "Bản đồ thị trường", "So khớp",
-                   "Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=.",
-                   full_page=True)
+        await shot(
+            page,
+            "45-ban-do-thi-truong.png",
+            "Bản đồ thị trường",
+            "So khớp",
+            "Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=.",
+            full_page=True,
+        )
 
         # --- Chế độ tối ---
         await set_theme(page, "dark")
         await goto(page, "/")
-        await shot(page, "60-toi-bang-tin.png", "Chế độ tối — bảng tin", "Giao diện",
-                   "Nền sumi(墨) #0E1219; các token màu đổi giá trị chứ không phải lật ngược màu.")
+        await shot(
+            page,
+            "60-toi-bang-tin.png",
+            "Chế độ tối — bảng tin",
+            "Giao diện",
+            "Nền sumi(墨) #0E1219; các token màu đổi giá trị chứ không phải lật ngược màu.",
+        )
         await goto(page, "/recruitment")
-        await shot(page, "61-toi-tin-tuyen-dung.png", "Chế độ tối — tin tuyển dụng", "Giao diện",
-                   "Sắc thương hiệu chuyển sang bậc nhạt hơn (ai-500) để giữ tương phản trên nền tối.")
+        await shot(
+            page,
+            "61-toi-tin-tuyen-dung.png",
+            "Chế độ tối — tin tuyển dụng",
+            "Giao diện",
+            "Sắc thương hiệu chuyển sang bậc nhạt hơn (ai-500) để giữ tương phản trên nền tối.",
+        )
         await goto(page, "/market")
-        await shot(page, "62-toi-bieu-do.png", "Chế độ tối — biểu đồ", "Giao diện",
-                   "Bảng màu biểu đồ được chọn riêng cho nền tối, không dùng lại bảng của nền sáng.",
-                   full_page=True)
+        await shot(
+            page,
+            "62-toi-bieu-do.png",
+            "Chế độ tối — biểu đồ",
+            "Giao diện",
+            "Bảng màu biểu đồ được chọn riêng cho nền tối, không dùng lại bảng của nền sáng.",
+            full_page=True,
+        )
         await set_theme(page, "light")
     finally:
         await ctx.close()
@@ -585,16 +747,37 @@ async def capture_admin(browser, w):
         await login(page, w["emails"]["admin"])
 
         await goto(page, "/admin/management")
-        await shot(page, "50-quan-tri-website.png", "Quản trị — cấu hình website", "Quản trị",
-                   "Tên, mô tả và logo của website sửa tại đây rồi áp dụng cho mọi trang.", full_page=True)
+        await shot(
+            page,
+            "50-quan-tri-website.png",
+            "Quản trị — cấu hình website",
+            "Quản trị",
+            "Tên, mô tả và logo của website sửa tại đây rồi áp dụng cho mọi trang.",
+            full_page=True,
+        )
 
         for key, label_key, name, title, note in (
-            ("user", "management.tabs.users", "51-quan-tri-nguoi-dung.png", "Quản trị — người dùng",
-             "Mã người dùng đứng cột cuối, cỡ chữ nhỏ: thứ chỉ dùng khi tra sự cố không nên chiếm chỗ dễ đọc nhất."),
-            ("channel", "management.tabs.channels", "52-quan-tri-channel.png", "Quản trị — channel",
-             "Danh sách channel kèm số thành viên và thao tác xoá."),
-            ("user_posts", "management.tabs.userPosts", "53-quan-tri-bai-viet.png", "Quản trị — bài viết",
-             "Bài viết của toàn hệ thống, tìm theo từ khoá và phân trang phía máy chủ."),
+            (
+                "user",
+                "management.tabs.users",
+                "51-quan-tri-nguoi-dung.png",
+                "Quản trị — người dùng",
+                "Mã người dùng đứng cột cuối, cỡ chữ nhỏ: thứ chỉ dùng khi tra sự cố không nên chiếm chỗ dễ đọc nhất.",
+            ),
+            (
+                "channel",
+                "management.tabs.channels",
+                "52-quan-tri-channel.png",
+                "Quản trị — channel",
+                "Danh sách channel kèm số thành viên và thao tác xoá.",
+            ),
+            (
+                "user_posts",
+                "management.tabs.userPosts",
+                "53-quan-tri-bai-viet.png",
+                "Quản trị — bài viết",
+                "Bài viết của toàn hệ thống, tìm theo từ khoá và phân trang phía máy chủ.",
+            ),
         ):
             try:
                 await page.get_by_role("tab", name=tr("admin", label_key)).click()
@@ -603,8 +786,14 @@ async def capture_admin(browser, w):
                 print(f"[warn] không mở được tab {key}: {err}")
 
         await goto(page, "/admin/settings")
-        await shot(page, "54-quan-tri-ca-nhan.png", "Quản trị — trang cá nhân", "Quản trị",
-                   "Tab bài viết / người theo dõi / đang theo dõi của chính tài khoản quản trị.", full_page=True)
+        await shot(
+            page,
+            "54-quan-tri-ca-nhan.png",
+            "Quản trị — trang cá nhân",
+            "Quản trị",
+            "Tab bài viết / người theo dõi / đang theo dõi của chính tài khoản quản trị.",
+            full_page=True,
+        )
     finally:
         await ctx.close()
 
@@ -612,32 +801,51 @@ async def capture_admin(browser, w):
 async def capture_mobile(browser, w):
     ctx = await browser.new_context(viewport=MOBILE, device_scale_factor=2)
     await ctx.add_init_script(
-        "if (!window.localStorage.getItem('social_app_lang')) "
-        "window.localStorage.setItem('social_app_lang', 'vi');"
+        "if (!window.localStorage.getItem('social_app_lang')) window.localStorage.setItem('social_app_lang', 'vi');"
     )
     page = await ctx.new_page()
     try:
         await login(page, w["emails"]["main"])
-        await shot(page, "70-dt-bang-tin.png", "Điện thoại — bảng tin", "Giao diện",
-                   "Dưới 1024px hai cột bên thu lại, thanh điều hướng chuyển xuống mép dưới.")
+        await shot(
+            page,
+            "70-dt-bang-tin.png",
+            "Điện thoại — bảng tin",
+            "Giao diện",
+            "Dưới 1024px hai cột bên thu lại, thanh điều hướng chuyển xuống mép dưới.",
+        )
 
         try:
             await page.get_by_role("button", name=tr("nav", "more"), exact=True).click()
-            await shot(page, "71-dt-menu.png", "Điện thoại — menu", "Giao diện",
-                       "Thanh dưới chỉ chứa 4 mục hay dùng; phần còn lại nằm trong ngăn kéo “Thêm”.",
-                       wait=1000)
+            await shot(
+                page,
+                "71-dt-menu.png",
+                "Điện thoại — menu",
+                "Giao diện",
+                "Thanh dưới chỉ chứa 4 mục hay dùng; phần còn lại nằm trong ngăn kéo “Thêm”.",
+                wait=1000,
+            )
             await page.keyboard.press("Escape")
             await page.wait_for_timeout(600)
         except Exception as err:
             print(f"[warn] không mở được ngăn kéo trên điện thoại: {err}")
 
         await goto(page, "/recruitment")
-        await shot(page, "72-dt-tin-tuyen-dung.png", "Điện thoại — tin tuyển dụng", "Giao diện",
-                   "Bộ lọc xếp dọc thành khối gập được thay vì cột dính bên phải.")
+        await shot(
+            page,
+            "72-dt-tin-tuyen-dung.png",
+            "Điện thoại — tin tuyển dụng",
+            "Giao diện",
+            "Bộ lọc xếp dọc thành khối gập được thay vì cột dính bên phải.",
+        )
 
         await goto(page, "/match")
-        await shot(page, "73-dt-cong-ty-phu-hop.png", "Điện thoại — công ty phù hợp", "Giao diện",
-                   "Thẻ điểm phù hợp giữ nguyên vòng cung, chỉ đổi cách xếp khối.")
+        await shot(
+            page,
+            "73-dt-cong-ty-phu-hop.png",
+            "Điện thoại — công ty phù hợp",
+            "Giao diện",
+            "Thẻ điểm phù hợp giữ nguyên vòng cung, chỉ đổi cách xếp khối.",
+        )
     finally:
         await ctx.close()
 
@@ -662,9 +870,7 @@ async def main():
         finally:
             await browser.close()
 
-    (OUT / "manifest.json").write_text(
-        json.dumps(SHOTS, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    (OUT / "manifest.json").write_text(json.dumps(SHOTS, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"\nXong: {len(SHOTS)} ảnh trong {OUT}")
 
 

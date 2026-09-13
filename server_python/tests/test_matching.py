@@ -265,9 +265,7 @@ def test_company_keeps_only_the_easiest_bar_for_a_scaled_requirement():
     from app.controllers.match import _combine_gaps
 
     resume = make_resume(years_of_experience=3, japanese_level="fluent", skills_normalized=["python"])
-    scored = _company_scored(
-        [(make_job(min_years=y, required_skills=["Python"]), resume) for y in (30, 8, 5, 4)]
-    )
+    scored = _company_scored([(make_job(min_years=y, required_skills=["Python"]), resume) for y in (30, 8, 5, 4)])
 
     years = [g for g in _combine_gaps(scored) if g["kind"] == "experience_years"]
     assert len(years) == 1, f"số năm kinh nghiệm bị lặp {len(years)} lần"
@@ -299,9 +297,7 @@ def test_company_keeps_only_the_best_paying_position():
     """
     from app.controllers.match import _combine_gaps
 
-    resume = make_resume(
-        desired_salary_min=5_500_000, japanese_level="fluent", skills_normalized=["python"]
-    )
+    resume = make_resume(desired_salary_min=5_500_000, japanese_level="fluent", skills_normalized=["python"])
     scored = _company_scored(
         [
             (make_job(salary_max=s, required_skills=["Python"]), resume)

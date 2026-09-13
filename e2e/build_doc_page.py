@@ -35,8 +35,7 @@ args = parser.parse_args()
 
 STANDALONE = args.standalone
 OUT = pathlib.Path(
-    args.out
-    or (ROOT / ("Fuurin-so-tay-giao-dien.html" if STANDALONE else "docs/_build/so-tay-giao-dien.html"))
+    args.out or (ROOT / ("Fuurin-so-tay-giao-dien.html" if STANDALONE else "docs/_build/so-tay-giao-dien.html"))
 )
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
@@ -49,31 +48,50 @@ def image_src(filename):
 
     im = Image.open(SHOTS_DIR / filename).convert("RGB")
     buf = io.BytesIO()
-    im.quantize(colors=256, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG).save(
-        buf, format="PNG", optimize=True
-    )
+    im.quantize(colors=256, method=Image.MEDIANCUT, dither=Image.FLOYDSTEINBERG).save(buf, format="PNG", optimize=True)
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
 
+
 GROUPS = [
-    ("Xác thực", "auth", "Xác thực và lối vào",
-     "Ba màn hình người dùng gặp trước khi có tài khoản."),
-    ("Mạng xã hội", "social", "Mạng xã hội",
-     "Bảng tin, channel, bài viết, bình luận, tìm kiếm, thông báo và nhắn tin."),
-    ("Tuyển dụng", "jobs", "Tin tuyển dụng và CV",
-     "Kho tin đã chuẩn hoá, và biểu mẫu CV làm đầu vào cho phần so khớp."),
-    ("So khớp", "match", "So khớp và phân tích",
-     "CV này hợp với ai, còn thiếu gì, bù chỗ nào lợi nhất, thị trường trả bao nhiêu."),
-    ("Quản trị", "admin", "Trang quản trị",
-     "Chỉ tài khoản có role.value = 1 vào được; người thường mở đúng đường dẫn cũng chỉ thấy trang 404."),
-    ("Giao diện", "theme", "Chế độ tối và màn hình hẹp",
-     "Cùng bộ mã nguồn, đổi theo thiết lập người dùng và bề ngang màn hình."),
+    ("Xác thực", "auth", "Xác thực và lối vào", "Ba màn hình người dùng gặp trước khi có tài khoản."),
+    (
+        "Mạng xã hội",
+        "social",
+        "Mạng xã hội",
+        "Bảng tin, channel, bài viết, bình luận, tìm kiếm, thông báo và nhắn tin.",
+    ),
+    (
+        "Tuyển dụng",
+        "jobs",
+        "Tin tuyển dụng và CV",
+        "Kho tin đã chuẩn hoá, và biểu mẫu CV làm đầu vào cho phần so khớp.",
+    ),
+    (
+        "So khớp",
+        "match",
+        "So khớp và phân tích",
+        "CV này hợp với ai, còn thiếu gì, bù chỗ nào lợi nhất, thị trường trả bao nhiêu.",
+    ),
+    (
+        "Quản trị",
+        "admin",
+        "Trang quản trị",
+        "Chỉ tài khoản có role.value = 1 vào được; người thường mở đúng đường dẫn cũng chỉ thấy trang 404.",
+    ),
+    (
+        "Giao diện",
+        "theme",
+        "Chế độ tối và màn hình hẹp",
+        "Cùng bộ mã nguồn, đổi theo thiết lập người dùng và bề ngang màn hình.",
+    ),
 ]
 
 
 def dims(path):
     out = subprocess.run(
         ["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(path)],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     ).stdout
     w = h = 0
     for line in out.splitlines():
@@ -99,15 +117,15 @@ for group, slug, title, intro in GROUPS:
         w, h = dims(SHOTS_DIR / s["file"])
         tall = h / w > 0.75
         items.append(
-            f'''      <figure class="shot{' shot--tall' if tall else ''}">
-        <button class="shot__frame" type="button" data-title="{esc(s['title'])}">
-          <img src="{image_src(s['file'])}" alt="{esc(s['title'])}" width="{w}" height="{h}" loading="lazy" decoding="async">
+            f'''      <figure class="shot{" shot--tall" if tall else ""}">
+        <button class="shot__frame" type="button" data-title="{esc(s["title"])}">
+          <img src="{image_src(s["file"])}" alt="{esc(s["title"])}" width="{w}" height="{h}" loading="lazy" decoding="async">
           <span class="shot__zoom">Phóng to</span>
         </button>
         <figcaption>
-          <h3>{esc(s['title'])}</h3>
-          <p>{esc(s['note'])}</p>
-          <span class="shot__meta">{esc(s['file'])} · {w}×{h}</span>
+          <h3>{esc(s["title"])}</h3>
+          <p>{esc(s["note"])}</p>
+          <span class="shot__meta">{esc(s["file"])} · {w}×{h}</span>
         </figcaption>
       </figure>'''
         )
@@ -126,93 +144,103 @@ for group, slug, title, intro in GROUPS:
 toc.append('<a href="#phat-hien"><span>Đã sửa</span><em>5</em></a>')
 
 FINDINGS = [
-    ("PUT /api/users/{id} xoá trắng trường không gửi kèm",
-     "app/controllers/users.py · app/utils/forms.py",
-     "<p><b>Triệu chứng.</b> Gọi endpoint chỉ để đổi ảnh đại diện là mất tên tài khoản. "
-     "Gặp trực tiếp lúc dựng dữ liệu demo: sau khi tải ảnh lên, mọi bài viết mất tên tác giả.</p>"
-     "<p><b>Nguyên nhân.</b> <code>update_user</code> dựng cả khối "
-     "<code>{\"username\": username, \"address\": address, \"intro\": intro}</code> rồi "
-     "<code>$set</code> một lần. Không đính <code>username</code> thì FastAPI đưa vào "
-     "<code>None</code> và ghi đè. Chưa ai gặp vì <code>UpdateProfileModal.jsx</code> luôn gửi đủ "
-     "ba trường — may mắn, không phải thiết kế.</p>"
-     "<p><b>Bẫy khi sửa.</b> Cách hiển nhiên là <code>if value is not None</code>. Nhưng đo thử thì "
-     "FastAPI đưa một field <i>gửi lên rỗng</i> (<code>intro=</code>) tới controller cũng dưới dạng "
-     "<code>None</code> — không phân biệt được với field vắng mặt. Bản vá hiển nhiên kia đổi một lỗi "
-     "mất dữ liệu lấy một lỗi mất chức năng: người dùng không xoá nổi phần giới thiệu của mình.</p>"
-     "<p class=\"fix\">Thêm <code>app/utils/forms.py</code> đọc thẳng tên field có trong form, rồi "
-     "chỉ ghi những trường thật sự được gửi. Test canh hai đầu của cùng sự phân biệt đó: "
-     "<code>test_partial_update_keeps_fields_that_were_not_sent</code> và "
-     "<code>test_empty_string_still_clears_a_field</code>.</p>",
-     "đã sửa"),
-    ("Ảnh đại diện thay bằng chữ cái đầu tên là code chết",
-     "app/models/user.py · scripts/clear_default_avatars.py",
-     "<p><b>Triệu chứng.</b> Trong mọi danh sách, mọi người là một vòng tròn xám giống hệt nhau.</p>"
-     "<p><b>Nguyên nhân.</b> <code>Avatar.jsx</code> có sẵn phần dựng ảnh thay thế — chữ cái đầu của "
-     "tên trên một trong sáu sắc chàm/asagi, chọn theo tên nên mỗi người một màu cố định. Nhưng model "
-     "<code>User</code> khai báo <code>default_factory</code> trả về <code>avatar-trang.jpg</code>, "
-     "nên mọi tài khoản mới đều <i>có</i> ảnh — cùng một file hình bóng người xám — và nhánh chữ cái "
-     "đầu không bao giờ chạy.</p>"
-     "<p class=\"fix\">Bỏ mặc định (<code>avatar: dict | None = None</code>), kèm "
-     "<code>scripts/clear_default_avatars.py</code> gỡ cho tài khoản cũ — chỉ đụng đúng file mặc định, "
-     "ai đã tự tải ảnh lên thì giữ nguyên. Test canh: "
-     "<code>test_new_account_has_no_default_avatar</code>.</p>",
-     "đã sửa"),
-    ("Seed website mang logo cờ Mỹ và chữ Lorem ipsum",
-     "server_python/data/social_app.webs.json",
-     "<p><b>Triệu chứng.</b> Cài mới hệ thống ra một sản phẩm tuyển dụng thị trường Nhật treo cờ Mỹ, "
-     "với hai câu giới thiệu bằng Lorem ipsum. Di sản từ template gốc.</p>"
-     "<p class=\"fix\">Bỏ hẳn trường <code>logo</code>: cả <code>Header.jsx</code> lẫn "
-     "<code>AuthShell.jsx</code> đều đã có nhánh lùi về <code>/fuurin.svg</code> — ảnh phong linh của "
-     "chính ứng dụng. Hai câu quote thay bằng câu thật, <code>color_title</code> về sắc chàm "
-     "<code>#274A78</code>.</p>",
-     "đã sửa"),
-    ("Bộ test API làm bẩn cơ sở dữ liệu phát triển",
-     "server_python/tests/test_chat_web.py",
-     "<p><b>Triệu chứng.</b> Ảnh chụp đầu tiên mang tiêu đề “Fuurin-bdd43”.</p>"
-     "<p><b>Nguyên nhân.</b> Cấu hình website là bản ghi <i>dùng chung</i>, chỉ có đúng một bản trong "
-     "DB. <code>test_admin_updates_website</code> đổi tên thành <code>Fuurin-&lt;hex&gt;</code> rồi "
-     "bỏ đó.</p>"
-     "<p class=\"fix\">Test chụp lại nguyên trạng trước khi đổi và trả về trong <code>finally</code>. "
-     "Kịch bản chụp ảnh cũng tự đặt lại cấu hình từ file seed, để một DB đã bẩn sẵn không kéo theo "
-     "tài liệu.</p>",
-     "đã sửa"),
-    ("Trang “thiếu sót của công ty” dài hơn 5.000 pixel",
-     "app/controllers/match.py · components/GapList.jsx",
-     "<p><b>Triệu chứng.</b> Với CV mẫu, <code>/match/companies/:id</code> của một công ty lớn liệt kê "
-     "<strong>22 điều kiện bắt buộc và 54 điểm nên có</strong> — cuộn hơn năm màn hình, mỗi dòng là một "
-     "khối chữ dài.</p>"
-     "<p><b>Nguyên nhân.</b> Phần gộp cấp công ty loại trùng bằng cách so <i>nguyên câu</i> "
-     "(<code>if gap.message not in seen</code>), mà <code>_check_skills</code> gói toàn bộ kỹ năng "
-     "thiếu của một tin vào một mục. Hai tin khác nhau đúng một kỹ năng cho hai câu khác nhau, nên "
-     "gần như không loại được gì.</p>"
-     "<p><b>Cách sửa.</b> Viết lại <code>_combine_gaps</code> thành ba cách gộp cho ba loại câu hỏi: "
-     "<b>ngôn ngữ và số năm</b> giữ mốc dễ nhất (“cửa thấp nhất vẫn cao hơn mình bao nhiêu”), "
-     "<b>kỹ năng</b> bung ra từng cái rồi đếm số vị trí đang đòi nó và xếp giảm dần "
-     "(“41/98 vị trí yêu cầu AWS”), <b>lương và địa điểm</b> loại trùng theo <code>code</code> + "
-     "<code>params</code>. Thêm một quyết định: ở mức công ty kỹ năng không bao giờ mang nhãn “bắt "
-     "buộc” — nhãn đó sinh ra ở mức từng tin, đưa lên mức công ty thì 75/91 dòng đều “bắt buộc”, tức "
-     "không còn phân loại được gì.</p>"
-     "<div class=\"table-scroll\"><table><thead><tr><th></th><th>Trước</th><th>Sau</th></tr></thead>"
-     "<tbody>"
-     "<tr><td>Nhóm “bắt buộc phải bù”</td><td class=\"tnum\">22 dòng</td>"
-     "<td class=\"tnum\"><strong>2 dòng</strong></td></tr>"
-     "<tr><td>Nhóm “nên có thêm”</td><td class=\"tnum\">54 dòng</td>"
-     "<td class=\"tnum\">83 dòng, xếp theo nhu cầu</td></tr>"
-     "<tr><td>Dòng hiện ra khi mở trang</td><td class=\"tnum\">76 khối chữ</td>"
-     "<td class=\"tnum\"><strong>14 dòng</strong></td></tr>"
-     "<tr><td>Chiều cao trang</td><td class=\"tnum\">&gt; 5.000 px</td>"
-     "<td class=\"tnum\">một màn hình rưỡi</td></tr>"
-     "</tbody></table></div>"
-     "<p class=\"fix\">Kèm <code>GapList.jsx</code> chỉ hiện 12 mục đầu mỗi nhóm với nút “Xem thêm”. "
-     "Test canh: năm test trong <code>tests/test_matching.py</code>.</p>",
-     "đã sửa"),
+    (
+        "PUT /api/users/{id} xoá trắng trường không gửi kèm",
+        "app/controllers/users.py · app/utils/forms.py",
+        "<p><b>Triệu chứng.</b> Gọi endpoint chỉ để đổi ảnh đại diện là mất tên tài khoản. "
+        "Gặp trực tiếp lúc dựng dữ liệu demo: sau khi tải ảnh lên, mọi bài viết mất tên tác giả.</p>"
+        "<p><b>Nguyên nhân.</b> <code>update_user</code> dựng cả khối "
+        '<code>{"username": username, "address": address, "intro": intro}</code> rồi '
+        "<code>$set</code> một lần. Không đính <code>username</code> thì FastAPI đưa vào "
+        "<code>None</code> và ghi đè. Chưa ai gặp vì <code>UpdateProfileModal.jsx</code> luôn gửi đủ "
+        "ba trường — may mắn, không phải thiết kế.</p>"
+        "<p><b>Bẫy khi sửa.</b> Cách hiển nhiên là <code>if value is not None</code>. Nhưng đo thử thì "
+        "FastAPI đưa một field <i>gửi lên rỗng</i> (<code>intro=</code>) tới controller cũng dưới dạng "
+        "<code>None</code> — không phân biệt được với field vắng mặt. Bản vá hiển nhiên kia đổi một lỗi "
+        "mất dữ liệu lấy một lỗi mất chức năng: người dùng không xoá nổi phần giới thiệu của mình.</p>"
+        '<p class="fix">Thêm <code>app/utils/forms.py</code> đọc thẳng tên field có trong form, rồi '
+        "chỉ ghi những trường thật sự được gửi. Test canh hai đầu của cùng sự phân biệt đó: "
+        "<code>test_partial_update_keeps_fields_that_were_not_sent</code> và "
+        "<code>test_empty_string_still_clears_a_field</code>.</p>",
+        "đã sửa",
+    ),
+    (
+        "Ảnh đại diện thay bằng chữ cái đầu tên là code chết",
+        "app/models/user.py · scripts/clear_default_avatars.py",
+        "<p><b>Triệu chứng.</b> Trong mọi danh sách, mọi người là một vòng tròn xám giống hệt nhau.</p>"
+        "<p><b>Nguyên nhân.</b> <code>Avatar.jsx</code> có sẵn phần dựng ảnh thay thế — chữ cái đầu của "
+        "tên trên một trong sáu sắc chàm/asagi, chọn theo tên nên mỗi người một màu cố định. Nhưng model "
+        "<code>User</code> khai báo <code>default_factory</code> trả về <code>avatar-trang.jpg</code>, "
+        "nên mọi tài khoản mới đều <i>có</i> ảnh — cùng một file hình bóng người xám — và nhánh chữ cái "
+        "đầu không bao giờ chạy.</p>"
+        '<p class="fix">Bỏ mặc định (<code>avatar: dict | None = None</code>), kèm '
+        "<code>scripts/clear_default_avatars.py</code> gỡ cho tài khoản cũ — chỉ đụng đúng file mặc định, "
+        "ai đã tự tải ảnh lên thì giữ nguyên. Test canh: "
+        "<code>test_new_account_has_no_default_avatar</code>.</p>",
+        "đã sửa",
+    ),
+    (
+        "Seed website mang logo cờ Mỹ và chữ Lorem ipsum",
+        "server_python/data/social_app.webs.json",
+        "<p><b>Triệu chứng.</b> Cài mới hệ thống ra một sản phẩm tuyển dụng thị trường Nhật treo cờ Mỹ, "
+        "với hai câu giới thiệu bằng Lorem ipsum. Di sản từ template gốc.</p>"
+        '<p class="fix">Bỏ hẳn trường <code>logo</code>: cả <code>Header.jsx</code> lẫn '
+        "<code>AuthShell.jsx</code> đều đã có nhánh lùi về <code>/fuurin.svg</code> — ảnh phong linh của "
+        "chính ứng dụng. Hai câu quote thay bằng câu thật, <code>color_title</code> về sắc chàm "
+        "<code>#274A78</code>.</p>",
+        "đã sửa",
+    ),
+    (
+        "Bộ test API làm bẩn cơ sở dữ liệu phát triển",
+        "server_python/tests/test_chat_web.py",
+        "<p><b>Triệu chứng.</b> Ảnh chụp đầu tiên mang tiêu đề “Fuurin-bdd43”.</p>"
+        "<p><b>Nguyên nhân.</b> Cấu hình website là bản ghi <i>dùng chung</i>, chỉ có đúng một bản trong "
+        "DB. <code>test_admin_updates_website</code> đổi tên thành <code>Fuurin-&lt;hex&gt;</code> rồi "
+        "bỏ đó.</p>"
+        '<p class="fix">Test chụp lại nguyên trạng trước khi đổi và trả về trong <code>finally</code>. '
+        "Kịch bản chụp ảnh cũng tự đặt lại cấu hình từ file seed, để một DB đã bẩn sẵn không kéo theo "
+        "tài liệu.</p>",
+        "đã sửa",
+    ),
+    (
+        "Trang “thiếu sót của công ty” dài hơn 5.000 pixel",
+        "app/controllers/match.py · components/GapList.jsx",
+        "<p><b>Triệu chứng.</b> Với CV mẫu, <code>/match/companies/:id</code> của một công ty lớn liệt kê "
+        "<strong>22 điều kiện bắt buộc và 54 điểm nên có</strong> — cuộn hơn năm màn hình, mỗi dòng là một "
+        "khối chữ dài.</p>"
+        "<p><b>Nguyên nhân.</b> Phần gộp cấp công ty loại trùng bằng cách so <i>nguyên câu</i> "
+        "(<code>if gap.message not in seen</code>), mà <code>_check_skills</code> gói toàn bộ kỹ năng "
+        "thiếu của một tin vào một mục. Hai tin khác nhau đúng một kỹ năng cho hai câu khác nhau, nên "
+        "gần như không loại được gì.</p>"
+        "<p><b>Cách sửa.</b> Viết lại <code>_combine_gaps</code> thành ba cách gộp cho ba loại câu hỏi: "
+        "<b>ngôn ngữ và số năm</b> giữ mốc dễ nhất (“cửa thấp nhất vẫn cao hơn mình bao nhiêu”), "
+        "<b>kỹ năng</b> bung ra từng cái rồi đếm số vị trí đang đòi nó và xếp giảm dần "
+        "(“41/98 vị trí yêu cầu AWS”), <b>lương và địa điểm</b> loại trùng theo <code>code</code> + "
+        "<code>params</code>. Thêm một quyết định: ở mức công ty kỹ năng không bao giờ mang nhãn “bắt "
+        "buộc” — nhãn đó sinh ra ở mức từng tin, đưa lên mức công ty thì 75/91 dòng đều “bắt buộc”, tức "
+        "không còn phân loại được gì.</p>"
+        '<div class="table-scroll"><table><thead><tr><th></th><th>Trước</th><th>Sau</th></tr></thead>'
+        "<tbody>"
+        '<tr><td>Nhóm “bắt buộc phải bù”</td><td class="tnum">22 dòng</td>'
+        '<td class="tnum"><strong>2 dòng</strong></td></tr>'
+        '<tr><td>Nhóm “nên có thêm”</td><td class="tnum">54 dòng</td>'
+        '<td class="tnum">83 dòng, xếp theo nhu cầu</td></tr>'
+        '<tr><td>Dòng hiện ra khi mở trang</td><td class="tnum">76 khối chữ</td>'
+        '<td class="tnum"><strong>14 dòng</strong></td></tr>'
+        '<tr><td>Chiều cao trang</td><td class="tnum">&gt; 5.000 px</td>'
+        '<td class="tnum">một màn hình rưỡi</td></tr>'
+        "</tbody></table></div>"
+        '<p class="fix">Kèm <code>GapList.jsx</code> chỉ hiện 12 mục đầu mỗi nhóm với nút “Xem thêm”. '
+        "Test canh: năm test trong <code>tests/test_matching.py</code>.</p>",
+        "đã sửa",
+    ),
 ]
 
 finding_html = "\n".join(
     f'''      <article class="finding" data-state="{esc(state)}">
         <header>
           <h3>{esc(title)}</h3>
-          <span class="pill pill--{'done' if state == 'đã sửa' else ('skip' if state == 'đã né' else 'open')}">{esc(state)}</span>
+          <span class="pill pill--{"done" if state == "đã sửa" else ("skip" if state == "đã né" else "open")}">{esc(state)}</span>
         </header>
         <p class="where"><code>{esc(where)}</code></p>
         {body}
@@ -534,7 +562,7 @@ footer {{
   <nav class="toc" aria-label="Mục lục">
     <h2>Nội dung</h2>
     <a href="#kiem-thu"><span>Kiểm thử</span><em>360</em></a>
-    {chr(10).join('    ' + t for t in toc)}
+    {chr(10).join("    " + t for t in toc)}
   </nav>
 
   <main>
