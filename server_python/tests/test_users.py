@@ -1,3 +1,4 @@
+import uuid
 import pytest
 
 
@@ -71,6 +72,64 @@ async def test_update_profile(client, user):
     assert r.status_code == 200, r.text
     r = await client.get(f"/api/users/{user.id}")
     assert r.json()["user"]["username"] == "renamed"
+
+
+async def test_partial_update_keeps_fields_that_were_not_sent(client, user):
+    """Gửi thiếu một trường thì trường đó phải GIỮ NGUYÊN, không bị xoá trắng.
+
+    Bản cũ dựng `update_data` với `username`/`address`/`intro` gán vô điều kiện
+    rồi `$set` nguyên khối, nên một request chỉ muốn đổi ảnh đại diện sẽ ghi
+    `username=None` và xoá mất tên tài khoản. Lỗi này không lộ ra qua giao diện
+    vì `UpdateProfileModal.jsx` luôn gửi đủ ba trường — đúng loại lỗi phải để
+    máy canh.
+    """
+    await client.put(
+        f"/api/users/{user.id}",
+        headers=user.headers,
+        data={"username": "giu nguyen ten", "intro": "gioi thieu", "address": "Tokyo"},
+    )
+
+    # Chỉ gửi MỘT trường, giống hệt một client chỉ muốn đổi địa chỉ.
+    r = await client.put(f"/api/users/{user.id}", headers=user.headers, data={"address": "Osaka"})
+    assert r.status_code == 200, r.text
+
+    saved = (await client.get(f"/api/users/{user.id}")).json()["user"]
+    assert saved["username"] == "giu nguyen ten", "tên tài khoản bị xoá khi cập nhật một phần"
+    assert saved["intro"] == "gioi thieu", "phần giới thiệu bị xoá khi cập nhật một phần"
+    assert saved["address"] == "Osaka"
+
+
+async def test_empty_string_still_clears_a_field(client, user):
+    """Chuỗi rỗng KHÁC với không gửi: người dùng xoá sạch ô giới thiệu vẫn phải lưu được."""
+    await client.put(
+        f"/api/users/{user.id}",
+        headers=user.headers,
+        data={"username": "ten", "intro": "co noi dung"},
+    )
+    r = await client.put(
+        f"/api/users/{user.id}",
+        headers=user.headers,
+        data={"username": "ten", "intro": ""},
+    )
+    assert r.status_code == 200, r.text
+    assert (await client.get(f"/api/users/{user.id}")).json()["user"]["intro"] == ""
+
+
+async def test_new_account_has_no_default_avatar(client, db):
+    """Tài khoản mới KHÔNG được phát ảnh đại diện dùng chung.
+
+    Trước đây model gán sẵn `avatar-trang.jpg` cho mọi người, nên nhánh dựng ảnh
+    thay thế bằng chữ cái đầu tên trong `Avatar.jsx` không bao giờ chạy và mọi
+    người trong mọi danh sách trông giống hệt nhau.
+    """
+    email = f"noavatar-{uuid.uuid4().hex[:8]}@example.com"
+    r = await client.post(
+        "/api/users/register",
+        json={"email": email, "password": "Passw0rd!", "username": "khong anh"},
+    )
+    assert r.status_code == 201, r.text
+    doc = await db.users.find_one({"email": email})
+    assert not doc.get("avatar"), f"tài khoản mới vẫn được phát ảnh mặc định: {doc.get('avatar')!r}"
 
 
 async def test_update_other_user_profile_is_rejected(client, user, other_user):

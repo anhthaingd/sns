@@ -205,13 +205,32 @@ def _match_codes() -> set[str]:
     return codes
 
 
+# i18next tra `t("a.b.c", { count })` ra khoá `a.b.c_other` (và `a.b.c_one` với
+# tiếng Anh) chứ không phải `a.b.c`. Một mã dùng `{{count}}` vì thế BẮT BUỘC chỉ
+# tồn tại ở dạng có hậu tố — `check-i18n.mjs` báo lỗi nếu viết dạng trần.
+PLURAL_SUFFIXES = ("_zero", "_one", "_two", "_few", "_many", "_other")
+
+
 def _lookup(catalog: dict, dotted: str):
+    """Giá trị của một mã, chấp nhận cả dạng số nhiều.
+
+    Trả về chuỗi nếu tìm thấy `a.b.c`, hoặc bất kỳ `a.b.c_<dạng>` nào — vì với
+    i18next hai cách viết đó cùng phục vụ một lời gọi `t("a.b.c")`.
+    """
+    *parents, leaf = dotted.split(".")
     node = catalog
-    for part in dotted.split("."):
+    for part in parents:
         if not isinstance(node, dict) or part not in node:
             return None
         node = node[part]
-    return node
+    if not isinstance(node, dict):
+        return None
+    if isinstance(node.get(leaf), str):
+        return node[leaf]
+    for suffix in PLURAL_SUFFIXES:
+        if isinstance(node.get(leaf + suffix), str):
+            return node[leaf + suffix]
+    return None
 
 
 @pytest.mark.parametrize("lang", ["ja", "vi", "en"])

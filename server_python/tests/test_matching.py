@@ -172,3 +172,143 @@ def test_better_candidate_scores_higher_on_the_same_job():
     weak = make_resume(japanese_level="basic", skills_normalized=["Teaching"], years_of_experience=0)
 
     assert evaluate(job, strong, 0.5).score > evaluate(job, weak, 0.5).score
+
+
+# ---------------------------------------------------------------------------
+# Gộp thiếu sót ở mức CÔNG TY
+# ---------------------------------------------------------------------------
+
+
+def _company_scored(jobs_and_resumes):
+    """Dựng danh sách `(job, MatchResult)` đúng hình dạng mà controller truyền vào."""
+    return [(job, evaluate(job, resume, cosine=0.5)) for job, resume in jobs_and_resumes]
+
+
+def test_company_gaps_count_positions_per_missing_skill():
+    """Mỗi kỹ năng thiếu là MỘT dòng, kèm số vị trí đang đòi nó.
+
+    Bản cũ gộp bằng cách loại trùng theo nguyên câu `"Thiếu kỹ năng: A, B, C"`.
+    Hai tin cùng thiếu Java mà khác nhau đúng một kỹ năng thứ hai cho hai câu
+    khác nhau nên cả hai cùng lọt: đo trên dữ liệu thật, một công ty 10 vị trí
+    đẻ ra 76 dòng và người đọc không rút ra được mình cần học gì.
+    """
+    from app.controllers.match import _combine_gaps
+
+    resume = make_resume(skills_normalized=["python"], japanese_level="fluent", years_of_experience=9)
+    scored = _company_scored(
+        [
+            (make_job(required_skills=["Java", "Kotlin"]), resume),
+            (make_job(required_skills=["Java", "Spring"]), resume),
+            (make_job(required_skills=["Java"]), resume),
+        ]
+    )
+
+    combined = _combine_gaps(scored)
+    skills = [g for g in combined if g["kind"] == "missing_skill"]
+
+    by_skill = {g["params"]["skill"]: g["params"] for g in skills}
+    assert set(by_skill) == {"Java", "Kotlin", "Spring"}, by_skill
+    assert by_skill["Java"]["count"] == 3, "Java bị ba vị trí đòi nhưng không đếm đủ"
+    assert by_skill["Kotlin"]["count"] == 1
+    assert by_skill["Java"]["total"] == 3
+
+    # Kỹ năng nhiều vị trí đòi nhất phải đứng đầu: đó là câu trả lời cho
+    # "học cái nào thì mở ra nhiều cửa nhất".
+    assert skills[0]["params"]["skill"] == "Java"
+
+
+def test_company_gaps_do_not_repeat_the_same_language_requirement():
+    """Mười tin cùng đòi tiếng Nhật N2 là MỘT dòng, không phải mười."""
+    from app.controllers.match import _combine_gaps
+
+    resume = make_resume(japanese_level="basic", skills_normalized=["python"])
+    scored = _company_scored(
+        [(make_job(required_japanese="business", required_skills=["Python"]), resume) for _ in range(10)]
+    )
+
+    combined = _combine_gaps(scored)
+    language = [g for g in combined if g["kind"] == "japanese_level"]
+    assert len(language) == 1, f"yêu cầu tiếng Nhật bị lặp {len(language)} lần"
+    assert language[0]["blocking"] is True
+
+
+def test_company_skill_gaps_are_never_blocking():
+    """Ở mức công ty, kỹ năng là "nên học", không phải điều kiện loại.
+
+    Nhãn `blocking` sinh ra ở mức TỪNG TIN: "CV khớp 0 kỹ năng của tin này".
+    Đưa nguyên lên mức công ty thì mất nghĩa — chỗ nào có cả trăm vị trí khác
+    nhau, gần như kỹ năng nào cũng thuộc về một tin mà CV khớp 0. Đo trên dữ
+    liệu thật: 75 trong 91 dòng bị gắn "bắt buộc phải bù", tức nhãn đó không
+    còn phân loại được gì nữa.
+    """
+    from app.controllers.match import _combine_gaps
+
+    resume = make_resume(skills_normalized=["python"], japanese_level="fluent", years_of_experience=9)
+    scored = _company_scored(
+        [
+            (make_job(required_skills=["Python", "Java"]), resume),
+            (make_job(required_skills=["Rust"]), resume),  # khớp 0 kỹ năng
+        ]
+    )
+
+    skills = [g for g in _combine_gaps(scored) if g["kind"] == "missing_skill"]
+    assert skills, "không còn dòng kỹ năng nào"
+    assert all(g["blocking"] is False for g in skills), "kỹ năng không được là điều kiện loại ở mức công ty"
+
+
+def test_company_keeps_only_the_easiest_bar_for_a_scaled_requirement():
+    """Nhiều vị trí đòi số năm khác nhau -> MỘT dòng, lấy mốc thấp nhất.
+
+    Người dùng cần biết "cửa thấp nhất vẫn cao hơn mình bao nhiêu". Liệt kê đủ
+    mọi mốc chỉ ra một chồng dòng "cần 4 / 5 / 8 / 30 năm" chồng lên nhau.
+    """
+    from app.controllers.match import _combine_gaps
+
+    resume = make_resume(years_of_experience=3, japanese_level="fluent", skills_normalized=["python"])
+    scored = _company_scored(
+        [(make_job(min_years=y, required_skills=["Python"]), resume) for y in (30, 8, 5, 4)]
+    )
+
+    years = [g for g in _combine_gaps(scored) if g["kind"] == "experience_years"]
+    assert len(years) == 1, f"số năm kinh nghiệm bị lặp {len(years)} lần"
+    assert years[0]["params"]["required"] == 4, "phải giữ mốc dễ nhất, không phải mốc đầu tiên gặp"
+
+
+def test_company_keeps_only_the_lowest_language_bar():
+    """Công ty có vị trí đòi N1, vị trí đòi N2 -> chỉ hiện mốc N2."""
+    from app.controllers.match import _combine_gaps
+
+    resume = make_resume(japanese_level="basic", skills_normalized=["python"])
+    scored = _company_scored(
+        [
+            (make_job(required_japanese="fluent", required_skills=["Python"]), resume),
+            (make_job(required_japanese="business", required_skills=["Python"]), resume),
+        ]
+    )
+
+    japanese = [g for g in _combine_gaps(scored) if g["kind"] == "japanese_level"]
+    assert len(japanese) == 1
+    assert japanese[0]["params"]["requiredLevel"] == "business"
+
+
+def test_company_keeps_only_the_best_paying_position():
+    """Nhiều vị trí trả thấp hơn mong muốn -> MỘT dòng, lấy vị trí trả cao nhất.
+
+    Bốn dòng "lương tối đa 380 / 400 / 450 / 500 man thấp hơn mong muốn 550"
+    chồng lên nhau không nói thêm được gì so với một dòng "cao nhất là 500".
+    """
+    from app.controllers.match import _combine_gaps
+
+    resume = make_resume(
+        desired_salary_min=5_500_000, japanese_level="fluent", skills_normalized=["python"]
+    )
+    scored = _company_scored(
+        [
+            (make_job(salary_max=s, required_skills=["Python"]), resume)
+            for s in (3_800_000, 4_000_000, 4_500_000, 5_000_000)
+        ]
+    )
+
+    salary = [g for g in _combine_gaps(scored) if g["kind"] == "salary"]
+    assert len(salary) == 1, f"mức lương bị lặp {len(salary)} lần"
+    assert salary[0]["params"]["jobMax"] == 500, "phải giữ vị trí trả cao nhất"
