@@ -7,6 +7,10 @@ export const resumeApi = api.injectEndpoints({
       query: () => 'resume',
       providesTags: ['resume'],
     }),
+    getResumeAdvice: builder.query({
+      query: ({ lang }) => `resume/advice?lang=${lang}`,
+      providesTags: ['resume'],
+    }),
     postResume: builder.mutation({
       query: (body) => ({
         url: 'resume',
@@ -21,5 +25,6 @@ export const resumeApi = api.injectEndpoints({
 
 export const {
   useGetResumeQuery,
+  useGetResumeAdviceQuery,
   usePostResumeMutation,
 } = resumeApi;

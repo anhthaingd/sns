@@ -80,5 +80,12 @@
     "noRequirement": "具体的な条件の記載なし",
     "label": "マッチ度",
     "semanticLabel": "内容の近さ"
+  },
+  "advice": {
+    "title": "AIからのアドバイス",
+    "loading": "アドバイスを作成しています…",
+    "months_one": "{{count}}か月",
+    "months_other": "{{count}}か月",
+    "disclaimer": "このアドバイスは上の判定結果をもとにAIが書いたものです。点数と不足項目はルールで計算しており、この文章によって変わることはありません。"
   }
 }

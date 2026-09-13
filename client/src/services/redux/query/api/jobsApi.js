@@ -25,6 +25,10 @@ export const jobsApi = api.injectEndpoints({
       query: () => 'jobs/market',
       providesTags: ['jobs'],
     }),
+    getMarketAdvice: builder.query({
+      query: ({ lang }) => `jobs/market/advice?lang=${lang}`,
+      providesTags: ['jobs'],
+    }),
   }),
 });
 
@@ -35,4 +39,5 @@ export const {
   useGetCompaniesQuery,
   useGetCompanyDetailsQuery,
   useGetJobMarketQuery,
+  useGetMarketAdviceQuery,
 } = jobsApi;

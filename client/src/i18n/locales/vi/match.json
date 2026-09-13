@@ -80,5 +80,12 @@
     "noRequirement": "tin không nêu yêu cầu cụ thể",
     "label": "Điểm khớp",
     "semanticLabel": "Độ gần về nội dung"
+  },
+  "advice": {
+    "title": "Gợi ý từ AI",
+    "loading": "Đang viết gợi ý…",
+    "months_one": "{{count}} tháng",
+    "months_other": "{{count}} tháng",
+    "disclaimer": "Gợi ý này do AI viết dựa trên phần đánh giá ở trên. Điểm số và danh sách thiếu sót được tính bằng luật, không thay đổi theo đoạn văn này."
   }
 }

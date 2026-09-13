@@ -9,10 +9,15 @@ import Page from '../../Page';
 import Card from '../../../components/ui/Card';
 import Loading from '../../../components/ui/Loading';
 import LinkButton from '../../../components/ui/LinkButton';
-import { useGetJobGapQuery } from '../../../services/redux/query/api/matchApi';
+import {
+  useGetJobAdviceQuery,
+  useGetJobGapQuery,
+} from '../../../services/redux/query/api/matchApi';
 import GapList from './components/GapList';
 import MatchScore from './components/MatchScore';
 import MatchError from './components/MatchError';
+import AdviceCard from '../../../components/ui/AdviceCard';
+import useAdviceLang from '../../../hooks/useAdviceLang';
 import {
   experienceLabel,
   formatSalary,
@@ -38,6 +43,10 @@ function JobGapLayout() {
   const { t } = useTranslation(['match', 'job', 'error']);
   const { id } = useParams();
   const { data, isLoading, isError, error } = useGetJobGapQuery(id);
+
+  // Endpoint riêng: trang vẽ ngay bằng dữ liệu đã tính, thẻ gợi ý hiện sau.
+  const lang = useAdviceLang();
+  const advice = useGetJobAdviceQuery({ id, lang }, { skip: isError });
 
   if (isLoading) return <Loading />;
   if (isError) return <MatchError error={error} fallbackKey='jobGap.loadFailed' />;
@@ -115,6 +124,8 @@ function JobGapLayout() {
       <section className='mt-6'>
         <GapList gaps={match.gaps} met={match.met} />
       </section>
+
+      <AdviceCard data={advice.data} isLoading={advice.isLoading} />
 
       {company?.description && (
         <Card className='mt-6'>

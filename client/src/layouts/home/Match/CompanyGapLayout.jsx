@@ -6,8 +6,13 @@ import Card from '../../../components/ui/Card';
 import Avatar from '../../../components/ui/Avatar';
 import Loading from '../../../components/ui/Loading';
 import ScoreDial from '../../../components/ui/ScoreDial';
-import { useGetCompanyGapQuery } from '../../../services/redux/query/api/matchApi';
+import {
+  useGetCompanyAdviceQuery,
+  useGetCompanyGapQuery,
+} from '../../../services/redux/query/api/matchApi';
 import GapList from './components/GapList';
+import AdviceCard from '../../../components/ui/AdviceCard';
+import useAdviceLang from '../../../hooks/useAdviceLang';
 import MatchScore from './components/MatchScore';
 import MatchError from './components/MatchError';
 import { formatSalary } from '../../../services/utils/jobFormat';
@@ -22,6 +27,9 @@ function CompanyGapLayout() {
   const { t } = useTranslation(['match', 'job', 'error']);
   const { id } = useParams();
   const { data, isLoading, isError, error } = useGetCompanyGapQuery(id);
+
+  const lang = useAdviceLang();
+  const advice = useGetCompanyAdviceQuery({ id, lang }, { skip: isError });
 
   if (isLoading) return <Loading />;
   if (isError) {
@@ -95,6 +103,7 @@ function CompanyGapLayout() {
           </Link>
         </p>
         <GapList gaps={combinedGaps} met={bestMatch.met} />
+        <AdviceCard data={advice.data} isLoading={advice.isLoading} />
       </section>
 
       <section className='mt-8'>

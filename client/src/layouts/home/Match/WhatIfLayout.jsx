@@ -7,9 +7,12 @@ import Loading from '../../../components/ui/Loading';
 import SectionHeading from '../../../components/ui/SectionHeading';
 import MatchError from './components/MatchError';
 import {
+  useGetWhatIfAdviceQuery,
   useGetWhatIfQuery,
   useSimulateWhatIfMutation,
 } from '../../../services/redux/query/api/matchApi';
+import AdviceCard from '../../../components/ui/AdviceCard';
+import useAdviceLang from '../../../hooks/useAdviceLang';
 import { formatSalary } from '../../../services/utils/jobFormat';
 import cn from '../../../services/utils/cn';
 
@@ -19,6 +22,9 @@ const actionKey = (a) => `${a.kind}:${a.value}`;
 function WhatIfLayout() {
   const { t } = useTranslation(['whatif', 'job', 'common']);
   const { data, isSuccess, isLoading, isError, error } = useGetWhatIfQuery();
+
+  const lang = useAdviceLang();
+  const advice = useGetWhatIfAdviceQuery({ lang }, { skip: isError });
   const [simulate, { data: combined }] = useSimulateWhatIfMutation();
   const [selected, setSelected] = useState([]);
 
@@ -184,6 +190,8 @@ function WhatIfLayout() {
           )
         )}
       </Card>
+
+      <AdviceCard data={advice.data} isLoading={advice.isLoading} />
 
       <p className='mt-4 text-xs leading-relaxed text-fg-subtle'>{t('disclaimer')}</p>
     </Page>

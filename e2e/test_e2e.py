@@ -2,12 +2,14 @@ import json
 import uuid
 
 import httpx
+import pytest
 import socketio
 
 from .conftest import (
     API_URL,
     APP_URL,
     LOCALES_DIR,
+    UI_LANG,
     login_via_ui,
     new_page_context,
     new_page_with_console,
@@ -446,3 +448,92 @@ async def test_switching_language_changes_the_whole_interface(page, db):
     await page.get_by_placeholder(vi_auth["field"]["passwordPlaceholder"]).fill("sai-mat-khau")
     await page.get_by_role("button", name=vi_auth["login"]["submit"], exact=True).click()
     await page.wait_for_selector(f"text={vi_error['server']['auth']['invalidCredentials']}", timeout=15000)
+
+
+# --- Lời khuyên bằng LLM ----------------------------------------------------
+# Xem docs/12-loi-khuyen-bang-llm.md.
+#
+# Ba test dưới phải xanh ở CẢ HAI môi trường: máy dev có API key, và CI không
+# có (và sẽ không bao giờ có — CI phải chạy offline). Nên chúng kiểm **cách
+# giao diện xử sự**, không kiểm nội dung câu chữ do mô hình sinh ra.
+
+
+async def _api_json(page, path):
+    token = await page.evaluate("() => window.localStorage.getItem('social_app_token')")
+    return await page.evaluate(
+        """async (args) => {
+            const res = await fetch(args.api + args.path, {
+                headers: { Authorization: 'Bearer ' + args.token },
+            });
+            return { status: res.status, body: await res.json() };
+        }""",
+        {"api": API_URL, "path": path, "token": token},
+    )
+
+
+async def test_advice_card_shows_exactly_what_the_api_returned(page):
+    """Thẻ gợi ý hiện đúng chữ mà API trả về, không phải chữ viết cứng ở client."""
+    email = unique_email("advice")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+    await _create_minimal_resume(page)
+
+    result = await _api_json(page, "/api/match/whatif/advice?lang=" + UI_LANG)
+    assert result["status"] == 200, result
+    advice = result["body"]["advice"]
+    if not advice:
+        pytest.skip(f"môi trường này chưa cấu hình LLM (reason={result['body']['reason']})")
+
+    await page.goto(f"{APP_URL}/match/whatif", wait_until="domcontentloaded")
+    await page.wait_for_selector("[data-testid='advice-card']", timeout=40000)
+
+    card = await page.locator("[data-testid='advice-card']").inner_text()
+    # So một đoạn đủ dài để không trùng ngẫu nhiên, nhưng không so cả câu: bản
+    # cache và bản vừa sinh có thể khác nhau nếu hạn mức vừa hết giữa chừng.
+    assert advice["summary"][:40] in card
+    assert advice["roadmap"][0]["title"] in card
+
+
+async def test_every_page_survives_a_dead_advice_endpoint(page):
+    """**Test quan trọng nhất ở tầng giao diện.**
+
+    LLM là phần phụ. Nhà cung cấp chết, hết hạn mức, mạng hỏng — màn hình phải
+    y như trước khi có tính năng này: không thẻ gợi ý, không toast lỗi, không
+    khung chờ quay mãi.
+    """
+    email = unique_email("advice-dead")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+    await _create_minimal_resume(page)
+
+    # Chặn ở tầng mạng: giống hệt lúc nhà cung cấp không trả lời.
+    await page.route("**/advice*", lambda route: route.abort())
+
+    await page.goto(f"{APP_URL}/match/whatif", wait_until="domcontentloaded")
+    await page.wait_for_selector("[data-testid='whatif-baseline']", timeout=30000)
+
+    await page.goto(f"{APP_URL}/market", wait_until="domcontentloaded")
+    await page.get_by_role("heading", name=tr("market", "title")).wait_for(timeout=30000)
+
+    assert await page.locator("[data-testid='advice-card']").count() == 0
+    # Khung chờ cũng phải biến mất — quay mãi còn tệ hơn không hiện gì.
+    await page.wait_for_selector("[data-testid='advice-skeleton']", state="detached", timeout=20000)
+
+
+async def test_advice_is_requested_in_the_interface_language(page):
+    """Phần `gaps` gửi mã để client tự dịch, nhưng lời khuyên là văn xuôi nên
+    phải được SINH SẴN đúng ngôn ngữ — backend phải nhận được `lang`."""
+    email = unique_email("advice-lang")
+    await register_via_ui(page, email)
+    await login_via_ui(page, email)
+    await _create_minimal_resume(page)
+
+    asked = []
+    page.on("request", lambda r: asked.append(r.url) if "/advice" in r.url else None)
+
+    await page.goto(f"{APP_URL}/match/whatif", wait_until="domcontentloaded")
+    await page.wait_for_selector("[data-testid='whatif-baseline']", timeout=30000)
+    await page.wait_for_timeout(2000)
+
+    assert asked, "giao diện không hề gọi endpoint lời khuyên"
+    assert all(f"lang={UI_LANG}" in url for url in asked), asked

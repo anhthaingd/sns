@@ -23,6 +23,24 @@ export const matchApi = api.injectEndpoints({
       query: () => 'match/whatif',
       providesTags: ['matches'],
     }),
+    // Lời khuyên do LLM viết — endpoint RIÊNG, gọi sau khi trang đã vẽ xong.
+    // Gộp vào endpoint gap thì một màn hình 15ms thành một màn hình 5 giây.
+    getOverviewAdvice: builder.query({
+      query: ({ page = 1, lang }) => `match/advice/overview?page=${page}&lang=${lang}`,
+      providesTags: ['matches'],
+    }),
+    getJobAdvice: builder.query({
+      query: ({ id, lang }) => `match/jobs/${id}/advice?lang=${lang}`,
+      providesTags: ['matches'],
+    }),
+    getCompanyAdvice: builder.query({
+      query: ({ id, lang }) => `match/companies/${id}/advice?lang=${lang}`,
+      providesTags: ['matches'],
+    }),
+    getWhatIfAdvice: builder.query({
+      query: ({ lang }) => `match/whatif/advice?lang=${lang}`,
+      providesTags: ['matches'],
+    }),
     simulateWhatIf: builder.mutation({
       query: (actions) => ({
         url: 'match/whatif',
@@ -39,5 +57,9 @@ export const {
   useGetJobGapQuery,
   useGetCompanyGapQuery,
   useGetWhatIfQuery,
+  useGetOverviewAdviceQuery,
+  useGetJobAdviceQuery,
+  useGetCompanyAdviceQuery,
+  useGetWhatIfAdviceQuery,
   useSimulateWhatIfMutation,
 } = matchApi;

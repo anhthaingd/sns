@@ -7,7 +7,12 @@ import EmptyState from '../../../components/ui/EmptyState';
 import SectionHeading from '../../../components/ui/SectionHeading';
 import BarChart from '../../../components/ui/BarChart';
 import { serverMessage } from '../../../services/utils/serverMessage';
-import { useGetJobMarketQuery } from '../../../services/redux/query/api/jobsApi';
+import {
+  useGetJobMarketQuery,
+  useGetMarketAdviceQuery,
+} from '../../../services/redux/query/api/jobsApi';
+import AdviceCard from '../../../components/ui/AdviceCard';
+import useAdviceLang from '../../../hooks/useAdviceLang';
 import { formatSalary } from '../../../services/utils/jobFormat';
 
 const OTHER = '__other__';
@@ -26,6 +31,11 @@ function ChartSection({ title, children, note }) {
 function MarketLayout() {
   const { t } = useTranslation(['market', 'job', 'common']);
   const { data, isSuccess, isLoading, isError, error } = useGetJobMarketQuery();
+
+  // Trang này không nói về một người cụ thể, nên lời khuyên ở đây là đọc bảng
+  // số thành nhận định thị trường.
+  const lang = useAdviceLang();
+  const advice = useGetMarketAdviceQuery({ lang }, { skip: isError });
 
   // Trung vị chỉ có khi nhóm đủ lớn — backend đã trả `null` dưới ngưỡng, ở đây
   // chỉ diễn đạt lại. Cỡ mẫu LUÔN hiện, kể cả khi không có trung vị.
@@ -121,6 +131,8 @@ function MarketLayout() {
           />
         </ChartSection>
       </div>
+
+      <AdviceCard data={advice.data} isLoading={advice.isLoading} />
     </Page>
   );
 }

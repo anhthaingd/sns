@@ -10,7 +10,13 @@ import {
 } from 'react-icons/fa6';
 import ResumeModal from '../../../components/modal/resume/ResumeModal';
 import ImageUpload from '../../../components/ui/ImageUpload';
-import { useGetResumeQuery, usePostResumeMutation } from '../../../services/redux/query/api/resumeApi';
+import {
+  useGetResumeAdviceQuery,
+  useGetResumeQuery,
+  usePostResumeMutation,
+} from '../../../services/redux/query/api/resumeApi';
+import AdviceCard from '../../../components/ui/AdviceCard';
+import useAdviceLang from '../../../hooks/useAdviceLang';
 import { ModalContext } from '../../../context/ModalProvider';
 import useMutationToast from '../../../hooks/useMutationToast';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +50,11 @@ function ResumeLayout() {
   const { t } = useTranslation(['resume', 'common']);
   const { state, setVisibleModal } = useContext(ModalContext);
   const { data: resumeData, isSuccess: isSuccessResume } = useGetResumeQuery();
+
+  // Đây là nơi DUY NHẤT sửa được gốc rễ: CV ghi sơ sài thì vector kém và mọi
+  // gợi ý phía sau kém theo, mà người dùng không hề biết.
+  const lang = useAdviceLang();
+  const advice = useGetResumeAdviceQuery({ lang }, { skip: !isSuccessResume });
   const [
     postResume,
     {
@@ -250,6 +261,8 @@ function ResumeLayout() {
           <span className='fu-cord' aria-hidden='true' />
           <h1 className='text-xl font-bold text-fg sm:text-2xl'>{t('title')}</h1>
         </div>
+
+        <AdviceCard data={advice.data} isLoading={advice.isLoading} />
         <div className='flex flex-col gap-7 rounded-card bg-surface p-4 ring-1 ring-inset ring-line sm:p-6'>
           <div className='flex flex-col gap-4'>
             <h2 className='text-base font-bold text-fg'>{t('section.basicInfo')}</h2>

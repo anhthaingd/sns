@@ -89,5 +89,12 @@
     "noRequirement": "the posting states no concrete requirement",
     "label": "Match score",
     "semanticLabel": "Semantic closeness"
+  },
+  "advice": {
+    "title": "AI suggestion",
+    "loading": "Writing a suggestion…",
+    "months_one": "{{count}} month",
+    "months_other": "{{count}} months",
+    "disclaimer": "This suggestion was written by AI from the assessment above. The score and the gap list are computed by rules and do not change with this text."
   }
 }

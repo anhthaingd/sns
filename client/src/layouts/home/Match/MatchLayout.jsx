@@ -9,8 +9,13 @@ import SectionHeading from '../../../components/ui/SectionHeading';
 import Avatar from '../../../components/ui/Avatar';
 import Card from '../../../components/ui/Card';
 import { JobSkeleton, SkeletonList } from '../../../components/ui/Skeleton';
-import { useGetMatchedCompaniesQuery } from '../../../services/redux/query/api/matchApi';
+import {
+  useGetMatchedCompaniesQuery,
+  useGetOverviewAdviceQuery,
+} from '../../../services/redux/query/api/matchApi';
 import MatchScore from './components/MatchScore';
+import AdviceCard from '../../../components/ui/AdviceCard';
+import useAdviceLang from '../../../hooks/useAdviceLang';
 import MatchError from './components/MatchError';
 import { formatSalary } from '../../../services/utils/jobFormat';
 import { gapText } from '../../../services/utils/matchText';
@@ -34,6 +39,15 @@ function MatchLayout() {
   }, [searchParams, qualifiedOnly]);
 
   const { data, isLoading, isError, error } = useGetMatchedCompaniesQuery(query);
+
+  // MỘT lời khuyên cho cả trang, không phải mỗi công ty một đoạn: mười lần gọi
+  // cho một lần mở trang là hết hạn mức miễn phí trong một buổi demo, mà mười
+  // đoạn văn thì cũng không ai đọc.
+  const lang = useAdviceLang();
+  const advice = useGetOverviewAdviceQuery(
+    { page: Number(searchParams.get('page')) || 1, lang },
+    { skip: !data?.matches?.length }
+  );
 
   // Chưa có CV thì backend trả 404 kèm hướng dẫn — dẫn thẳng người dùng sang
   // trang tạo CV thay vì hiện lỗi cụt lủn.
@@ -169,6 +183,10 @@ function MatchLayout() {
           </>
         ) : (
           <EmptyState icon={FaBuilding} title={t('empty')} />
+        )}
+
+        {data?.matches?.length > 0 && (
+          <AdviceCard data={advice.data} isLoading={advice.isLoading} />
         )}
       </div>
     </Page>
