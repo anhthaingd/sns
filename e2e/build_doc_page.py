@@ -264,6 +264,15 @@ TESTS = [
     ("whatif_needs_a_resume_first", "Chưa có CV thì nói rõ, bằng câu chữ của backend"),
     ("market_page_shows_the_sample_size_next_to_every_median", "Không trung vị nào đứng một mình — luôn kèm cỡ mẫu"),
     ("switching_language_changes_the_whole_interface", "Đổi ngôn ngữ đổi cả chữ tĩnh lẫn câu backend sinh, nhớ qua F5"),
+    (
+        "advice_card_shows_exactly_what_the_api_returned",
+        "Thẻ gợi ý AI hiện đúng chữ API trả về, không phải chữ cứng ở client",
+    ),
+    (
+        "every_page_survives_a_dead_advice_endpoint",
+        "Chặn endpoint gợi ý ở tầng mạng: mọi trang vẫn nguyên vẹn, không toast lỗi",
+    ),
+    ("advice_is_requested_in_the_interface_language", "Request mang đúng ?lang của giao diện đang dùng"),
 ]
 test_rows = "\n".join(
     f'        <tr><td class="tnum">{i}</td><td><code>{esc(name)}</code></td><td>{esc(what)}</td></tr>'
@@ -551,9 +560,9 @@ footer {{
     <div class="stats">
       <span class="stat"><b>{len(MANIFEST)}</b> ảnh</span>
       <span class="stat"><b>20</b> đường dẫn</span>
-      <span class="stat"><b>345</b> test API chạy qua</span>
-      <span class="stat"><b>15</b> test giao diện chạy qua</span>
-      <span class="stat"><b>3</b> ngôn ngữ · 572 khoá</span>
+      <span class="stat"><b>378</b> test API chạy qua</span>
+      <span class="stat"><b>18</b> test giao diện chạy qua</span>
+      <span class="stat"><b>3</b> ngôn ngữ · 580 khoá</span>
     </div>
   </div>
 </header>
@@ -561,7 +570,7 @@ footer {{
 <div class="wrap shell">
   <nav class="toc" aria-label="Mục lục">
     <h2>Nội dung</h2>
-    <a href="#kiem-thu"><span>Kiểm thử</span><em>360</em></a>
+    <a href="#kiem-thu"><span>Kiểm thử</span><em>396</em></a>
     {chr(10).join("    " + t for t in toc)}
   </nav>
 
@@ -587,8 +596,8 @@ footer {{
         </div>
       </div>
       <p class="note" style="margin-top:1rem">
-        <strong>351 test API</strong> chạy riêng bằng pytest gọi thẳng vào FastAPI: 345 chạy qua,
-        6 bỏ qua — chín test trong đó là mới, viết cùng lúc với năm bản vá bên dưới. Sáu test bỏ qua là nhóm thu thập tin tuyển dụng từ trang ngoài — chỉ chạy khi đặt
+        <strong>384 test API</strong> chạy riêng bằng pytest gọi thẳng vào FastAPI: 378 chạy qua,
+        6 bỏ qua. Sáu test bỏ qua là nhóm thu thập tin tuyển dụng từ trang ngoài — chỉ chạy khi đặt
         <code>RUN_CRAWL_TESTS=1</code> vì phụ thuộc mạng và cấu trúc trang nguồn.
       </p>
       <pre class="cmd"><span class="c"># Dựng hệ thống rồi chụp lại toàn bộ (khoảng 6 phút)</span>

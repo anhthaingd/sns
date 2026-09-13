@@ -203,7 +203,7 @@ Mỗi bộ lọc đang bật thành một chip bỏ được; bộ lọc ghi và
 
 ![Hồ sơ CV](screenshots/32-ho-so-cv.png)
 
-Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án.
+Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án. Thẻ gợi ý AI ở đầu trang chỉ ra CV còn thiếu thông tin gì khiến phần so khớp kém chính xác.
 
 ### Xem trước CV — mẫu 1
 
@@ -231,25 +231,25 @@ Bốn màn hình trả lời: CV này hợp với ai, còn thiếu gì, bù ch�
 
 ![Công ty phù hợp](screenshots/40-cong-ty-phu-hop.png)
 
-Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu.
+Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu. Cuối trang là MỘT nhận định do AI viết cho cả danh sách — không phải mỗi công ty một đoạn.
 
 ### Phân tích thiếu sót — công ty
 
 ![Phân tích thiếu sót — công ty](screenshots/41-thieu-sot-cong-ty.png)
 
-Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất.
+Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất. Thẻ “Gợi ý từ AI” nằm dưới cùng: thứ tự trên màn hình nói lên thứ tự đáng tin.
 
 ### Phân tích thiếu sót — tin tuyển dụng
 
 ![Phân tích thiếu sót — tin tuyển dụng](screenshots/42-thieu-sot-viec-lam.png)
 
-Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể.
+Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể. Lộ trình học ở cuối do AI viết từ chính danh sách thiếu sót phía trên, kèm khung thời gian cho từng bước.
 
 ### Mô phỏng “Nếu tôi học thêm”
 
 ![Mô phỏng “Nếu tôi học thêm”](screenshots/43-mo-phong.png)
 
-Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn.
+Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn. Thẻ gợi ý AI ở cuối nói về đánh đổi giữa phương án lợi nhất và phương án dễ với tới nhất.
 
 ### Mô phỏng — kết quả kết hợp
 
@@ -261,7 +261,7 @@ Chọn nhiều phương án thì thẻ kết quả kết hợp dính ở mép d�
 
 ![Bản đồ thị trường](screenshots/45-ban-do-thi-truong.png)
 
-Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=.
+Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=. Cuối trang, AI đọc bảng số thành một nhận định thị trường ngắn.
 
 ## 11.7. Trang quản trị
 

@@ -628,7 +628,8 @@ async def capture_main(browser, w):
             "32-ho-so-cv.png",
             "Hồ sơ CV",
             "Tuyển dụng",
-            "Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án.",
+            "Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án. Thẻ gợi ý AI ở "
+            "đầu trang chỉ ra CV còn thiếu thông tin gì khiến phần so khớp kém chính xác.",
             full_page=True,
         )
 
@@ -663,7 +664,8 @@ async def capture_main(browser, w):
             "40-cong-ty-phu-hop.png",
             "Công ty phù hợp",
             "So khớp",
-            "Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu.",
+            "Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu. Cuối trang là "
+            "MỘT nhận định do AI viết cho cả danh sách — không phải mỗi công ty một đoạn.",
             full_page=True,
         )
 
@@ -676,7 +678,8 @@ async def capture_main(browser, w):
                 "Phân tích thiếu sót — công ty",
                 "So khớp",
                 "Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp "
-                "theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất.",
+                "theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất. Thẻ “Gợi ý từ AI” nằm dưới "
+                "cùng: thứ tự trên màn hình nói lên thứ tự đáng tin.",
                 full_page=True,
             )
         if w["job"]:
@@ -687,7 +690,8 @@ async def capture_main(browser, w):
                 "42-thieu-sot-viec-lam.png",
                 "Phân tích thiếu sót — tin tuyển dụng",
                 "So khớp",
-                "Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể.",
+                "Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể. Lộ trình học ở cuối do AI viết "
+                "từ chính danh sách thiếu sót phía trên, kèm khung thời gian cho từng bước.",
                 full_page=True,
             )
 
@@ -698,7 +702,8 @@ async def capture_main(browser, w):
             "43-mo-phong.png",
             "Mô phỏng “Nếu tôi học thêm”",
             "So khớp",
-            "Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn.",
+            "Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn. Thẻ gợi ý AI ở cuối nói "
+            "về đánh đổi giữa phương án lợi nhất và phương án dễ với tới nhất.",
             full_page=True,
         )
         options = page.locator("[data-testid='whatif-option']")
@@ -724,7 +729,8 @@ async def capture_main(browser, w):
             "45-ban-do-thi-truong.png",
             "Bản đồ thị trường",
             "So khớp",
-            "Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=.",
+            "Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=. "
+            "Cuối trang, AI đọc bảng số thành một nhận định thị trường ngắn.",
             full_page=True,
         )
 

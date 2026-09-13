@@ -111,7 +111,7 @@
     "file": "32-ho-so-cv.png",
     "title": "Hồ sơ CV",
     "group": "Tuyển dụng",
-    "note": "Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án."
+    "note": "Biểu mẫu CV chia khối: thông tin, kinh nghiệm, học vấn, kỹ năng, dự án. Thẻ gợi ý AI ở đầu trang chỉ ra CV còn thiếu thông tin gì khiến phần so khớp kém chính xác."
   },
   {
     "file": "33-xem-truoc-cv-mau-1.png",
@@ -129,25 +129,25 @@
     "file": "40-cong-ty-phu-hop.png",
     "title": "Công ty phù hợp",
     "group": "So khớp",
-    "note": "Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu."
+    "note": "Điểm phù hợp tính từ CV: vòng cung 270° kèm số, không chỉ một thanh màu. Cuối trang là MỘT nhận định do AI viết cho cả danh sách — không phải mỗi công ty một đoạn."
   },
   {
     "file": "41-thieu-sot-cong-ty.png",
     "title": "Phân tích thiếu sót — công ty",
     "group": "So khớp",
-    "note": "Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất."
+    "note": "Điều kiện loại chỉ giữ mốc dễ nhất trong các vị trí đang tuyển; kỹ năng xếp theo số vị trí yêu cầu, nên dòng đầu là thứ đáng học nhất. Thẻ “Gợi ý từ AI” nằm dưới cùng: thứ tự trên màn hình nói lên thứ tự đáng tin."
   },
   {
     "file": "42-thieu-sot-viec-lam.png",
     "title": "Phân tích thiếu sót — tin tuyển dụng",
     "group": "So khớp",
-    "note": "Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể."
+    "note": "Cùng cách trình bày, nhưng đối chiếu với một tin cụ thể. Lộ trình học ở cuối do AI viết từ chính danh sách thiếu sót phía trên, kèm khung thời gian cho từng bước."
   },
   {
     "file": "43-mo-phong.png",
     "title": "Mô phỏng “Nếu tôi học thêm”",
     "group": "So khớp",
-    "note": "Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn."
+    "note": "Điểm gốc nằm trên cùng; mỗi phương án ghi rõ mức tăng nếu chọn. Thẻ gợi ý AI ở cuối nói về đánh đổi giữa phương án lợi nhất và phương án dễ với tới nhất."
   },
   {
     "file": "44-mo-phong-ket-qua.png",
@@ -159,7 +159,7 @@
     "file": "45-ban-do-thi-truong.png",
     "title": "Bản đồ thị trường",
     "group": "So khớp",
-    "note": "Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=."
+    "note": "Biểu đồ thanh một sắc asagi, không chú giải thừa; mọi trung vị đều đi kèm cỡ mẫu n=. Cuối trang, AI đọc bảng số thành một nhận định thị trường ngắn."
   },
   {
     "file": "60-toi-bang-tin.png",
