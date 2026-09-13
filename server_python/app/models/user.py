@@ -16,7 +16,16 @@ class User(Document):
     address: str | None = None
     intro: str | None = None
     cover_bg: dict | None = Field(default_factory=lambda: {"name": "", "url": ""})
-    avatar: dict | None = Field(default_factory=lambda: {"name": "avatar_trang.jpg", "url": "public/avatar-trang.jpg"})
+    # KHÔNG phát ảnh mặc định. Bản cũ gán sẵn `avatar-trang.jpg` — một file
+    # hình bóng người xám dùng chung — cho mọi tài khoản mới. Hệ quả: nhánh dựng
+    # ảnh thay thế bằng chữ cái đầu tên trong `client/src/components/ui/Avatar.jsx`
+    # (mỗi người một trong sáu sắc chàm/asagi, chọn theo tên nên cố định) không
+    # bao giờ chạy, và trong mọi danh sách mọi người trông giống hệt nhau.
+    #
+    # Để trống thì `mediaUrl()` trả về null và giao diện tự dựng ảnh thay thế.
+    # Tài khoản cũ đã có sẵn trường này: chạy `scripts/clear_default_avatars.py`
+    # để gỡ.
+    avatar: dict | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     role: PydanticObjectId | None = None
