@@ -20,7 +20,7 @@ from app.models.company import Company
 from app.models.job import LANGUAGE_LEVELS, Job, JobMatchView
 from app.models.resume import Resume
 from app.services.job_index import job_index
-from app.services.matching import evaluate
+from app.services.matching import Gap, evaluate
 from app.services.whatif import (
     MAX_ACTIONS_PER_REQUEST,
     MAX_SIMULATED_YEARS,
@@ -196,6 +196,107 @@ async def job_gap(decoded_user: dict, job_id: str):
     )
 
 
+def _combine_gaps(scored: list) -> list[dict]:
+    """Gộp thiếu sót của mọi vị trí trong một công ty thành danh sách đọc được.
+
+    **Vì sao không gộp thẳng được.** Bản đầu tiên loại trùng bằng cách so nguyên
+    câu của từng `Gap`. Nhưng `matching._check_skills` gói TOÀN BỘ kỹ năng còn
+    thiếu của một tin vào MỘT mục (`"Thiếu kỹ năng: " + ", ".join(missing)`), nên
+    hai tin cùng thiếu Java mà khác nhau đúng một kỹ năng thứ hai cho hai câu
+    khác nhau và cả hai cùng lọt. Đo trên dữ liệu thật: một công ty đang tuyển
+    129 vị trí đẻ ra 76 dòng, trang dài hơn 5.000 pixel, và người đọc không rút
+    ra được mình cần học gì — đúng thứ mà cả trang này sinh ra để trả lời.
+
+    Ba loại thiếu sót được gộp theo ba cách khác nhau, vì chúng trả lời ba câu
+    hỏi khác nhau:
+
+    * **Ngôn ngữ, số năm kinh nghiệm, lương** — mọi thứ đo được thành thang thì
+      giữ MỐC DỄ NHẤT trong số các vị trí mà CV chưa với tới. Một công ty có vị
+      trí đòi N2, vị trí khác đòi N1: thứ người dùng cần biết là "cửa thấp nhất
+      vẫn còn cao hơn mình bao nhiêu", chứ không phải từng mốc một. Liệt kê đủ
+      chỉ ra chín dòng "cần 4 / 5 / 8 / 30 năm" chồng lên nhau, và bốn dòng
+      "lương tối đa 380 / 400 / 450 / 500 man thấp hơn mong muốn 550".
+    * **Kỹ năng** — bung ra từng kỹ năng rồi ĐẾM số vị trí đang đòi nó, xếp giảm
+      dần. "41/98 vị trí yêu cầu AWS" trả lời được "học cái nào mở ra nhiều cửa
+      nhất"; một danh sách phẳng thì không.
+    * **Lương, địa điểm** — loại trùng theo `code` + `params`.
+
+    Kỹ năng ở mức công ty **không bao giờ** mang nhãn `blocking`. Nhãn đó sinh ra
+    ở mức từng tin, nghĩa là "CV khớp 0 kỹ năng của tin này nên gần như chắc
+    trượt". Đưa lên mức công ty thì mất nghĩa: chỗ nào có trăm vị trí khác nhau,
+    gần như kỹ năng nào cũng thuộc về một tin mà CV khớp 0 — đo được 75/91 dòng
+    bị gắn "bắt buộc phải bù", tức là nhãn đó không còn phân loại được gì nữa.
+    Điều kiện loại thật sự ở mức công ty chỉ có ngôn ngữ và số năm.
+    """
+    total = len(scored)
+    others: dict[tuple, dict] = {}
+    easiest: dict[str, tuple[int, dict]] = {}
+    skill_positions: dict[str, int] = {}
+    skill_order: dict[str, int] = {}
+
+    for _, result in scored:
+        for gap in result.gaps:
+            if gap.kind == "missing_skill":
+                for skill in gap.params.get("missing", []):
+                    skill_positions[skill] = skill_positions.get(skill, 0) + 1
+                    skill_order.setdefault(skill, len(skill_order))
+                continue
+
+            rank = _requirement_rank(gap)
+            if rank is not None:
+                # Giữ đúng một dòng cho mỗi tiêu chí: dòng có mốc thấp nhất.
+                current = easiest.get(gap.kind)
+                if current is None or rank < current[0]:
+                    easiest[gap.kind] = (rank, gap.to_dict())
+                continue
+
+            key = (gap.code or gap.message, tuple(sorted((k, str(v)) for k, v in gap.params.items())))
+            others.setdefault(key, gap.to_dict())
+
+    combined = [entry for _, entry in easiest.values()]
+    combined.extend(others.values())
+
+    skills = sorted(
+        skill_positions.items(),
+        # Nhiều vị trí đòi nhất lên đầu; hoà thì giữ thứ tự gặp lần đầu để hai
+        # lần chạy trên cùng dữ liệu cho cùng một kết quả.
+        key=lambda item: (-item[1], skill_order[item[0]]),
+    )
+    for skill, count in skills:
+        combined.append(
+            Gap(
+                kind="missing_skill",
+                code="gap.skills.missingAtCompany",
+                params={"skill": skill, "count": count, "total": total},
+                message=f"Thiếu {skill} — {count}/{total} vị trí đang tuyển yêu cầu",
+                required=skill,
+                current="chưa có trong CV",
+                blocking=False,
+            ).to_dict()
+        )
+    return combined
+
+
+def _requirement_rank(gap) -> int | None:
+    """Mức "khó" của một điều kiện, để chọn ra vị trí dễ vào nhất.
+
+    Trả về None với những thiếu sót không xếp được thành thang (lương, địa
+    điểm) — chúng đi đường loại trùng thông thường.
+    """
+    if gap.kind in ("japanese_level", "english_level"):
+        level = gap.params.get("requiredLevel")
+        return LANGUAGE_LEVELS.index(level) if level in LANGUAGE_LEVELS else None
+    if gap.kind == "experience_years":
+        required = gap.params.get("required")
+        return required if isinstance(required, int) else None
+    if gap.kind == "salary":
+        # "Dễ nhất" ở đây là vị trí TRẢ CAO NHẤT — chỗ hụt ít nhất so với mong
+        # muốn. Đảo dấu để dùng chung phép so "giữ rank nhỏ nhất" ở trên.
+        job_max = gap.params.get("jobMax")
+        return -job_max if isinstance(job_max, int) else None
+    return None
+
+
 async def company_gap(decoded_user: dict, company_id: str):
     """Chức năng 2 ở mức công ty — tổng hợp thiếu sót trên mọi vị trí đang tuyển."""
     resume = await _require_resume(decoded_user)
@@ -218,15 +319,7 @@ async def company_gap(decoded_user: dict, company_id: str):
         reverse=True,
     )
 
-    # Gộp thiếu sót của mọi vị trí, loại trùng theo nội dung — người dùng cần
-    # biết "công ty này nói chung đòi những gì mình chưa có".
-    seen: set[str] = set()
-    combined = []
-    for _, result in scored:
-        for gap in result.gaps:
-            if gap.message not in seen:
-                seen.add(gap.message)
-                combined.append(gap.to_dict())
+    combined = _combine_gaps(scored)
 
     best_job, best_result = scored[0]
     return ok(

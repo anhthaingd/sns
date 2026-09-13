@@ -14,7 +14,9 @@
     "noRequirement": "この求人には、履歴書と照らし合わせられる具体的な条件が書かれていません。",
     "blocking_other": "必ず満たす必要があるもの（{{count}}件）",
     "optional_other": "あると望ましいもの（{{count}}件）",
-    "met_other": "すでに満たしているもの（{{count}}件）"
+    "met_other": "すでに満たしているもの（{{count}}件）",
+    "showMore_other": "さらに{{count}}件を表示",
+    "showLess": "折りたたむ"
   },
   "gap": {
     "language": {
@@ -22,7 +24,8 @@
       "below": "{{language, lang}}が{{requiredLevel, level}}レベル必要ですが、履歴書は{{currentLevel, level}}です"
     },
     "skills": {
-      "missing": "不足しているスキル: {{missing, list}}"
+      "missing": "不足しているスキル: {{missing, list}}",
+      "missingAtCompany_other": "{{skill}} — 募集中{{total}}件のうち{{count}}件が要求"
     },
     "years": {
       "notStated": "この求人は経験{{required}}年以上が必要ですが、履歴書に年数の記載がありません",

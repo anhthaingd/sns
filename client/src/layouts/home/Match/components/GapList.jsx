@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   FaCircleCheck,
   FaTriangleExclamation,
@@ -30,9 +31,24 @@ const GROUPS = {
   },
 };
 
+/**
+ * Số mục hiện ra trước khi phải bấm "xem thêm".
+ *
+ * Ở mức một tin tuyển dụng, danh sách hiếm khi quá 6 mục nên ngưỡng này không
+ * bao giờ chạm tới. Nó tồn tại cho mức CÔNG TY: một công ty đang tuyển cả trăm
+ * vị trí có thể đòi vài chục kỹ năng mà CV chưa có. Danh sách đã xếp theo số vị
+ * trí yêu cầu giảm dần, nên mười hai dòng đầu chính là phần đáng đọc nhất.
+ */
+const VISIBLE = 12;
+
 function GapGroup({ kind, title, items, render }) {
+  const { t } = useTranslation('match');
+  const [expanded, setExpanded] = useState(false);
   if (!items.length) return null;
   const { icon: Icon, head, item } = GROUPS[kind];
+  const shown = expanded ? items : items.slice(0, VISIBLE);
+  const hidden = items.length - shown.length;
+
   return (
     <section>
       <h4 className={cn('mb-2 flex items-center gap-2 text-sm font-bold', head)}>
@@ -40,7 +56,7 @@ function GapGroup({ kind, title, items, render }) {
         {title}
       </h4>
       <ul className='flex flex-col gap-2'>
-        {items.map((entry, i) => (
+        {shown.map((entry, i) => (
           <li
             key={`${entry.kind || kind}-${i}`}
             className={cn('rounded-lg border-l-[3px] p-3 text-sm text-fg', item)}
@@ -49,6 +65,15 @@ function GapGroup({ kind, title, items, render }) {
           </li>
         ))}
       </ul>
+      {(hidden > 0 || expanded) && (
+        <button
+          type='button'
+          className='mt-2 text-sm font-semibold text-accent-text hover:underline'
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded ? t('gapList.showLess') : t('gapList.showMore', { count: hidden })}
+        </button>
+      )}
     </section>
   );
 }

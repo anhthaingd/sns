@@ -14,7 +14,9 @@
     "noRequirement": "Tin này không nêu yêu cầu cụ thể nào để đối chiếu với CV của bạn.",
     "blocking_other": "Bắt buộc phải bù ({{count}})",
     "optional_other": "Nên có thêm ({{count}})",
-    "met_other": "Bạn đã đáp ứng ({{count}})"
+    "met_other": "Bạn đã đáp ứng ({{count}})",
+    "showMore_other": "Xem thêm {{count}} mục",
+    "showLess": "Thu gọn"
   },
   "gap": {
     "language": {
@@ -22,7 +24,8 @@
       "below": "Cần {{language, lang}} mức {{requiredLevel, level}}, CV đang ở mức {{currentLevel, level}}"
     },
     "skills": {
-      "missing": "Thiếu kỹ năng: {{missing, list}}"
+      "missing": "Thiếu kỹ năng: {{missing, list}}",
+      "missingAtCompany_other": "Thiếu {{skill}} — {{count}}/{{total}} vị trí đang tuyển yêu cầu"
     },
     "years": {
       "notStated": "Tin yêu cầu {{required}} năm kinh nghiệm, CV chưa ghi số năm",

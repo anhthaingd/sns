@@ -17,7 +17,10 @@
     "met_other": "You already meet ({{count}})",
     "blocking_one": "Must be closed ({{count}})",
     "optional_one": "Nice to have ({{count}})",
-    "met_one": "You already meet ({{count}})"
+    "met_one": "You already meet ({{count}})",
+    "showMore_one": "Show 1 more",
+    "showMore_other": "Show {{count}} more",
+    "showLess": "Show less"
   },
   "gap": {
     "language": {
@@ -25,7 +28,9 @@
       "below": "Needs {{language, lang}} at {{requiredLevel, level}}, your resume is at {{currentLevel, level}}"
     },
     "skills": {
-      "missing": "Missing skills: {{missing, list}}"
+      "missing": "Missing skills: {{missing, list}}",
+      "missingAtCompany_one": "Missing {{skill}} — required by {{count}} of {{total}} open roles",
+      "missingAtCompany_other": "Missing {{skill}} — required by {{count}} of {{total}} open roles"
     },
     "years": {
       "notStated": "The posting requires {{required}} years of experience, your resume states no number",
