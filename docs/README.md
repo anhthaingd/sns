@@ -44,7 +44,7 @@ Nhật, chuẩn hoá lại, rồi so khớp với CV của người dùng để 
 | Bảng dữ liệu (collection) | 14 |
 | Trang phía người dùng | 20 |
 | File giao diện | 107 |
-| Test tự động | 384 test API + 18 test giao diện |
+| Test tự động | 392 test API + 18 test giao diện |
 | Tin tuyển dụng trong kho | 430 tin từ 4 nguồn |
 | Ngôn ngữ giao diện | 3 (Nhật · Việt · Anh) — 580 khoá mỗi ngôn ngữ |
 

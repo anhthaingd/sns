@@ -270,7 +270,7 @@ TESTS = [
     ),
     (
         "every_page_survives_a_dead_advice_endpoint",
-        "Chặn endpoint gợi ý ở tầng mạng: mọi trang vẫn nguyên vẹn, không toast lỗi",
+        "Chặn endpoint gợi ý ở tầng mạng trên cả sáu màn hình; test tự kiểm chứng bộ chặn",
     ),
     ("advice_is_requested_in_the_interface_language", "Request mang đúng ?lang của giao diện đang dùng"),
 ]
@@ -560,7 +560,7 @@ footer {{
     <div class="stats">
       <span class="stat"><b>{len(MANIFEST)}</b> ảnh</span>
       <span class="stat"><b>20</b> đường dẫn</span>
-      <span class="stat"><b>378</b> test API chạy qua</span>
+      <span class="stat"><b>386</b> test API chạy qua</span>
       <span class="stat"><b>18</b> test giao diện chạy qua</span>
       <span class="stat"><b>3</b> ngôn ngữ · 580 khoá</span>
     </div>
@@ -570,7 +570,7 @@ footer {{
 <div class="wrap shell">
   <nav class="toc" aria-label="Mục lục">
     <h2>Nội dung</h2>
-    <a href="#kiem-thu"><span>Kiểm thử</span><em>396</em></a>
+    <a href="#kiem-thu"><span>Kiểm thử</span><em>404</em></a>
     {chr(10).join("    " + t for t in toc)}
   </nav>
 
@@ -596,7 +596,7 @@ footer {{
         </div>
       </div>
       <p class="note" style="margin-top:1rem">
-        <strong>384 test API</strong> chạy riêng bằng pytest gọi thẳng vào FastAPI: 378 chạy qua,
+        <strong>392 test API</strong> chạy riêng bằng pytest gọi thẳng vào FastAPI: 386 chạy qua,
         6 bỏ qua. Sáu test bỏ qua là nhóm thu thập tin tuyển dụng từ trang ngoài — chỉ chạy khi đặt
         <code>RUN_CRAWL_TESTS=1</code> vì phụ thuộc mạng và cấu trúc trang nguồn.
       </p>

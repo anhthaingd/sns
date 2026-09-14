@@ -285,7 +285,7 @@ footer {
     <div class="stats">
       <span class="stat"><b>39</b> ảnh</span>
       <span class="stat"><b>20</b> đường dẫn</span>
-      <span class="stat"><b>378</b> test API chạy qua</span>
+      <span class="stat"><b>386</b> test API chạy qua</span>
       <span class="stat"><b>18</b> test giao diện chạy qua</span>
       <span class="stat"><b>3</b> ngôn ngữ · 580 khoá</span>
     </div>
@@ -295,7 +295,7 @@ footer {
 <div class="wrap shell">
   <nav class="toc" aria-label="Mục lục">
     <h2>Nội dung</h2>
-    <a href="#kiem-thu"><span>Kiểm thử</span><em>396</em></a>
+    <a href="#kiem-thu"><span>Kiểm thử</span><em>404</em></a>
         <a href="#auth"><span>Xác thực và lối vào</span><em>3</em></a>
     <a href="#social"><span>Mạng xã hội</span><em>13</em></a>
     <a href="#jobs"><span>Tin tuyển dụng và CV</span><em>5</em></a>
@@ -337,14 +337,14 @@ footer {
         <tr><td class="tnum">14</td><td><code>market_page_shows_the_sample_size_next_to_every_median</code></td><td>Không trung vị nào đứng một mình — luôn kèm cỡ mẫu</td></tr>
         <tr><td class="tnum">15</td><td><code>switching_language_changes_the_whole_interface</code></td><td>Đổi ngôn ngữ đổi cả chữ tĩnh lẫn câu backend sinh, nhớ qua F5</td></tr>
         <tr><td class="tnum">16</td><td><code>advice_card_shows_exactly_what_the_api_returned</code></td><td>Thẻ gợi ý AI hiện đúng chữ API trả về, không phải chữ cứng ở client</td></tr>
-        <tr><td class="tnum">17</td><td><code>every_page_survives_a_dead_advice_endpoint</code></td><td>Chặn endpoint gợi ý ở tầng mạng: mọi trang vẫn nguyên vẹn, không toast lỗi</td></tr>
+        <tr><td class="tnum">17</td><td><code>every_page_survives_a_dead_advice_endpoint</code></td><td>Chặn endpoint gợi ý ở tầng mạng trên cả sáu màn hình; test tự kiểm chứng bộ chặn</td></tr>
         <tr><td class="tnum">18</td><td><code>advice_is_requested_in_the_interface_language</code></td><td>Request mang đúng ?lang của giao diện đang dùng</td></tr>
             </tbody>
           </table>
         </div>
       </div>
       <p class="note" style="margin-top:1rem">
-        <strong>384 test API</strong> chạy riêng bằng pytest gọi thẳng vào FastAPI: 378 chạy qua,
+        <strong>392 test API</strong> chạy riêng bằng pytest gọi thẳng vào FastAPI: 386 chạy qua,
         6 bỏ qua. Sáu test bỏ qua là nhóm thu thập tin tuyển dụng từ trang ngoài — chỉ chạy khi đặt
         <code>RUN_CRAWL_TESTS=1</code> vì phụ thuộc mạng và cấu trúc trang nguồn.
       </p>

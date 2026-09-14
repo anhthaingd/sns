@@ -46,7 +46,7 @@ tạo:
 
 | Bộ test | Số lượng | Kết quả | Câu lệnh |
 |---|---|---|---|
-| API (pytest, gọi thẳng FastAPI) | 384 | **378 chạy qua, 6 bỏ qua** | `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests` |
+| API (pytest, gọi thẳng FastAPI) | 392 | **386 chạy qua, 6 bỏ qua** | `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests` |
 | Giao diện (Playwright, trình duyệt thật) | 18 | **18 chạy qua** | `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests` |
 
 6 test bị bỏ qua là nhóm thu thập tin tuyển dụng từ trang ngoài — chúng chỉ
@@ -73,7 +73,7 @@ Bộ 18 test giao diện đi qua những việc sau, mỗi việc trên một tr
 | 14 | `market_page_shows_the_sample_size_next_to_every_median` | Không trung vị nào đứng một mình — luôn kèm cỡ mẫu |
 | 15 | `switching_language_changes_the_whole_interface` | Đổi ngôn ngữ đổi cả chữ tĩnh lẫn câu do backend sinh, và nhớ qua F5 |
 | 16 | `advice_card_shows_exactly_what_the_api_returned` | Thẻ gợi ý AI hiện đúng chữ API trả về, không phải chữ viết cứng ở client |
-| 17 | `every_page_survives_a_dead_advice_endpoint` | **Chặn thẳng endpoint gợi ý ở tầng mạng**: mọi trang vẫn nguyên vẹn, không toast lỗi, khung chờ biến mất |
+| 17 | `every_page_survives_a_dead_advice_endpoint` | **Chặn thẳng endpoint gợi ý ở tầng mạng** trên cả sáu màn hình: không thẻ, không toast lỗi, khung chờ biến mất — và test tự khẳng định bộ chặn có chặn được thật |
 | 18 | `advice_is_requested_in_the_interface_language` | Request mang đúng `?lang` của giao diện đang dùng |
 
 Chín test API trong số trên là **mới**, viết cùng lúc với năm bản vá ở mục 11.9 —
