@@ -125,7 +125,11 @@ function JobGapLayout() {
         <GapList gaps={match.gaps} met={match.met} />
       </section>
 
-      <AdviceCard data={advice.data} isLoading={advice.isLoading} />
+      <AdviceCard
+          data={advice.data}
+          isLoading={advice.isLoading}
+          isFetching={advice.isFetching}
+        />
 
       {company?.description && (
         <Card className='mt-6'>

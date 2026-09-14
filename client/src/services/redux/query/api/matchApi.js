@@ -26,7 +26,8 @@ export const matchApi = api.injectEndpoints({
     // Lời khuyên do LLM viết — endpoint RIÊNG, gọi sau khi trang đã vẽ xong.
     // Gộp vào endpoint gap thì một màn hình 15ms thành một màn hình 5 giây.
     getOverviewAdvice: builder.query({
-      query: ({ page = 1, lang }) => `match/advice/overview?page=${page}&lang=${lang}`,
+      query: ({ page = 1, qualifiedOnly = false, lang }) =>
+        `match/advice/overview?page=${page}&qualifiedOnly=${qualifiedOnly}&lang=${lang}`,
       providesTags: ['matches'],
     }),
     getJobAdvice: builder.query({

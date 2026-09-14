@@ -132,7 +132,11 @@ function MarketLayout() {
         </ChartSection>
       </div>
 
-      <AdviceCard data={advice.data} isLoading={advice.isLoading} />
+      <AdviceCard
+          data={advice.data}
+          isLoading={advice.isLoading}
+          isFetching={advice.isFetching}
+        />
     </Page>
   );
 }

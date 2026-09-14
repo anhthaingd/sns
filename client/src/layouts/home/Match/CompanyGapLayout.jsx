@@ -103,7 +103,11 @@ function CompanyGapLayout() {
           </Link>
         </p>
         <GapList gaps={combinedGaps} met={bestMatch.met} />
-        <AdviceCard data={advice.data} isLoading={advice.isLoading} />
+        <AdviceCard
+          data={advice.data}
+          isLoading={advice.isLoading}
+          isFetching={advice.isFetching}
+        />
       </section>
 
       <section className='mt-8'>

@@ -262,7 +262,11 @@ function ResumeLayout() {
           <h1 className='text-xl font-bold text-fg sm:text-2xl'>{t('title')}</h1>
         </div>
 
-        <AdviceCard data={advice.data} isLoading={advice.isLoading} />
+        <AdviceCard
+          data={advice.data}
+          isLoading={advice.isLoading}
+          isFetching={advice.isFetching}
+        />
         <div className='flex flex-col gap-7 rounded-card bg-surface p-4 ring-1 ring-inset ring-line sm:p-6'>
           <div className='flex flex-col gap-4'>
             <h2 className='text-base font-bold text-fg'>{t('section.basicInfo')}</h2>

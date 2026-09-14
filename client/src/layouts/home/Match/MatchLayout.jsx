@@ -44,8 +44,10 @@ function MatchLayout() {
   // cho một lần mở trang là hết hạn mức miễn phí trong một buổi demo, mà mười
   // đoạn văn thì cũng không ai đọc.
   const lang = useAdviceLang();
+  // Phải gửi kèm ĐÚNG bộ lọc của danh sách. Thiếu nó thì thẻ gợi ý nói về một
+  // tập công ty khác với tập đang hiện, mà vẫn mở đầu bằng "ở trang này".
   const advice = useGetOverviewAdviceQuery(
-    { page: Number(searchParams.get('page')) || 1, lang },
+    { page: Number(searchParams.get('page')) || 1, qualifiedOnly, lang },
     { skip: !data?.matches?.length }
   );
 
@@ -186,7 +188,11 @@ function MatchLayout() {
         )}
 
         {data?.matches?.length > 0 && (
-          <AdviceCard data={advice.data} isLoading={advice.isLoading} />
+          <AdviceCard
+          data={advice.data}
+          isLoading={advice.isLoading}
+          isFetching={advice.isFetching}
+        />
         )}
       </div>
     </Page>

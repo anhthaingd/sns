@@ -1,4 +1,5 @@
 import json
+import re
 import uuid
 
 import httpx
@@ -500,24 +501,59 @@ async def test_every_page_survives_a_dead_advice_endpoint(page):
     LLM là phần phụ. Nhà cung cấp chết, hết hạn mức, mạng hỏng — màn hình phải
     y như trước khi có tính năng này: không thẻ gợi ý, không toast lỗi, không
     khung chờ quay mãi.
+
+    Đi HẾT sáu màn hình, không phải hai. Bản đầu chỉ mở `/match/whatif` và
+    `/market` nhưng mang tên "every page" — người đọc tin rằng bốn trang kia
+    cũng đã được bảo vệ. Và pattern chặn cũ (`**/advice*`) còn không khớp nổi
+    `/api/match/advice/overview`, vì `*` của Playwright không vượt qua dấu `/`.
     """
     email = unique_email("advice-dead")
     await register_via_ui(page, email)
     await login_via_ui(page, email)
     await _create_minimal_resume(page)
 
-    # Chặn ở tầng mạng: giống hệt lúc nhà cung cấp không trả lời.
-    await page.route("**/advice*", lambda route: route.abort())
+    listed = await _api_json(page, "/api/match/companies")
+    matches = listed["body"].get("matches") or []
 
-    await page.goto(f"{APP_URL}/match/whatif", wait_until="domcontentloaded")
-    await page.wait_for_selector("[data-testid='whatif-baseline']", timeout=30000)
+    # Regex chứ không phải glob: khớp cả `/whatif/advice?...` lẫn `/advice/overview?...`.
+    blocked = []
 
-    await page.goto(f"{APP_URL}/market", wait_until="domcontentloaded")
-    await page.get_by_role("heading", name=tr("market", "title")).wait_for(timeout=30000)
+    async def kill(route):
+        blocked.append(route.request.url)
+        await route.abort()
 
-    assert await page.locator("[data-testid='advice-card']").count() == 0
-    # Khung chờ cũng phải biến mất — quay mãi còn tệ hơn không hiện gì.
-    await page.wait_for_selector("[data-testid='advice-skeleton']", state="detached", timeout=20000)
+    await page.route(re.compile(r"/advice(/|\?|$)"), kill)
+
+    screens = [
+        ("/match", "[data-testid='advice-skeleton']"),
+        ("/match/whatif", "[data-testid='whatif-baseline']"),
+        ("/market", None),
+        ("/resume", None),
+    ]
+    if matches:
+        screens += [
+            (f"/match/jobs/{matches[0]['bestJob']['_id']}", None),
+            (f"/match/companies/{matches[0]['company']['_id']}", None)
+            if matches[0]["company"]["_id"]
+            else ("/match", None),
+        ]
+
+    for path, _marker in screens:
+        await page.goto(f"{APP_URL}{path}", wait_until="domcontentloaded")
+        await page.wait_for_timeout(1500)
+
+        assert await page.locator("[data-testid='advice-card']").count() == 0, path
+        # Khung chờ cũng phải biến mất — quay mãi còn tệ hơn không hiện gì.
+        await page.wait_for_selector("[data-testid='advice-skeleton']", state="detached", timeout=20000)
+        # Và không màn hình lỗi nào thế chỗ nội dung thật.
+        assert "ErrorScreen" not in await page.content(), path
+
+    # Test này vô dụng nếu bộ chặn không chặn được gì: thẻ gợi ý vốn mất ~2 giây
+    # mới hiện, nên "không thấy thẻ" cũng đúng khi request đi lọt. Khẳng định
+    # thẳng rằng ĐÃ có request bị bắn hạ, và trong đó có đường dẫn nhiều tầng —
+    # đúng cái mà pattern glob cũ bỏ sót.
+    assert blocked, "không request lời khuyên nào bị chặn — bộ chặn hỏng"
+    assert any("/advice/overview" in url for url in blocked), blocked
 
 
 async def test_advice_is_requested_in_the_interface_language(page):

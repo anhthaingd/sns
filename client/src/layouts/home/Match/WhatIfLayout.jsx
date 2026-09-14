@@ -191,7 +191,11 @@ function WhatIfLayout() {
         )}
       </Card>
 
-      <AdviceCard data={advice.data} isLoading={advice.isLoading} />
+      <AdviceCard
+          data={advice.data}
+          isLoading={advice.isLoading}
+          isFetching={advice.isFetching}
+        />
 
       <p className='mt-4 text-xs leading-relaxed text-fg-subtle'>{t('disclaimer')}</p>
     </Page>
