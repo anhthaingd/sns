@@ -438,6 +438,112 @@ không tất định, không assert được.
 | Để LLM sinh liên kết, hoặc kích hoạt bất kỳ hành động nào | Không kiểm chứng được liên kết dẫn tới đâu |
 | Dùng API key thật trong CI | CI phải chạy được offline, và key không nên rời khỏi máy cá nhân |
 
+## 12.15. Đợt rà soát: chín vấn đề và cách sửa
+
+> **Trạng thái: ĐANG SỬA.** Mục này là kế hoạch; sửa xong sẽ gộp vào
+> [12.10](#1210-năm-lỗi-tìm-ra-trong-lúc-làm) và biến mất khỏi đây.
+
+Rà soát bằng hai lượt độc lập — một lượt tự soi diff, một lượt do reviewer khác
+đọc lại với ngữ cảnh sạch. Hai lượt trùng nhau 2 vấn đề, phần còn lại mỗi bên
+tìm ra một nhóm khác nhau; **bốn trong chín** thuộc đúng nhóm mà tự-review hay
+bỏ sót: *code làm ít hơn điều tài liệu tuyên bố*.
+
+### Nhóm A — An toàn và tính trung thực của tài liệu
+
+**A1. Văn bản thô của tin tuyển dụng vẫn vào prompt.** `job.title`,
+`job.prefecture`, `company.name`, `bestPositionTitle` đi thẳng vào
+`<assessment>` mà không qua `_clean()` — trong khi [12.6](#126-prompt-không-bao-giờ-nhận-văn-bản-thô)
+và docstring của `_gaps` đều khẳng định ngược lại. `_clean()` hiện chỉ được gọi
+cho ĐẦU RA.
+
+> **Cách sửa — đặt hàng rào ở chỗ không ai đi vòng được.** Không phải là "nhớ
+> gọi `_clean()` trong `advice.py`": cách đó phụ thuộc vào việc mọi controller
+> tương lai đều nhớ. Thay vào đó **làm sạch toàn bộ `data` ngay trong
+> `advise()`**, đệ quy qua mọi chuỗi trước khi dựng prompt. Lúc đó dù ai thêm
+> trường gì vào payload, nó cũng đã đi qua phễu.
+
+**A2. Hai cam kết an toàn lớn nhất không có test nào canh.** Không có gì chặn
+việc ai đó thêm `job.description` hay `resume.name` vào payload.
+
+> Cách sửa: ba test — (1) tiêu đề độc hại (xuống dòng + "IGNORE ALL PREVIOUS
+> INSTRUCTIONS" + URL) đi qua `advise()` thì trong prompt không còn ký tự điều
+> khiển, không còn URL, và bị cắt ở 120 ký tự; (2) `_profile()` trả về **đúng**
+> tập khoá `{japanese, english, years, skills}` — thêm khoá là đỏ; (3) dựng CV
+> có tên/email/điện thoại rồi khẳng định ba chuỗi đó không xuất hiện trong
+> prompt.
+
+**A3. `_lang()` không cắt phần vùng** nên `en-US` lùi về tiếng Nhật.
+
+> Cách sửa: `split("-")[0]`. Kèm test cho `en-US`, `vi-VN`, `xx`, chuỗi rỗng.
+
+### Nhóm B — Lời khuyên nói sai về thứ đang hiển thị
+
+**B1. Thẻ gợi ý ở `/match` bỏ qua bộ lọc `qualifiedOnly`.** Danh sách đã lọc,
+lời khuyên thì tính trên danh sách chưa lọc — và phân trang cũng lệch theo.
+
+> **Cách sửa — bỏ hẳn bản sao thứ hai.** `overview_advice` đang tự dựng lại
+> phần "gom theo công ty rồi cắt trang" của `match_companies`. Hai bản sao thì
+> sớm muộn cũng lệch, và nó đã lệch. Tách thành một hàm dùng chung trong
+> `controllers/match.py` rồi cho cả hai gọi. Sửa xong thì sự nhất quán là **tính
+> chất của code**, không phải thứ phải viết test để canh.
+
+### Nhóm C — Tiêu hao hạn mức và suy giảm êm
+
+**C1. Đầu ra sai khuôn khiến mỗi lần F5 là một lần gọi LLM thật.** JSON parse
+được nhưng sai schema → `complete_json` coi là THÀNH CÔNG (xoá bộ đếm cầu dao),
+`_validated` trả `None`, không có gì được cache. Cầu dao — vốn sinh ra đúng để
+chặn cảnh này — không bao giờ biết.
+
+> **Cách sửa: đưa việc kiểm khuôn vào trong vòng lặp chuyển dự phòng.**
+> `complete_json` nhận thêm một hàm kiểm; kết quả không qua được hàm đó bị tính
+> là **hỏng**, nên bên dự phòng được thử, và hỏng liên tiếp thì cầu dao ngắt.
+
+**C2. Hai tab mở cùng lúc là hai lần gọi cho cùng một màn hình.** Không có gì
+chống giẫm chân quanh khoảng cache-miss → gọi → ghi cache.
+
+> Cách sửa: `SET <khoá>:lock NX EX 20` trước khi gọi. Bên không giành được khoá
+> chờ ngắn rồi đọc lại cache. **Đây là vấn đề nhẹ nhất trong chín cái** — thiệt
+> hại tối đa là một lượt gọi thừa, đã bị chặn trên bởi hạn mức 20 lượt/giờ.
+
+**C3. Khoá cache băm theo CẢ HAI nhà cung cấp** chứ không phải bên thực sự trả
+lời, nên câu trả lời của Gemini và của Groq dùng chung một ô cache.
+
+> Cách sửa: đây là **lỗi của tài liệu, không phải của code** — hành vi hiện tại
+> (đổi bất kỳ model nào cũng làm mới cache) còn an toàn hơn. Sửa câu chữ ở
+> [12.8](#128-cache-hạn-mức-trần-ngày), và ghi thêm tên model đã trả lời vào
+> **giá trị** cache để tra được khi cần.
+
+### Nhóm D — Giao diện và test
+
+**D1. `isFetching` có trong `AdviceCard` nhưng không nơi nào truyền vào.** Sửa
+CV → `invalidatesTags` → quay lại trang gap: thẻ vẫn hiện lời khuyên tính từ CV
+**trước khi sửa**, cho tới khi câu trả lời mới về.
+
+> Cách sửa: truyền `isFetching` ở cả sáu chỗ gọi.
+
+**D2. `test_every_page_survives_a_dead_advice_endpoint` chỉ phủ 2 trong 6
+trang**, và pattern `**/advice*` không khớp `/api/match/advice/overview` vì `*`
+của Playwright không vượt qua dấu `/`.
+
+> Cách sửa: đổi pattern cho khớp cả hai dạng đường dẫn, và đi hết sáu màn hình.
+> Một test mang tên "every page" mà chỉ mở hai trang thì tệ hơn không có test:
+> nó làm người đọc tin rằng bốn trang kia đã được bảo vệ.
+
+### Thứ tự làm
+
+Bốn commit, mỗi commit chạy được và CI xanh:
+
+- [ ] **1 · An toàn** — A1 (làm sạch tập trung) + A2 (3 test) + A3
+- [ ] **2 · Đúng đắn** — B1 (hàm dùng chung) + C1 (kiểm khuôn trong vòng dự phòng) + test
+- [ ] **3 · Giao diện** — D1 + D2
+- [ ] **4 · Dọn** — C2 + C3, cập nhật [12.8](#128-cache-hạn-mức-trần-ngày),
+      gộp mục này vào [12.10](#1210-năm-lỗi-tìm-ra-trong-lúc-làm)
+
+Hai việc **không** làm trong đợt này: không đụng `matching.py` (ranh giới ở
+[12.2](#122-ranh-giới-luật-chấm-điểm-llm-chỉ-viết-lời)), và không viết test cho
+D1 — kiểm một khoảng chờ 2 giây bằng trình duyệt là test chập chờn, sửa xong
+kiểm bằng tay rồi ghi rõ ở đây là chưa có test canh.
+
 ---
 
 Quay lại: [7. Embedding và gợi ý công ty](07-embedding-va-goi-y.md) ·
