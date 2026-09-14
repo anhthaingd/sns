@@ -18,6 +18,7 @@ phải sự cố** — nên chuỗi dự phòng và cầu dao dưới đây là 
 import json
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import httpx
@@ -39,6 +40,18 @@ from app.config.settings import (
 )
 
 logger = logging.getLogger("fuurin.llm")
+
+
+@dataclass(frozen=True)
+class Answer:
+    """Kết quả đọc được, kèm nơi nó đến từ.
+
+    Tên model đi kèm để tầng trên ghi vào cache — khi một lời khuyên đọc lạ, câu
+    hỏi đầu tiên luôn là "bên nào viết cái này".
+    """
+
+    data: dict
+    model: str
 
 
 @dataclass(frozen=True)
@@ -196,12 +209,23 @@ async def _ask(provider: Provider, messages: list[dict], schema: dict, schema_na
     return parsed if isinstance(parsed, dict) else None
 
 
-async def complete_json(messages: list[dict], schema: dict, schema_name: str = "advice") -> dict | None:
-    """Hỏi lần lượt từng nhà cung cấp, trả dict đầu tiên đọc được — hoặc `None`.
+async def complete_json(
+    messages: list[dict],
+    schema: dict,
+    schema_name: str = "advice",
+    validate: Callable[[dict], dict | None] | None = None,
+) -> Answer | None:
+    """Hỏi lần lượt từng nhà cung cấp, trả kết quả đầu tiên DÙNG ĐƯỢC — hoặc `None`.
 
     Không thử lại trong cùng một nhà cung cấp: khi bên chính trả 429/503 thì
     chờ nó hồi phục vô nghĩa, sang thẳng bên dự phòng vừa nhanh hơn vừa đỡ tốn
     hạn mức. Đo được: bên dự phòng trả lời trong 0.8 giây.
+
+    **`validate` nằm ở ĐÂY chứ không ở tầng gọi.** Bản đầu kiểm khuôn sau khi
+    hàm này trả về, nên một nhà cung cấp trả JSON hợp lệ mà sai schema vẫn được
+    tính là THÀNH CÔNG: cầu dao bị xoá bộ đếm, bên dự phòng không được thử, và
+    mỗi lần tải lại trang là một lần gọi thật nữa. Đưa vào trong vòng lặp thì
+    "trả về thứ không dùng được" cũng là một kiểu hỏng, đúng như tên gọi.
     """
     for provider in providers():
         if await _is_open(provider):
@@ -212,12 +236,18 @@ async def complete_json(messages: list[dict], schema: dict, schema_name: str = "
         result = await _ask(provider, messages, schema, schema_name)
         elapsed = time.monotonic() - started
 
+        if result is not None and validate is not None:
+            checked = validate(result)
+            if checked is None:
+                logger.warning("LLM %s (%s) trả về đúng JSON nhưng sai khuôn", provider.name, provider.model)
+            result = checked
+
         if result is None:
             await _record_failure(provider)
             continue
 
         await _record_success(provider)
         logger.info("LLM %s (%s) trả lời trong %.1fs", provider.name, provider.model, elapsed)
-        return result
+        return Answer(data=result, model=f"{provider.name}:{provider.model}")
 
     return None

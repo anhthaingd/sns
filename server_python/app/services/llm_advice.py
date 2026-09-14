@@ -15,6 +15,8 @@ này chắc hơn mọi lời dặn dò trong system prompt, vì nó không dựa
 hình có vâng lời hay không.
 """
 
+import asyncio
+import contextlib
 import hashlib
 import json
 import logging
@@ -26,6 +28,8 @@ from pydantic import BaseModel, Field, ValidationError
 from app.config.redis_client import get_redis
 from app.config.settings import (
     LLM_CACHE_TTL_SECONDS,
+    LLM_CALL_LOCK_SECONDS,
+    LLM_CALL_WAIT_SECONDS,
     LLM_DAILY_MAX,
     LLM_USER_RATE_LIMIT_MAX,
     LLM_USER_RATE_LIMIT_WINDOW_SECONDS,
@@ -186,6 +190,29 @@ def _trim(value, cap: int) -> str:
     return window.rstrip() + "…"
 
 
+def _sanitized(value):
+    """Làm sạch đệ quy MỌI chuỗi trong payload trước khi dựng prompt.
+
+    **Vì sao hàng rào nằm ở đây chứ không ở `controllers/advice.py`.** Bản đầu
+    tiên dựa vào việc mỗi controller tự nhớ gọi `_clean()` cho những trường lấy
+    từ dữ liệu crawl. Nó hỏng ngay lần đầu: `job.title`, `company.name` và
+    `bestPositionTitle` đi thẳng vào prompt nguyên văn, dù tài liệu và cả
+    docstring ngay bên cạnh đều khẳng định ngược lại.
+
+    Hàng rào chỉ đáng tin khi **không đi vòng được**. Đặt ở đây thì dù ai thêm
+    trường gì vào payload sau này, nó cũng đã bị cắt ngắn, lọc ký tự điều khiển
+    và bỏ URL trước khi tới tay mô hình.
+    """
+    if isinstance(value, str):
+        return _clean(value)
+    if isinstance(value, dict):
+        # Khoá là hằng do code sinh ra, không phải dữ liệu ngoài -> giữ nguyên.
+        return {k: _sanitized(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_sanitized(v) for v in value]
+    return value
+
+
 def _messages(kind: str, lang: str, data: dict) -> list[dict]:
     system = SYSTEM.format(max_steps=MAX_STEPS, max_months=MAX_MONTHS)
     system += "\n" + TASK[kind] + "\n" + LANG_RULE[lang]
@@ -240,9 +267,14 @@ def _cache_key(kind: str, lang: str, data: dict) -> str:
     """
     # Đổi hậu xử lý (cắt câu, giới hạn độ dài) mà không đổi tiền tố thì cache cũ
     # vẫn trả về bản lỗi. Tăng "v" mỗi lần đổi cách xử lý đầu ra.
+    #
+    # Khoá băm theo CẢ chuỗi nhà cung cấp đang cấu hình, không phải bên thực sự
+    # trả lời — nên đổi bất kỳ model nào cũng làm mới toàn bộ cache. Rộng hơn
+    # mức cần thiết, nhưng sai về phía an toàn. Bên thực sự trả lời được ghi
+    # vào GIÁ TRỊ cache để tra khi cần.
     model = ",".join(f"{p.name}:{p.model}" for p in llm.providers())
     payload = json.dumps({"k": kind, "l": lang, "m": model, "d": data}, sort_keys=True, default=str)
-    return "llm:advice:v2:" + hashlib.sha1(payload.encode()).hexdigest()
+    return "llm:advice:v3:" + hashlib.sha1(payload.encode()).hexdigest()
 
 
 async def _cached(key: str) -> dict | None:
@@ -251,20 +283,67 @@ async def _cached(key: str) -> dict | None:
         return None
     try:
         raw = await redis.get(key)
-        return json.loads(raw) if raw else None
     except Exception:
         logger.exception("Không đọc được cache lời khuyên")
         return None
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)["advice"]
+    except (ValueError, KeyError, TypeError):
+        # Bản cache cũ hoặc hỏng: coi như chưa có, tính lại rồi ghi đè.
+        logger.warning("Bỏ qua một mục cache lời khuyên không đọc được")
+        return None
 
 
-async def _store(key: str, advice: dict) -> None:
+async def _store(key: str, advice: dict, model: str) -> None:
     redis = get_redis()
     if redis is None:
         return
+    body = json.dumps({"advice": advice, "model": model}, ensure_ascii=False)
     try:
-        await redis.set(key, json.dumps(advice, ensure_ascii=False), ex=LLM_CACHE_TTL_SECONDS)
+        await redis.set(key, body, ex=LLM_CACHE_TTL_SECONDS)
     except Exception:
         logger.exception("Không ghi được cache lời khuyên")
+
+
+@contextlib.asynccontextmanager
+async def _one_caller_at_a_time(key: str):
+    """Chỉ một request được gọi LLM cho mỗi khoá; bên còn lại chờ kết quả.
+
+    Không có Redis thì không khoá được — cho qua, vì chạy một mình thì không có
+    ai để giẫm chân. Khoá có hạn tự hết để một tiến trình chết giữa chừng không
+    treo vĩnh viễn các request sau.
+    """
+    redis = get_redis()
+    if redis is None:
+        yield True
+        return
+
+    lock = key + ":lock"
+    try:
+        first = bool(await redis.set(lock, "1", nx=True, ex=LLM_CALL_LOCK_SECONDS))
+    except Exception:
+        logger.exception("Không đặt được khoá gọi LLM, cứ gọi")
+        first = True
+
+    try:
+        yield first
+    finally:
+        if first:
+            with contextlib.suppress(Exception):
+                await redis.delete(lock)
+
+
+async def _wait_for_cache(key: str) -> dict | None:
+    """Chờ ngắn xem người giữ khoá có ghi cache không."""
+    deadline = asyncio.get_running_loop().time() + LLM_CALL_WAIT_SECONDS
+    while asyncio.get_running_loop().time() < deadline:
+        await asyncio.sleep(0.3)
+        cached = await _cached(key)
+        if cached is not None:
+            return cached
+    return None
 
 
 async def _within_daily_budget() -> bool:
@@ -315,6 +394,10 @@ async def advise(kind: str, lang: str, data: dict, user_id: str) -> tuple[dict |
     if not llm.is_configured():
         return None, "disabled"
 
+    # Làm sạch TRƯỚC khi băm khoá: hai payload chỉ khác nhau ở phần đuôi bị cắt
+    # thì phải dùng chung một ô cache.
+    data = _sanitized(data)
+
     key = _cache_key(kind, lang, data)
     cached = await _cached(key)
     if cached is not None:
@@ -322,13 +405,23 @@ async def advise(kind: str, lang: str, data: dict, user_id: str) -> tuple[dict |
 
     if not await _within_user_budget(user_id):
         return None, "quota"
-    if not await _within_daily_budget():
-        logger.warning("Chạm trần %s lượt LLM trong ngày", LLM_DAILY_MAX)
-        return None, "quota"
 
-    advice = _validated(await llm.complete_json(_messages(kind, lang, data), ADVICE_SCHEMA))
-    if advice is None:
-        return None, "unavailable"
+    # Hai tab mở cùng một màn hình là hai lần gọi thật cho cùng một câu trả lời.
+    # Bên không giành được khoá chờ một nhịp rồi đọc lại cache.
+    async with _one_caller_at_a_time(key) as first:
+        if not first:
+            waited = await _wait_for_cache(key)
+            if waited is not None:
+                return waited, "cached"
+            # Chờ hết giờ mà vẫn chưa có: tự gọi còn hơn trả về tay không.
 
-    await _store(key, advice)
-    return advice, "ok"
+        if not await _within_daily_budget():
+            logger.warning("Chạm trần %s lượt LLM trong ngày", LLM_DAILY_MAX)
+            return None, "quota"
+
+        answer = await llm.complete_json(_messages(kind, lang, data), ADVICE_SCHEMA, validate=_validated)
+        if answer is None:
+            return None, "unavailable"
+
+        await _store(key, answer.data, answer.model)
+        return answer.data, "ok"

@@ -123,6 +123,14 @@ LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.3"))
 # không bao giờ phải xoá cache thủ công.
 LLM_CACHE_TTL_SECONDS = _int_env("LLM_CACHE_TTL_SECONDS", 7 * 24 * 3600)
 
+# Chống giẫm chân: hai tab mở cùng một màn hình thì chỉ một bên gọi LLM, bên kia
+# chờ rồi đọc cache. Khoá có hạn tự hết để một tiến trình chết giữa chừng không
+# treo vĩnh viễn các request sau.
+LLM_CALL_LOCK_SECONDS = _int_env("LLM_CALL_LOCK_SECONDS", 20)
+# Chờ lâu hơn thời gian một lượt gọi (đo được 1.8 giây) nhưng vẫn dưới ngưỡng
+# người dùng thấy trang "treo"; hết giờ thì tự gọi, còn hơn trả về tay không.
+LLM_CALL_WAIT_SECONDS = _int_env("LLM_CALL_WAIT_SECONDS", 4)
+
 # Chặn một người bấm loạn đốt hết hạn mức của cả hệ thống.
 LLM_USER_RATE_LIMIT_MAX = _int_env("LLM_USER_RATE_LIMIT_MAX", 20)
 LLM_USER_RATE_LIMIT_WINDOW_SECONDS = _int_env("LLM_USER_RATE_LIMIT_WINDOW_SECONDS", 3600)

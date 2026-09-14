@@ -80,7 +80,7 @@ async def test_uses_primary_when_it_answers(monkeypatch):
         },
     )
 
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "từ bên chính"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "từ bên chính"}
     assert calls == ["primary"]
 
 
@@ -94,7 +94,7 @@ async def test_falls_back_to_second_provider_on_429(monkeypatch):
         },
     )
 
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "từ bên dự phòng"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "từ bên dự phòng"}
     assert calls == ["primary", "fallback"]
 
 
@@ -107,7 +107,7 @@ async def test_falls_back_on_503(monkeypatch):
         },
     )
 
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "vẫn chạy"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "vẫn chạy"}
     assert calls == ["primary", "fallback"]
 
 
@@ -122,7 +122,7 @@ async def test_falls_back_when_json_is_truncated(monkeypatch):
         },
     )
 
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "nguyên vẹn"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "nguyên vẹn"}
     assert calls == ["primary", "fallback"]
 
 
@@ -132,7 +132,7 @@ async def test_falls_back_when_provider_times_out(monkeypatch):
 
     calls = route(monkeypatch, {"primary": boom, "fallback": lambda r: _answer({"summary": "kịp"})})
 
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "kịp"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "kịp"}
     assert calls == ["primary", "fallback"]
 
 
@@ -167,11 +167,11 @@ async def test_breaker_stops_calling_a_provider_that_keeps_failing(monkeypatch):
     )
 
     for _ in range(2):
-        assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "vẫn chạy"}
+        assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "vẫn chạy"}
     assert calls.count("primary") == 2
 
     # Chạm ngưỡng -> lần sau không gọi bên chính nữa, đi thẳng bên dự phòng.
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "vẫn chạy"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "vẫn chạy"}
     assert calls.count("primary") == 2
     assert calls.count("fallback") == 3
 
@@ -187,10 +187,65 @@ async def test_success_resets_the_breaker(monkeypatch):
 
     await llm.complete_json(MESSAGES, SCHEMA)
     state["fail"] = False
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "ok"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "ok"}
 
     # Một lần thành công xoá sạch bộ đếm, không để lại "nợ" cho lần hỏng sau.
     state["fail"] = True
     await llm.complete_json(MESSAGES, SCHEMA)
     state["fail"] = False
-    assert await llm.complete_json(MESSAGES, SCHEMA) == {"summary": "ok"}
+    assert (await llm.complete_json(MESSAGES, SCHEMA)).data == {"summary": "ok"}
+
+
+async def test_output_that_fails_validation_counts_as_a_provider_failure(monkeypatch):
+    """**Bản đầu sai đúng chỗ này.**
+
+    Nhà cung cấp trả JSON hợp lệ nhưng sai khuôn từng được tính là THÀNH CÔNG:
+    cầu dao bị xoá bộ đếm, bên dự phòng không được thử, và mỗi lần tải lại trang
+    là một lần gọi thật nữa — trong khi cầu dao sinh ra đúng để chặn cảnh đó.
+    """
+    calls = route(
+        monkeypatch,
+        {
+            "primary": lambda r: _answer({"sai_ten_truong": "vẫn là JSON hợp lệ"}),
+            "fallback": lambda r: _answer({"summary": "đúng khuôn"}),
+        },
+    )
+
+    def only_with_summary(raw):
+        return raw if "summary" in raw else None
+
+    answer = await llm.complete_json(MESSAGES, SCHEMA, validate=only_with_summary)
+    assert answer.data == {"summary": "đúng khuôn"}
+    assert calls == ["primary", "fallback"]
+
+
+async def test_validation_failure_everywhere_trips_the_breaker(monkeypatch):
+    monkeypatch.setattr(llm, "LLM_BREAKER_THRESHOLD", 1)
+    calls = route(
+        monkeypatch,
+        {
+            "primary": lambda r: _answer({"sai": 1}),
+            "fallback": lambda r: _answer({"sai": 2}),
+        },
+    )
+    reject_all = lambda raw: None  # noqa: E731
+
+    assert await llm.complete_json(MESSAGES, SCHEMA, validate=reject_all) is None
+    assert calls == ["primary", "fallback"]
+
+    # Lần sau: cả hai đã bị ngắt, không gọi đi đâu nữa.
+    assert await llm.complete_json(MESSAGES, SCHEMA, validate=reject_all) is None
+    assert calls == ["primary", "fallback"]
+
+
+async def test_answer_carries_the_model_that_replied(monkeypatch):
+    """Khi một lời khuyên đọc lạ, câu hỏi đầu tiên là "bên nào viết cái này"."""
+    route(
+        monkeypatch,
+        {
+            "primary": lambda r: httpx.Response(503, text="quá tải"),
+            "fallback": lambda r: _answer({"summary": "ok"}),
+        },
+    )
+    answer = await llm.complete_json(MESSAGES, SCHEMA)
+    assert answer.model == "fallback:model-du-phong"

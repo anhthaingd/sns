@@ -78,10 +78,13 @@ async def route_whatif_simulate(
 @router.get("/api/match/advice/overview", response_model=AdviceResponse)
 async def route_overview_advice(
     page: int | None = Query(1, ge=1),
+    # Phải nhận đúng bộ lọc mà trang danh sách đang dùng, nếu không lời khuyên
+    # sẽ mô tả một tập công ty khác với tập đang hiện trên màn hình.
+    qualifiedOnly: bool = Query(False),
     lang: str | None = Query(None, description="ja | vi | en"),
     decoded=Depends(get_current_user),
 ):
-    return await overview_advice(decoded, page or 1, lang)
+    return await overview_advice(decoded, page or 1, lang, qualifiedOnly)
 
 
 @router.get("/api/match/jobs/{job_id}/advice", response_model=AdviceResponse)

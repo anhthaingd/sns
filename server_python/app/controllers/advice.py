@@ -19,10 +19,9 @@ from collections import Counter
 
 from app.controllers.match import (
     PAGE_SIZE,
-    UNKNOWN_COMPANY,
     _combine_gaps,
     _require_resume,
-    _score_all,
+    rank_companies,
 )
 from app.errors import ApiError
 from app.models.company import Company
@@ -79,7 +78,12 @@ def _gaps(items: list, limit: int = TOP_GAPS) -> list[dict]:
 
 
 def _lang(raw: str | None) -> str:
-    return (raw or "").strip().lower()[:5]
+    """Mã ngôn ngữ rút về dạng backend hiểu: `"en-US"` -> `"en"`.
+
+    Không cắt phần vùng thì mọi mã chuẩn BCP-47 đều rơi vào nhánh lùi về tiếng
+    Nhật — và lỗi đó im lặng, không client nào biết mình vừa hỏi sai.
+    """
+    return (raw or "").strip().lower().split("-")[0][:5]
 
 
 # --- Một vị trí -------------------------------------------------------------
@@ -141,17 +145,19 @@ async def company_advice(decoded_user: dict, company_id: str, lang: str | None =
 # --- Cả trang danh sách công ty ---------------------------------------------
 
 
-async def overview_advice(decoded_user: dict, page: int = 1, lang: str | None = None):
-    """Một nhận định cho CẢ TRANG, không phải mỗi công ty một đoạn."""
+async def overview_advice(
+    decoded_user: dict,
+    page: int = 1,
+    lang: str | None = None,
+    qualified_only: bool = False,
+):
+    """Một nhận định cho CẢ TRANG, không phải mỗi công ty một đoạn.
+
+    `qualified_only` bắt buộc phải đi kèm: lời khuyên nói "trang này" thì nó
+    phải đọc ĐÚNG trang mà người dùng đang nhìn, kể cả khi bộ lọc đang bật.
+    """
     resume = await _require_resume(decoded_user)
-    scored = await _score_all(resume)
-
-    best_per_company: dict[str, tuple[JobMatchView, object]] = {}
-    for job, result in scored:
-        key = str(job.company) if job.company else f"name:{job.company_name or UNKNOWN_COMPANY}"
-        best_per_company.setdefault(key, (job, result))
-
-    ranked = sorted(best_per_company.values(), key=lambda pair: pair[1].score, reverse=True)
+    ranked = [pair for _, pair in await rank_companies(resume, qualified_only)]
     window = ranked[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
     if not window:
         # Trang rỗng KHÔNG phải lỗi — chỉ là không có gì để khuyên. Trả 404 ở
@@ -171,6 +177,7 @@ async def overview_advice(decoded_user: dict, page: int = 1, lang: str | None = 
 
     data = {
         "profile": _profile(resume),
+        "filteredToQualifiedOnly": qualified_only,
         "companiesOnPage": len(window),
         "qualifiedOnPage": sum(1 for _, r in window if r.is_qualified),
         "repeatedBarriers": [

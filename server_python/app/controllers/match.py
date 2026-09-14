@@ -90,13 +90,15 @@ def _job_summary(job: JobMatchView) -> dict:
     }
 
 
-async def match_companies(decoded_user: dict, page: int = 1, qualified_only: bool = False):
-    """Chức năng 1 — CV này hợp với công ty nào.
+async def rank_companies(resume, qualified_only: bool = False) -> list[tuple[str, tuple[JobMatchView, object]]]:
+    """Gom theo công ty, lấy tin khớp nhất mỗi công ty, xếp điểm giảm dần.
 
-    Gom theo công ty và lấy tin khớp nhất của mỗi công ty: người dùng quan tâm
-    "công ty nào hợp với tôi", không phải "20 vị trí của cùng một công ty".
+    **Dùng chung cho cả trang danh sách lẫn phần lời khuyên của trang đó.** Bản
+    đầu để `controllers/advice.py` tự dựng lại phép gom này; hai bản sao lệch
+    nhau ngay ở chỗ `qualified_only`, khiến thẻ gợi ý mô tả một tập công ty khác
+    với tập đang hiện trên màn hình. Một bản duy nhất thì sự nhất quán là tính
+    chất của code, không phải thứ phải viết test để canh.
     """
-    resume = await _require_resume(decoded_user)
     scored = await _score_all(resume)
 
     best_per_company: dict[str, tuple[JobMatchView, object]] = {}
@@ -109,7 +111,17 @@ async def match_companies(decoded_user: dict, page: int = 1, qualified_only: boo
         if key not in best_per_company:
             best_per_company[key] = (job, result)
 
-    ranked = sorted(best_per_company.items(), key=lambda item: item[1][1].score, reverse=True)
+    return sorted(best_per_company.items(), key=lambda item: item[1][1].score, reverse=True)
+
+
+async def match_companies(decoded_user: dict, page: int = 1, qualified_only: bool = False):
+    """Chức năng 1 — CV này hợp với công ty nào.
+
+    Gom theo công ty và lấy tin khớp nhất của mỗi công ty: người dùng quan tâm
+    "công ty nào hợp với tôi", không phải "20 vị trí của cùng một công ty".
+    """
+    resume = await _require_resume(decoded_user)
+    ranked = await rank_companies(resume, qualified_only)
     total = len(ranked)
     window = ranked[(page - 1) * PAGE_SIZE : page * PAGE_SIZE]
 
