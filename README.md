@@ -44,6 +44,14 @@ muốn chạy nhanh, làm đúng [mục 3](#3-chạy-dự-án-bằng-docker-khuy
 - **Không lộ email nào đã tồn tại**: sai email hay sai mật khẩu đều trả về cùng
   một thông báo, và thời gian phản hồi được làm cho bằng nhau.
 - Phân quyền `user` / `admin`.
+- **Tin nhắn riêng được mã hoá trước khi ghi xuống database** (AES-256-GCM), và
+  chỉ đúng hai người trong hội thoại đọc được qua API. Kết nối thời gian thực
+  bắt buộc mang access token — danh tính người gửi lấy từ token, không lấy từ
+  dữ liệu client tự khai. Chi tiết và **giới hạn** (đây không phải mã hoá
+  đầu-cuối) ở [tài liệu 14](docs/14-va-loi-va-bo-test-phan-quyen.md#142-tin-nhắn-mã-hoá-khi-lưu-và-chỉ-hai-người-xem-được).
+- **Nội dung bài viết được làm sạch ở máy chủ** trước khi lưu và trước khi trả
+  về, nên HTML gửi thẳng qua API không chạy được trên trình duyệt người đọc.
+- **Chưa tham gia channel thì không đọc và không ghi được** nội dung trong đó.
 
 ### 1.2. Mạng xã hội
 
@@ -75,6 +83,7 @@ muốn chạy nhanh, làm đúng [mục 3](#3-chạy-dự-án-bằng-docker-khuy
 | **"Tôi còn thiếu gì?"** | Với một công ty hoặc một vị trí cụ thể: liệt kê rõ **bắt buộc phải bù** / **nên có thêm** / **bạn đã đáp ứng** |
 | **"Nếu tôi học thêm thì sao?"** | Tick những thứ bạn định bù → hệ thống chấm lại cả 430 tin và cho biết mở ra thêm bao nhiêu cơ hội, kèm trung vị lương của nhóm tin đó |
 | **Bản đồ thị trường** | Kỹ năng nào đang được săn, lương theo kỹ năng / trình độ tiếng Nhật / tỉnh thành — mọi trung vị đều kèm cỡ mẫu |
+| **Gợi ý từ AI** *(tuỳ chọn)* | Trên cả sáu màn hình trên: một đoạn tóm tắt + lộ trình 1–3 bước kèm khung thời gian, do mô hình ngôn ngữ viết từ chính kết quả chấm điểm. **Không có API key thì tính năng tự tắt**, mọi thứ khác giữ nguyên |
 
 Điểm phù hợp gồm **hai phần tách bạch** để kiểm chứng được:
 
@@ -89,9 +98,15 @@ muốn chạy nhanh, làm đúng [mục 3](#3-chạy-dự-án-bằng-docker-khuy
 > Nhật hoàn toàn khác nhau sẽ nhận **cùng một danh sách gợi ý**. Mà tại thị
 > trường Nhật, JLPT lại chính là tiêu chí lọc số một.
 
-**Toàn bộ phần này chạy offline, 0đ chi phí API** — không gọi ChatGPT hay bất kỳ
+**Phần chấm điểm chạy offline, 0đ chi phí API** — không gọi ChatGPT hay bất kỳ
 LLM trả phí nào. Vector do service `embedder` tự tính trên CPU, model 220MB được
 nướng sẵn vào image nên **không cần mạng lúc demo**.
+
+Riêng phần **"Gợi ý từ AI"** là một lớp mỏng đặt thêm bên trên, dùng gói miễn
+phí của Google AI Studio và Groq. Nó chỉ **viết lời**: điểm số và danh sách
+thiếu sót vẫn do luật tính, và có test canh rằng bật hay tắt LLM thì mọi điểm
+số bằng nhau tuyệt đối. Không cấu hình API key thì phần này biến mất, không
+màn hình nào báo lỗi — xem [tài liệu 12](docs/12-loi-khuyen-bang-llm.md).
 
 ### 1.5. Đa ngôn ngữ (Nhật · Việt · Anh)
 
@@ -185,33 +200,50 @@ docker compose run --rm server python -m scripts.run_etl --pages 5 --detail 120
 ### Bước 5 — Tạo tài khoản demo (khuyến nghị)
 
 Chức năng gợi ý công ty chỉ chạy khi tài khoản **đã có CV**. Lệnh dưới tạo sẵn
-một tài khoản kèm CV đầy đủ mọi mục, đăng nhập được ngay:
+tài khoản kèm CV đầy đủ mọi mục, đăng nhập được ngay:
 
 ```bash
 docker compose run --rm server python -m scripts.seed_demo_user --contrast
+docker compose run --rm server python -m scripts.seed_resumes --count 100   # tuỳ chọn
 ```
 
-| | |
-|---|---|
-| Email | `demo@fuurin.local` |
-| Mật khẩu | `Demo@12345` |
-| Hồ sơ | Backend Engineer · 4 năm KN · tiếng Nhật N3 · 15 kỹ năng |
+Cả hai lệnh đều **chạy lại được nhiều lần** (ghi đè, không tạo trùng).
 
-CV này **cố ý chưa hoàn hảo** (N3 chứ không phải N2, không biết Kubernetes/Go)
-để chức năng "còn thiếu gì để vào công ty A" có nội dung thật để hiển thị — CV
-hoàn hảo thì trang đó trống trơn. Chạy xong, script in ra sẵn đường dẫn của một
-tin **đã đủ điều kiện** và một tin **còn rào cản** để mở lên xem.
+#### Bảng tài khoản demo
 
-`--contrast` tạo thêm `demo-nojp@fuurin.local` — cùng kỹ năng, cùng kinh nghiệm,
-**chỉ khác là không biết tiếng Nhật**. Mở hai tài khoản cạnh nhau sẽ thấy danh
-sách gợi ý khác hẳn (đo được: top 10 chỉ trùng 2 tin). Xoá cả hai bằng `--clean`.
+| Đăng nhập | Mật khẩu | CV có sẵn | Dùng để xem chức năng gì |
+|---|---|---|---|
+| `demo@fuurin.local` | `Demo@12345` | Backend Engineer · 4 năm KN · tiếng Nhật hội thoại (≈N3) · tiếng Anh business · 15 kỹ năng | Gợi ý công ty & việc làm, "còn thiếu gì để vào công ty A", mô phỏng đối chứng |
+| `demo-nojp@fuurin.local` | `Demo@12345` | Y hệt trên, **chỉ bỏ trống tiếng Nhật** | Mở cạnh tài khoản trên để thấy gợi ý đổi hẳn; cũng dùng luôn làm **tài khoản thứ hai** để thử chat / gọi video |
+| `seed-000@seed.fuurin.local` … `seed-099@seed.fuurin.local` | `SeedPassw0rd!` | 100 CV đa dạng nghề (Frontend, Backend, QA…), mỗi CV vài kỹ năng | Đổ dữ liệu cho trang quản trị, thử tìm người dùng, xem gợi ý của nhiều loại hồ sơ khác nhau |
 
-Muốn có thêm nhiều CV đa dạng để thử:
+Muốn biết máy mình đã có sẵn tài khoản nào chưa (khỏi phải chạy lại seed):
 
 ```bash
-docker compose run --rm server python -m scripts.seed_resumes --count 100
-docker compose run --rm server python -m scripts.seed_resumes --clean   # xoá đi
+docker exec fuurin-mongo mongosh fuurin --quiet --eval \
+  'db.users.find({email:/fuurin\.local$/},{email:1,_id:0}).forEach(u=>print(u.email))'
 ```
+
+Xoá đi khi không cần nữa:
+
+```bash
+docker compose run --rm server python -m scripts.seed_demo_user --clean
+docker compose run --rm server python -m scripts.seed_resumes --clean
+```
+
+CV của `demo@fuurin.local` **cố ý chưa hoàn hảo** (tiếng Nhật mới mức hội thoại,
+không biết Kubernetes/Go) để chức năng "còn thiếu gì để vào công ty A" có nội
+dung thật để hiển thị — CV hoàn hảo thì trang đó trống trơn. Chạy xong, script in
+ra sẵn đường dẫn của một tin **đã đủ điều kiện** và một tin **còn rào cản** để mở
+lên xem.
+
+Mở `demo@fuurin.local` và `demo-nojp@fuurin.local` cạnh nhau là thấy ngay vì sao
+điểm phù hợp phải có phần đối chiếu bằng luật: hai CV **giống hệt nhau trừ mục
+tiếng Nhật** mà top 10 gợi ý chỉ trùng đúng 2 tin.
+
+> Ba nhóm tài khoản trên đều là **user thường**. Muốn vào mục Quản trị thì nâng
+> quyền một trong số đó theo [mục 5.3](#53-tạo-tài-khoản-admin) — ví dụ nâng
+> `demo@fuurin.local` là nhanh nhất.
 
 **Xong!** Chuyển sang [mục 5 — Hướng dẫn sử dụng lần đầu](#5-hướng-dẫn-sử-dụng-lần-đầu).
 
@@ -295,7 +327,8 @@ Lựa chọn được nhớ lại, mở trình duyệt lần sau vẫn đúng ng
 **Đăng ký** một tài khoản rồi đăng nhập để dùng đăng bài, follow, nhắn tin...
 
 > Muốn xem ngay chức năng gợi ý công ty mà không phải tự nhập CV: dùng tài khoản
-> `demo@fuurin.local` / `Demo@12345` tạo ở [Bước 5](#bước-5--tạo-tài-khoản-demo-khuyến-nghị).
+> `demo@fuurin.local` / `Demo@12345` — xem đủ danh sách ở
+> [Bảng tài khoản demo](#bảng-tài-khoản-demo).
 
 ### 5.3. Tạo tài khoản Admin
 
@@ -310,8 +343,17 @@ docker exec fuurin-mongo mongosh fuurin --quiet --eval '
 '
 ```
 
-Thay `EMAIL_CUA_BAN` bằng email đã đăng ký. Sau đó **đăng xuất & đăng nhập lại**
-để token nhận quyền mới → menu bên trái sẽ hiện mục **Quản trị**.
+Thay `EMAIL_CUA_BAN` bằng email đã đăng ký — hoặc dùng luôn `demo@fuurin.local`
+nếu đã chạy seed ở [Bước 5](#bảng-tài-khoản-demo). Sau đó **đăng xuất & đăng nhập
+lại** để token nhận quyền mới → menu bên trái sẽ hiện mục **Quản trị**.
+
+Kiểm tra đã lên quyền chưa:
+
+```bash
+docker exec fuurin-mongo mongosh fuurin --quiet --eval \
+  'var a=db.roles.findOne({value:1})._id;
+   db.users.find({role:a},{email:1,_id:0}).limit(20).forEach(u=>print(u.email))'
+```
 
 ### 5.4. Tạo channel (kênh/nhóm)
 
@@ -327,8 +369,9 @@ và bình luận sẽ tạo **thông báo** cho tác giả.
 
 ### 5.6. Nhắn tin & gọi video
 
-- Cần **2 tài khoản** để thử: mở thêm một **cửa sổ ẩn danh** rồi đăng ký/đăng
-  nhập tài khoản thứ hai.
+- Cần **2 tài khoản** để thử: mở thêm một **cửa sổ ẩn danh** rồi đăng nhập tài
+  khoản thứ hai — nhanh nhất là dùng sẵn `demo@fuurin.local` ở cửa sổ này và
+  `demo-nojp@fuurin.local` ở cửa sổ ẩn danh (cùng mật khẩu `Demo@12345`).
 - Từ tài khoản này tìm tài khoản kia → nhắn tin hoặc bấm gọi video.
 - Trình duyệt sẽ xin quyền **camera + micro** → bấm **Allow** (chạy ở localhost
   nên hợp lệ).
@@ -400,8 +443,9 @@ cp .env.example .env
 
 | Biến | Mặc định | Ý nghĩa |
 |---|---|---|
-| `ACCESS_TOKEN_SECRET` | `secret` | Chuỗi bí mật ký JWT access token |
+| `ACCESS_TOKEN_SECRET` | **bắt buộc** | Chuỗi bí mật ký JWT access token. Không đặt thì backend **không khởi động** (trước đây mặc định là `secret`, quên đặt là ai cũng ký được token hợp lệ). Docker đã đặt sẵn giá trị dev |
 | `REFRESH_TOKEN_SECRET` | = access secret | Chuỗi bí mật ký JWT refresh token |
+| `MESSAGE_ENCRYPTION_KEY` | dẫn xuất từ access secret | 32 byte base64, dùng để mã hoá nội dung tin nhắn trước khi ghi vào MongoDB. **Đổi hoặc mất khoá = không đọc lại được tin nhắn cũ** |
 | `REDIS_URL` | trống | Nơi lưu blacklist token + bộ đếm rate limit. Trống = dùng RAM tiến trình (mất khi restart) |
 | `ACCESS_TOKEN_TTL_SECONDS` | `900` (15 phút) | Hạn access token |
 | `REFRESH_TOKEN_TTL_SECONDS` | `604800` (7 ngày) | Hạn refresh token |
@@ -411,6 +455,11 @@ cp .env.example .env
 | `LOGIN_FAIL_LIMIT_PER_IP` | `30` | Số lần đăng nhập SAI từ một IP trong 15 phút |
 | `REGISTER_RATE_LIMIT_MAX` | `60` | Số lần đăng ký / giờ / IP |
 | `EMBEDDER_URL` | `http://embedder:8001` | Service tính vector. **Để trống thì hệ thống tự chuyển sang chấm điểm thuần luật**, không báo lỗi |
+| `GEMINI_API_KEY` | trống | Key [Google AI Studio](https://aistudio.google.com/apikey) cho phần "Gợi ý từ AI". **Để trống thì tính năng tự tắt**, không báo lỗi |
+| `GROQ_API_KEY` | trống | Key [Groq](https://console.groq.com/keys) — nhà cung cấp dự phòng khi bên trên bận (429/503 là chuyện thường ở gói miễn phí) |
+| `LLM_PRIMARY_MODEL` | `gemini-3.1-flash-lite` | Tên model đổi khá nhanh, để ở đây để đổi mà không phải sửa code |
+| `LLM_FALLBACK_MODEL` | `qwen/qwen3.8-27b` | Model của nhà cung cấp dự phòng |
+| `LLM_DAILY_MAX` | `400` | Trần số lượt gọi LLM mỗi ngày, để không vượt gói miễn phí |
 | `CRAWL_CACHE_TTL_SECONDS` | `600` | Hạn cache kết quả crawl |
 | `CRAWL_MAX_CONCURRENT_PAGES` | `2` | Số trang mở đồng thời khi crawl |
 | `TRUST_PROXY_HEADERS` | `false` | Chỉ bật khi thật sự có reverse proxy. Bật mà không có proxy thì ai cũng giả được `X-Forwarded-For` để qua mặt giới hạn theo IP |
@@ -464,13 +513,15 @@ python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 Không cần cài gì trên máy. Stack phải đang chạy (`docker compose up -d`).
 
 ```bash
-# Test API (336 test: auth/refresh token, rate limit, phan quyen, post, channel,
-# chat + phan trang, upload, socket, ETL/parser (chay offline tren HTML da luu),
-# loi cham diem CV, API viec lam & goi y, dem so query chong N+1, hop dong
-# response, va doi chieu ma thong bao cua backend voi ban dich cua client)
+# Test API (447 test: auth/refresh token, rate limit, PHAN QUYEN (ai duoc lam gi
+# voi tai nguyen cua ai), XSS/lam sach HTML, ma hoa tin nhan, toan ven du lieu,
+# post, channel, chat + phan trang, upload, socket, ETL/parser (chay offline
+# tren HTML da luu), loi cham diem CV, API viec lam & goi y, dem so query chong
+# N+1, hop dong response, va doi chieu ma thong bao cua backend voi ban dich
+# cua client). Xem docs/14 de biet ba file test bao mat kiem nhung gi.
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm api-tests
 
-# Test E2E qua giao dien that bang Playwright (15 test, gom ca test doi ngon ngu)
+# Test E2E qua giao dien that bang Playwright (20 test, gom ca test doi ngon ngu)
 docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm e2e-tests
 
 # Chay xong E2E, tra client ve cau hinh thuong de dung tu trinh duyet:

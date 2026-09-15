@@ -22,6 +22,8 @@ Nếu bạn mới tiếp cận dự án, đọc lần lượt từ trên xuống
 | 10 | [Mô phỏng đối chứng](10-mo-phong-doi-chung.md) | "Nếu tôi học thêm X thì mở ra bao nhiêu cơ hội?" tính bằng cách nào? |
 | 11 | [Sổ tay giao diện](11-so-tay-giao-dien.md) | Mỗi màn hình trông thế nào và làm gì? Bộ test nào đang bảo vệ nó? |
 | 12 | [Lời khuyên bằng LLM](12-loi-khuyen-bang-llm.md) | Cắm mô hình ngôn ngữ vào phần phân tích thì cắm ở đâu, và không được cắm vào đâu? |
+| 13 | [Rà soát lỗi ẩn](13-ra-soat-loi-an.md) | Đợt rà soát 14/09/2026: lỗi nào đã sửa, lỗi nào còn lại và tái hiện bằng lệnh gì? |
+| 14 | [Vá lỗi và bộ test phân quyền](14-va-loi-va-bo-test-phan-quyen.md) | Tin nhắn được mã hoá kiểu gì? Ai xem được? Bộ test nào canh phân quyền? |
 
 ## Dự án này là gì
 
@@ -44,9 +46,9 @@ Nhật, chuẩn hoá lại, rồi so khớp với CV của người dùng để 
 | Bảng dữ liệu (collection) | 14 |
 | Trang phía người dùng | 20 |
 | File giao diện | 107 |
-| Test tự động | 392 test API + 18 test giao diện |
+| Test tự động | 447 test API + 20 test giao diện |
 | Tin tuyển dụng trong kho | 430 tin từ 4 nguồn |
-| Ngôn ngữ giao diện | 3 (Nhật · Việt · Anh) — 580 khoá mỗi ngôn ngữ |
+| Ngôn ngữ giao diện | 3 (Nhật · Việt · Anh) — 587 khoá mỗi ngôn ngữ |
 
 ## Quy ước trong tài liệu
 
