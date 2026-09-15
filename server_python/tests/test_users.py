@@ -4,16 +4,22 @@ import pytest
 
 
 async def test_user_details(client, user, other_user):
-    r = await client.get(f"/api/users/{other_user.id}")
+    """Trang cá nhân của người khác: xem được, nhưng KHÔNG kèm email.
+
+    Quyền truy cập và phạm vi dữ liệu trả về của endpoint này được kiểm kỹ hơn
+    ở `tests/test_authorization.py` nhóm 4.
+    """
+    r = await client.get(f"/api/users/{other_user.id}", headers=user.headers)
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["user"]["email"] == other_user.email
+    assert body["user"]["username"]
+    assert "email" not in body["user"]
     assert body["posts"] == 0
     assert "password" not in body["user"]
 
 
 async def test_user_details_not_found(client, user):
-    r = await client.get("/api/users/000000000000000000000000")
+    r = await client.get("/api/users/000000000000000000000000", headers=user.headers)
     assert r.status_code == 404
 
 
@@ -71,7 +77,7 @@ async def test_update_profile(client, user):
         data={"username": "renamed", "intro": "hello", "address": "Tokyo"},
     )
     assert r.status_code == 200, r.text
-    r = await client.get(f"/api/users/{user.id}")
+    r = await client.get(f"/api/users/{user.id}", headers=user.headers)
     assert r.json()["user"]["username"] == "renamed"
 
 
@@ -94,7 +100,7 @@ async def test_partial_update_keeps_fields_that_were_not_sent(client, user):
     r = await client.put(f"/api/users/{user.id}", headers=user.headers, data={"address": "Osaka"})
     assert r.status_code == 200, r.text
 
-    saved = (await client.get(f"/api/users/{user.id}")).json()["user"]
+    saved = (await client.get(f"/api/users/{user.id}", headers=user.headers)).json()["user"]
     assert saved["username"] == "giu nguyen ten", "tên tài khoản bị xoá khi cập nhật một phần"
     assert saved["intro"] == "gioi thieu", "phần giới thiệu bị xoá khi cập nhật một phần"
     assert saved["address"] == "Osaka"
@@ -113,7 +119,7 @@ async def test_empty_string_still_clears_a_field(client, user):
         data={"username": "ten", "intro": ""},
     )
     assert r.status_code == 200, r.text
-    assert (await client.get(f"/api/users/{user.id}")).json()["user"]["intro"] == ""
+    assert (await client.get(f"/api/users/{user.id}", headers=user.headers)).json()["user"]["intro"] == ""
 
 
 async def test_new_account_has_no_default_avatar(client, db):
@@ -137,7 +143,7 @@ async def test_update_other_user_profile_is_rejected(client, user, other_user):
     """Không được sửa hồ sơ của người khác."""
     r = await client.put(f"/api/users/{other_user.id}", headers=user.headers, data={"username": "hacked"})
     assert r.status_code in (403, 404), f"cho phép sửa user khác! status={r.status_code}"
-    r = await client.get(f"/api/users/{other_user.id}")
+    r = await client.get(f"/api/users/{other_user.id}", headers=user.headers)
     assert r.json()["user"]["username"] != "hacked"
 
 

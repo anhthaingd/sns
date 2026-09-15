@@ -4,6 +4,7 @@ from app.controllers.web import get_web, update_web
 from app.middleware.auth import get_current_user
 from app.middleware.upload import save_uploaded_files
 from app.schemas.responses import ERROR_RESPONSES, MessageResponse, WebsiteResponse
+from app.utils.forms import submitted_fields
 
 router = APIRouter(tags=["website"], responses=ERROR_RESPONSES)
 
@@ -23,7 +24,16 @@ async def route_update_web(
     oldLogo: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
+    submitted: set[str] = Depends(submitted_fields),
 ):
     return await update_web(
-        decoded, web_id, website_name, color_title, website_quotes_register, website_quotes_login, oldLogo, files
+        decoded,
+        web_id,
+        website_name,
+        color_title,
+        website_quotes_register,
+        website_quotes_login,
+        oldLogo,
+        files,
+        submitted,
     )

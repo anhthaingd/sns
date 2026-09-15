@@ -31,7 +31,8 @@
     },
     "upload": {
       "unsupportedType": "Định dạng file không được hỗ trợ. Chỉ nhận: {{allowed}}",
-      "tooLarge": "File vượt quá {{max}}MB."
+      "tooLarge": "File vượt quá {{max}}MB.",
+      "contentMismatch": "Nội dung file không khớp với định dạng của phần mở rộng. Chỉ nhận: {{allowed}}"
     },
     "user": {
       "notFound": "Không tìm thấy người dùng!",
@@ -80,7 +81,9 @@
       "userRemoved": "Đã xóa người dùng khỏi channel!"
     },
     "chat": {
-      "conversationNotFound": "Không tìm thấy hội thoại!"
+      "conversationNotFound": "Không tìm thấy hội thoại!",
+      "notYourConversation": "Bạn không xem được tin nhắn của người khác!",
+      "unauthenticatedSocket": "Kết nối thời gian thực cần đăng nhập!"
     },
     "job": {
       "notFound": "Không tìm thấy tin tuyển dụng!"
@@ -113,6 +116,7 @@
       "postLiked": "{{username}} vừa thích bài viết của bạn!",
       "postSaved": "{{username}} vừa lưu bài viết của bạn!",
       "postCommented": "{{username}} vừa bình luận bài viết của bạn!",
+      "userFollowed": "{{username}} vừa theo dõi bạn!",
       "removedFromChannel": "Bạn đã bị xóa khỏi channel {{channel}}!"
     },
     "whatif": {

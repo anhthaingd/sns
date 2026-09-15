@@ -29,6 +29,9 @@ services:
       DATABASE_URL: mongodb://mongo:27017/fuurin
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_change_in_production}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-dev_refresh_secret_change_in_production}
+      # Cung ly do: app nap trong tien trinh test phai giai ma duoc nhung tin
+      # nhan do container `server` ghi ra, nen phai dung CHUNG khoa.
+      MESSAGE_ENCRYPTION_KEY: ${MESSAGE_ENCRYPTION_KEY:-}
       # test_auth.py kiem tra token da thu hoi duoc ghi vao Redis (trang thai
       # dung chung) chu khong phai RAM tien trinh — do la thu lam cho dang xuat
       # song sot qua restart backend.

@@ -170,15 +170,24 @@ async def update_channel(
     intro: str = None,
     old_background: str = None,
     files: dict = None,
+    submitted: set[str] | None = None,
 ):
     require_admin(decoded_user)
+
+    submitted = submitted if submitted is not None else {"name", "intro"}
 
     try:
         parse_old_image = json.loads(old_background) if old_background else None
     except json.JSONDecodeError as err:
         raise ApiError(400, code="channel.invalidOldBackground") from err
 
-    update_data = {"name": name, "intro": intro}
+    # Chỉ ghi trường request thật sự gửi lên — cùng lý do đã ghi ở
+    # `users.update_user`: gán vô điều kiện thì một request chỉ đổi ảnh bìa sẽ
+    # ghi `name=None` và xoá trắng tên channel.
+    update_data = {}
+    for field_name, value in (("name", name), ("intro", intro)):
+        if field_name in submitted:
+            update_data[field_name] = value if value is not None else ""
 
     images = files.get("images", []) if files else []
     if images:
@@ -186,7 +195,10 @@ async def update_channel(
             await delete_file(parse_old_image.get("url", ""))
         update_data["background"] = {"name": images[0]["filename"], "url": images[0]["path"]}
 
-    await Channel.find_one(Channel.id == to_object_id(channel_id, "channel_id")).update({"$set": update_data})
+    # `$set` rỗng bị Mongo từ chối, nên request không gửi trường nào thì coi như
+    # không có gì để làm.
+    if update_data:
+        await Channel.find_one(Channel.id == to_object_id(channel_id, "channel_id")).update({"$set": update_data})
     return ok(code="channel.updated")
 
 
@@ -198,9 +210,18 @@ async def delete_channel(decoded_user: dict, channel_id: str):
     if not channel:
         raise ApiError(404, code="channel.notFound")
 
+    # Dọn ảnh của MỌI bài viết trong channel trước khi xoá bản ghi: xoá xong
+    # thì không còn đường nào lần ra những file đó nữa.
+    posts = await Post.find(Post.channel == channel_oid).to_list()
+    for post in posts:
+        if post.images:
+            await delete_file(post.images.get("url", ""))
+
     await channel.delete()
     await Post.find(Post.channel == channel_oid).delete()
-    await Shortcut.find_one({"channel": channel_oid}).update({"$set": {"isJoin": False}})
+    # `find` chứ không phải `find_one`: bản cũ chỉ chạm MỘT lối tắt, nên channel
+    # có 30 người ghim thì 29 người vẫn thấy lối tắt trỏ vào channel đã xoá.
+    await Shortcut.find({"channel": channel_oid}).update({"$set": {"isJoin": False}})
     if channel.background:
         await delete_file(channel.background.get("url", ""))
     return ok(code="channel.deleted")

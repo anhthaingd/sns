@@ -27,13 +27,37 @@ BASE_DIR = Path(__file__).resolve().parents[2]
 
 PORT = _int_env("PORT", 3000)
 DATABASE_URL = os.getenv("DATABASE_URL", "mongodb://localhost:27017/social_app")
-ACCESS_TOKEN_SECRET = os.getenv("ACCESS_TOKEN_SECRET", "secret")
+# Không có giá trị mặc định — và đó là chủ ý.
+#
+# Trước đây mặc định là chuỗi `"secret"`. Quên đặt biến môi trường thì ứng dụng
+# vẫn chạy ngon lành, chỉ là ai cũng ký được token hợp lệ cho bất kỳ tài khoản
+# nào — một lỗ hổng không có triệu chứng nào để phát hiện. Thà không khởi động
+# được và báo rõ ràng còn hơn chạy được mà không an toàn.
+ACCESS_TOKEN_SECRET = os.getenv("ACCESS_TOKEN_SECRET", "")
+if not ACCESS_TOKEN_SECRET:
+    raise RuntimeError(
+        "Thiếu biến môi trường ACCESS_TOKEN_SECRET. Đặt một chuỗi ngẫu nhiên đủ dài, ví dụ:\n"
+        "  export ACCESS_TOKEN_SECRET=\"$(python -c 'import secrets;print(secrets.token_urlsafe(48))')\"\n"
+        "Dùng Docker thì docker-compose.yml đã đặt sẵn giá trị cho môi trường dev."
+    )
 REFRESH_TOKEN_SECRET = os.getenv("REFRESH_TOKEN_SECRET", ACCESS_TOKEN_SECRET)
 # Hỗ trợ nhiều origin, phân tách bằng dấu phẩy (dev + staging + docker network).
 CLIENT_URL = os.getenv("CLIENT_URL", "http://localhost:5173")
 CORS_ORIGINS = [o.strip() for o in CLIENT_URL.split(",") if o.strip()]
 
 UPLOAD_ROOT = BASE_DIR / "public"
+
+# --- Khoá mã hoá nội dung tin nhắn ----------------------------------------
+# Tin nhắn riêng được mã hoá TRƯỚC KHI ghi xuống MongoDB (xem
+# `app/services/crypto.py`), nên một bản dump database — hay một người có
+# quyền đọc ổ đĩa — không đọc được nội dung.
+#
+# Giá trị là 32 byte ngẫu nhiên mã hoá base64 (sinh bằng
+# `python -c "import os,base64;print(base64.b64encode(os.urandom(32)).decode())"`).
+# Không đặt thì khoá được dẫn xuất từ ACCESS_TOKEN_SECRET để môi trường dev
+# chạy được ngay; production PHẢI đặt biến riêng, vì đổi/mất khoá là mất khả
+# năng đọc lại toàn bộ tin nhắn cũ.
+MESSAGE_ENCRYPTION_KEY = os.getenv("MESSAGE_ENCRYPTION_KEY", "")
 
 # --- Redis: nơi lưu trạng thái dùng chung giữa các tiến trình ---------------
 # Blacklist token trước đây là một `set()` trong RAM tiến trình, nên mỗi lần

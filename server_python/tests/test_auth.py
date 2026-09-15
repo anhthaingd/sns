@@ -165,9 +165,13 @@ async def test_refresh_token_cannot_be_used_as_access_token(client):
     assert r.status_code == 403, r.text
 
 
-async def test_invalid_object_id_does_not_leak_driver_message(client):
-    """Thông báo lỗi của bson mô tả cấu trúc nội bộ -> không được ra tới client."""
-    r = await client.get("/api/users/khong-phai-objectid")
+async def test_invalid_object_id_does_not_leak_driver_message(client, user):
+    """Thông báo lỗi của bson mô tả cấu trúc nội bộ -> không được ra tới client.
+
+    Phải kèm token: endpoint này đã đóng lại sau khi phát hiện nó cho người
+    chưa đăng nhập đọc hồ sơ kèm email (xem tests/test_authorization.py nhóm 4).
+    """
+    r = await client.get("/api/users/khong-phai-objectid", headers=user.headers)
     assert r.status_code == 400, r.text
     message = r.json()["message"]
     assert "ObjectId" not in message and "12-byte" not in message, message

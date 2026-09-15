@@ -27,6 +27,7 @@ from app.schemas.responses import (
     PostDetailsResponse,
     PostListResponse,
 )
+from app.utils.forms import submitted_fields
 
 router = APIRouter(tags=["posts"], responses=ERROR_RESPONSES)
 
@@ -70,7 +71,7 @@ async def route_get_book_mark(page: int | None = Query(1, ge=1), decoded=Depends
 
 @router.get("/api/posts/get_post_details_in_channel/{post_id}", response_model=PostDetailsResponse)
 async def route_get_post_details(post_id: str, decoded=Depends(get_current_user)):
-    return await get_post_details(post_id)
+    return await get_post_details(decoded, post_id)
 
 
 @router.get("/api/posts/{channel_id}", response_model=PostListResponse)
@@ -79,7 +80,7 @@ async def route_get_posts_in_channel(
     page: int | None = Query(1, ge=1),
     decoded=Depends(get_current_user),
 ):
-    return await get_posts_in_channel(channel_id, page or 1)
+    return await get_posts_in_channel(decoded, channel_id, page or 1)
 
 
 @router.post("/api/posts/{channel_id}", status_code=201, response_model=MessageResponse)
@@ -100,8 +101,9 @@ async def route_updated_post(
     oldImages: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
+    submitted: set[str] = Depends(submitted_fields),
 ):
-    return await updated_post(decoded, channel_id, post_id, content, oldImages, files)
+    return await updated_post(decoded, channel_id, post_id, content, oldImages, files, submitted)
 
 
 @router.delete("/api/posts/{channel_id}/{post_id}", response_model=MessageResponse)

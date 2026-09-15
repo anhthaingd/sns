@@ -137,3 +137,52 @@ async def user_with_resume(client, user):
     )
     assert r.status_code == 200, r.text
     return user
+
+
+# --------------------------------------------------------------------------
+# Socket.io: kết nối BẮT BUỘC mang access token kể từ khi vá lỗ mạo danh
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture
+def socket_of():
+    """Mở một socket đã xác thực dưới danh tính của `actor`.
+
+    Dùng như context manager để chắc chắn socket được đóng kể cả khi test hỏng
+    giữa chừng — socket rò rỉ làm các test sau nhận nhầm sự kiện của nhau.
+
+        async with socket_of(user) as sio:
+            await sio.emit("sendMessage", {...})
+    """
+    import contextlib
+
+    import socketio
+
+    @contextlib.asynccontextmanager
+    async def _open(actor):
+        sio = socketio.AsyncClient()
+        await sio.connect(BASE_URL, auth={"token": actor.token}, wait_timeout=10)
+        try:
+            yield sio
+        finally:
+            await sio.disconnect()
+
+    return _open
+
+
+@pytest.fixture
+def socket_connect_raw():
+    """Thử kết nối với một token tuỳ ý (kể cả `None`). Trả về `(thành_công, lỗi)`."""
+    import socketio
+
+    async def _try(token):
+        sio = socketio.AsyncClient()
+        auth = {"token": token} if token is not None else None
+        try:
+            await sio.connect(BASE_URL, auth=auth, wait_timeout=10)
+        except socketio.exceptions.ConnectionError as err:
+            return False, str(err)
+        await sio.disconnect()
+        return True, None
+
+    return _try

@@ -31,7 +31,8 @@
     },
     "upload": {
       "unsupportedType": "対応していないファイル形式です。利用できる形式：{{allowed}}",
-      "tooLarge": "ファイルサイズが{{max}}MBを超えています。"
+      "tooLarge": "ファイルサイズが{{max}}MBを超えています。",
+      "contentMismatch": "ファイルの中身が拡張子と一致しません。対応形式: {{allowed}}"
     },
     "user": {
       "notFound": "ユーザーが見つかりません。",
@@ -80,7 +81,9 @@
       "userRemoved": "ユーザーをチャンネルから削除しました。"
     },
     "chat": {
-      "conversationNotFound": "会話が見つかりません。"
+      "conversationNotFound": "会話が見つかりません。",
+      "notYourConversation": "他の人のメッセージは閲覧できません。",
+      "unauthenticatedSocket": "リアルタイム接続にはログインが必要です。"
     },
     "job": {
       "notFound": "求人情報が見つかりません。"
@@ -113,6 +116,7 @@
       "postLiked": "{{username}}さんがあなたの投稿にいいねしました。",
       "postSaved": "{{username}}さんがあなたの投稿を保存しました。",
       "postCommented": "{{username}}さんがあなたの投稿にコメントしました。",
+      "userFollowed": "{{username}}さんがあなたをフォローしました。",
       "removedFromChannel": "チャンネル「{{channel}}」から削除されました。"
     },
     "whatif": {

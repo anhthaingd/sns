@@ -172,28 +172,32 @@ async def test_client_connects_to_socketio_and_receives_new_message(page, db):
             json={"email": sender_email, "password": "Passw0rd!", "username": "alice e2e"},
         )
         assert r.status_code == 201, r.text
+        r = await api.post("/api/users/login", json={"email": sender_email, "password": "Passw0rd!"})
+        assert r.status_code == 200, r.text
+        sender_token = r.json()["accessToken"]
     sender = await db.users.find_one({"email": sender_email})
 
     content = f"xin chao {uuid.uuid4().hex[:6]}"
     sio = socketio.AsyncClient()
-    await sio.connect(API_URL, wait_timeout=10)
+    # Socket bắt buộc mang access token: máy chủ lấy danh tính người gửi từ
+    # token chứ không từ payload (xem server_python/tests/test_authorization.py).
+    await sio.connect(API_URL, auth={"token": sender_token}, wait_timeout=10)
     try:
-        await sio.emit("joinChat", {"_id": str(sender["_id"])})
+        await sio.emit("joinChat")
         await sio.sleep(1)
         await sio.emit(
             "sendMessage",
-            {
-                "sender": {"_id": str(sender["_id"])},
-                "receiver": {"_id": str(receiver["_id"])},
-                "content": content,
-                "lastSent": {"_id": str(sender["_id"])},
-            },
+            {"receiver": {"_id": str(receiver["_id"])}, "content": content},
         )
         await sio.sleep(2)
     finally:
         await sio.disconnect()
 
-    assert await db.chats.find_one({"content": content}), "tin nhắn không được lưu vào DB"
+    # Nội dung nằm trong DB dưới dạng bản mã, nên tra theo người gửi/người nhận
+    # chứ không tra theo chữ (xem app/services/crypto.py).
+    luu = await db.chats.find_one({"sender": sender["_id"], "receiver": receiver["_id"]})
+    assert luu, "tin nhắn không được lưu vào DB"
+    assert luu["content"].startswith("enc:v1:"), "tin nhắn phải được mã hoá trước khi ghi xuống DB"
 
     await page.reload(wait_until="domcontentloaded")
     await page.wait_for_timeout(4000)
@@ -573,3 +577,84 @@ async def test_advice_is_requested_in_the_interface_language(page):
 
     assert asked, "giao diện không hề gọi endpoint lời khuyên"
     assert all(f"lang={UI_LANG}" in url for url in asked), asked
+
+
+async def test_sua_ho_so_qua_giao_dien(page, db):
+    """Luồng sửa hồ sơ đi hết đường: bấm Lưu -> gọi đúng API -> modal đóng -> hiện giá trị mới.
+
+    Ba lỗi từng cùng lúc nằm trên màn hình này, và **bộ test API không thể thấy
+    lỗi nào trong ba** vì cả ba đều nằm phía client:
+
+    1. `updateUser(data)` truyền thẳng `FormData` vào endpoint đang chờ
+       `{ id, body }` -> địa chỉ thành `PUT /api/users/undefined` -> backend trả
+       403 "không thể sửa thông tin của người khác" dù đang sửa hồ sơ CHÍNH MÌNH.
+    2. Form chỉ có ô mật khẩu MỚI, không có ô mật khẩu hiện tại, nên backend
+       luôn từ chối việc đổi mật khẩu.
+    3. Bộ giảm trạng thái modal thay nguyên state khi hiện toast, nên `close()`
+       ngay sau đó đảo `undefined` thành `true` -> lưu xong modal KHÔNG đóng và
+       toast thành công KHÔNG hiện.
+
+    Test này canh cả ba.
+    """
+    email = unique_email("profile")
+    await register_via_ui(page, email, username="profile e2e")
+    await login_via_ui(page, email)
+    await page.wait_for_timeout(2000)
+
+    user = await db.users.find_one({"email": email})
+    user_id = str(user["_id"])
+
+    duong_dan_da_goi = []
+    page.on(
+        "request",
+        lambda r: duong_dan_da_goi.append(r.url) if r.method == "PUT" and "/api/users/" in r.url else None,
+    )
+
+    await page.goto(f"{APP_URL}/profile/{user_id}", wait_until="domcontentloaded")
+    await page.get_by_role("button", name=tr("user", "profile.edit")).click()
+
+    gioi_thieu = f"gioi thieu moi {uuid.uuid4().hex[:6]}"
+    await page.get_by_placeholder(tr("user", "update.introPlaceholder")).fill(gioi_thieu)
+    await page.locator("button[form='fu-update-profile']").click()
+
+    # 1. Gọi đúng địa chỉ — `undefined` trong URL là dấu hiệu của lỗi số 1.
+    await page.wait_for_timeout(3000)
+    assert duong_dan_da_goi, "bấm Lưu nhưng không có request PUT nào"
+    assert all("undefined" not in url for url in duong_dan_da_goi), duong_dan_da_goi
+    assert any(url.rstrip("/").endswith(user_id) for url in duong_dan_da_goi), duong_dan_da_goi
+
+    # 2. Dữ liệu thật sự được lưu.
+    saved = await db.users.find_one({"_id": user["_id"]})
+    assert saved["intro"] == gioi_thieu, "phần giới thiệu không được lưu"
+
+    # 3. Modal đóng lại và giá trị mới hiện trên trang.
+    assert await page.locator("[role='dialog']").count() == 0, "lưu xong modal vẫn mở"
+    await page.wait_for_selector(f"text={gioi_thieu}", timeout=15000)
+
+
+async def test_doi_mat_khau_qua_giao_dien(page, db):
+    """Đổi mật khẩu phải đi được tới cùng: đăng nhập lại bằng mật khẩu mới."""
+    email = unique_email("changepw")
+    mat_khau_cu = "Passw0rd!"
+    mat_khau_moi = "MatKhauMoi@456"
+
+    await register_via_ui(page, email, username="changepw e2e")
+    await login_via_ui(page, email)
+    await page.wait_for_timeout(2000)
+
+    user = await db.users.find_one({"email": email})
+    await page.goto(f"{APP_URL}/profile/{user['_id']!s}", wait_until="domcontentloaded")
+    await page.get_by_role("button", name=tr("user", "profile.edit")).click()
+
+    # Ô "mật khẩu hiện tại" trước đây KHÔNG tồn tại — thiếu nó là backend luôn
+    # từ chối, nên chính sự có mặt của ô này cũng là một phần của phép kiểm.
+    await page.get_by_placeholder(tr("user", "update.currentPasswordPlaceholder")).fill(mat_khau_cu)
+    await page.get_by_placeholder(tr("user", "update.passwordPlaceholder")).fill(mat_khau_moi)
+    await page.locator("button[form='fu-update-profile']").click()
+    await page.wait_for_timeout(3000)
+
+    async with httpx.AsyncClient(base_url=API_URL, timeout=30) as api:
+        r = await api.post("/api/users/login", json={"email": email, "password": mat_khau_moi})
+        assert r.status_code == 200, f"mật khẩu mới không dùng được: {r.text}"
+        r = await api.post("/api/users/login", json={"email": email, "password": mat_khau_cu})
+        assert r.status_code == 401, "mật khẩu cũ vẫn đăng nhập được sau khi đổi"

@@ -3,6 +3,7 @@ import math
 from app.errors import ApiError
 from app.models.chat import Chat
 from app.models.newest_message import NewestMessage
+from app.services.crypto import decrypt_text
 from app.utils.ids import to_object_id
 from app.utils.loaders import load_users, user_brief_with_cover
 from app.utils.responses import ok
@@ -10,19 +11,39 @@ from app.utils.responses import ok
 PAGE_SIZE = 20
 
 
-async def get_chat(sender_id: str, receiver_id: str, page: int = 1):
+def ensure_participant(decoded_user: dict, *participant_ids) -> str:
+    """Chặn nếu người gọi không phải một trong những người trong hội thoại.
+
+    Trả về id của người gọi để chỗ gọi khỏi phải bóc lại từ token.
+
+    Dùng 403 chứ không phải 404: người gọi ĐÃ đăng nhập hợp lệ, chỉ là không có
+    quyền với tài nguyên này. 404 sẽ nói dối rằng hội thoại không tồn tại.
+    """
+    me = str(decoded_user.get("_id") or "")
+    if me not in {str(pid) for pid in participant_ids}:
+        raise ApiError(403, code="chat.notYourConversation")
+    return me
+
+
+async def get_chat(decoded_user: dict, sender_id: str, receiver_id: str, page: int = 1):
     """Lịch sử hội thoại, phân trang từ mới về cũ nhưng TRẢ VỀ theo thứ tự cũ -> mới.
 
-    Hai điểm sửa so với bản đầu:
-    1. `page` trước đây bị bỏ qua hoàn toàn -> mỗi lần mở khung chat là tải về
+    Ba điểm sửa so với bản đầu:
+    1. **Chỉ hai người trong cuộc hội thoại mới đọc được.** Bản cũ có nhận
+       `decoded` ở tầng route nhưng KHÔNG dùng, nên bất kỳ ai đã đăng nhập chỉ
+       cần biết hai id là đọc trọn tin nhắn riêng của người lạ — mà id thì hiện
+       công khai ngay trên URL trang cá nhân. Đây là chốt chặn cho đúng câu
+       "chỉ hai người mới xem được".
+    2. `page` trước đây bị bỏ qua hoàn toàn -> mỗi lần mở khung chat là tải về
        toàn bộ lịch sử (hội thoại 500 tin = payload vài MB).
-    2. Backend sort `-timestamp` còn client render thẳng từ trên xuống, nên
+    3. Backend sort `-timestamp` còn client render thẳng từ trên xuống, nên
        lịch sử hiển thị NGƯỢC trong khi tin mới qua socket lại nối xuống dưới.
        Phải phân trang trên thứ tự mới-nhất-trước (để trang 1 là 20 tin gần
        nhất) rồi đảo lại trước khi trả về.
     """
     s_oid = to_object_id(sender_id, "sender_id")
     r_oid = to_object_id(receiver_id, "receiver_id")
+    ensure_participant(decoded_user, s_oid, r_oid)
     query = {
         "$or": [
             {"sender": s_oid, "receiver": r_oid},
@@ -39,7 +60,9 @@ async def get_chat(sender_id: str, receiver_id: str, page: int = 1):
     messages_list = [
         {
             "_id": str(m.id),
-            "content": m.content,
+            # Nội dung nằm trong DB dưới dạng bản mã (app/services/crypto.py);
+            # giải mã ngay tại biên trả về, không để bản mã lọt ra API.
+            "content": decrypt_text(m.content),
             "timestamp": m.timestamp.isoformat() if m.timestamp else None,
             "read_at": m.read_at.isoformat() if m.read_at else None,
             "sender": user_brief_with_cover(user_map.get(str(m.sender))),
@@ -101,7 +124,7 @@ async def get_newest_message(decoded_user: dict):
     for m in messages:
         d = {
             "_id": str(m.id),
-            "content": m.content,
+            "content": decrypt_text(m.content),
             "updated_at": m.updated_at.isoformat() if m.updated_at else None,
             "lastSent": str(m.lastSent) if m.lastSent else None,
         }

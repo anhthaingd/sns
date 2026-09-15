@@ -20,6 +20,7 @@ from app.schemas.responses import (
     MessageResponse,
     UserChannelsResponse,
 )
+from app.utils.forms import submitted_fields
 
 router = APIRouter(tags=["channels"], responses=ERROR_RESPONSES)
 
@@ -62,8 +63,9 @@ async def route_update_channel(
     oldBackground: str | None = Form(None),
     decoded=Depends(get_current_user),
     files: dict = Depends(save_uploaded_files),
+    submitted: set[str] = Depends(submitted_fields),
 ):
-    return await update_channel(decoded, channel_id, name, intro, oldBackground, files)
+    return await update_channel(decoded, channel_id, name, intro, oldBackground, files, submitted)
 
 
 @router.delete("/api/channels/{channel_id}", response_model=MessageResponse)

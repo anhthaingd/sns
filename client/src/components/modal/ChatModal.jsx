@@ -88,23 +88,40 @@ function ChatModal() {
       setTotalPage(1);
       setMinimized(false);
 
-      socket.on('receiveMessage', (message) => {
+      const partnerId = state.visibleChatModal?._id;
+
+      const onReceive = (message) => {
+        // CHỈ nhận tin thuộc đúng hội thoại đang mở.
+        //
+        // Bản cũ nối thẳng mọi tin nhận được vào danh sách, nên đang chat với B
+        // mà C nhắn tới thì tin của C hiện luôn trong khung của B — vừa sai
+        // ngữ cảnh vừa là rò rỉ nội dung sang nhầm cửa sổ.
+        const from = message?.sender?._id;
+        const to = message?.receiver?._id;
+        const inThisConversation =
+          (from === partnerId && to === user?._id) ||
+          (from === user?._id && to === partnerId);
+
+        // Dù tin không thuộc hội thoại này, danh sách hội thoại vẫn phải cập
+        // nhật để chuông tin nhắn đếm đúng.
+        if (message?.refetch) refetchMessages();
+        if (!inThisConversation) return;
+
         // Tin mới luôn nối xuống cuối -> cuộn xuống đáy.
         shouldScrollToBottomRef.current = true;
         setMessages((prevMessages) => [...prevMessages, message]);
-        if (message.refetch) refetchMessages();
-      });
+      };
 
-      socket.emit('joinChat', user);
+      socket.on('receiveMessage', onReceive);
+      socket.emit('joinChat');
 
       return () => {
-        socket.off('receiveMessage');
-        socket.off('userConnected');
+        socket.off('receiveMessage', onReceive);
       };
     }
     setMessages([]);
     return undefined;
-  }, [state.visibleChatModal]);
+  }, [state.visibleChatModal, user?._id, refetchMessages]);
 
   useEffect(() => {
     if (state.visibleChatModal && selectedUser) {
@@ -136,11 +153,12 @@ function ChatModal() {
   const sendMessage = () => {
     const content = draft.trim();
     if (!selectedUser || !content) return;
+    // Chỉ cần id người nhận và nội dung: máy chủ lấy người gửi từ phiên socket
+    // đã xác thực, không tin `sender` do client khai (xem
+    // `server_python/app/sockets/handlers.py`).
     socket.emit('sendMessage', {
-      sender: user,
-      receiver: selectedUser,
+      receiver: { _id: selectedUser?._id },
       content,
-      lastSent: user,
     });
     setDraft('');
   };
@@ -210,11 +228,14 @@ function ChatModal() {
                   {t('modal.loadingOlder')}
                 </p>
               )}
-              {messages?.map((m) => {
+              {messages?.map((m, index) => {
                 const isSender = m?.sender?._id === user?._id;
                 return (
                   <div
-                    key={m._id}
+                    // Tin tới qua socket chưa có `_id` (chưa đọc lại từ DB), nên
+                    // chỉ dùng `_id` thì mọi tin mới đều có key `undefined` và
+                    // React coi chúng là cùng một phần tử.
+                    key={m._id || `${m?.timestamp || 'new'}-${index}`}
                     className={cn(
                       'flex items-end gap-2',
                       isSender ? 'justify-end' : 'justify-start'

@@ -1,7 +1,7 @@
 """Xác thực request bằng access token."""
 
 import jwt
-from fastapi import Header
+from fastapi import Depends, Header
 
 from app.errors import ApiError
 from app.services.token_store import is_revoked
@@ -36,3 +36,18 @@ async def get_current_user(authorization: str = Header(default=None)) -> dict:
         raise ApiError(401, code="auth.invalidOrExpiredToken")
 
     return decoded
+
+
+async def require_self(user_id: str, decoded: dict = Depends(get_current_user)) -> None:
+    """Dependency: chặn NGAY nếu người gọi không phải chủ của `user_id` trên URL.
+
+    Tồn tại tách riêng để chạy TRƯỚC `save_uploaded_files` — thứ tự khai báo
+    tham số của route quyết định thứ tự chạy dependency. Bản cũ kiểm quyền
+    trong controller, tức là sau khi file đã ghi xuống đĩa: gửi
+    `PUT /api/users/<id-người-khác>` kèm ảnh vẫn để lại file rác dù request bị
+    từ chối 403.
+
+    `user_id` khớp theo TÊN với path param `{user_id}` của route.
+    """
+    if str(decoded.get("_id")) != str(user_id):
+        raise ApiError(403, code="user.cannotEditOthers")

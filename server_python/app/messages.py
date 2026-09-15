@@ -55,6 +55,7 @@ MESSAGES: dict[str, str] = {
     # --- tải file ----------------------------------------------------------
     "upload.unsupportedType": "Định dạng file không được hỗ trợ. Chỉ nhận: {allowed}",
     "upload.tooLarge": "File vượt quá {max}MB.",
+    "upload.contentMismatch": "Nội dung file không khớp với định dạng của phần mở rộng. Chỉ nhận: {allowed}",
     # --- người dùng --------------------------------------------------------
     "user.notFound": "Không tìm thấy người dùng!",
     "user.cannotEditOthers": "Bạn không thể sửa thông tin của người khác!",
@@ -101,9 +102,12 @@ MESSAGES: dict[str, str] = {
     "notification.postLiked": "{username} vừa thích bài viết của bạn!",
     "notification.postSaved": "{username} vừa lưu bài viết của bạn!",
     "notification.postCommented": "{username} vừa bình luận bài viết của bạn!",
+    "notification.userFollowed": "{username} vừa theo dõi bạn!",
     "notification.removedFromChannel": "Bạn đã bị xóa khỏi channel {channel}!",
     # --- hội thoại ---------------------------------------------------------
     "chat.conversationNotFound": "Không tìm thấy hội thoại!",
+    "chat.notYourConversation": "Bạn không xem được tin nhắn của người khác!",
+    "chat.unauthenticatedSocket": "Kết nối thời gian thực cần đăng nhập!",
     # --- việc làm & doanh nghiệp ------------------------------------------
     "job.notFound": "Không tìm thấy tin tuyển dụng!",
     "company.notFound": "Không tìm thấy công ty!",

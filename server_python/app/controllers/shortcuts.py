@@ -8,7 +8,12 @@ from app.utils.responses import ok
 
 async def get_shortcuts(decoded_user: dict):
     user_id = to_object_id(decoded_user["_id"], "user_id")
-    shortcuts = await Shortcut.find({"user": user_id, "isJoin": True}).sort("count").to_list()
+    # `-count`: channel vào NHIỀU nhất lên đầu. Bản cũ sort tăng dần (chép
+    # nguyên `.sort({ count: 1 })` của code Node cũ) nên channel ít vào nhất
+    # lại được ghim lên trên — ngược hẳn ý nghĩa của "lối tắt".
+    # Tên trường ở đây là tên trong DB ("count"), không phải tên thuộc tính
+    # Python (`shortcut_count`) — xem alias trong app/models/shortcut.py.
+    shortcuts = await Shortcut.find({"user": user_id, "isJoin": True}).sort("-count").to_list()
 
     # Một truy vấn cho toàn bộ channel của mọi shortcut thay vì `Channel.get()`
     # trong vòng lặp.

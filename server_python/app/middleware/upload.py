@@ -16,6 +16,35 @@ MAX_IMAGES = 10
 MAX_AVATARS = 1
 MAX_CERTIFICATES = 10
 
+# Chữ ký ở đầu file ("magic bytes") của từng định dạng được phép.
+#
+# Vì sao không chỉ tin phần mở rộng: `.png` là do NGƯỜI GỬI đặt tên, không phải
+# do nội dung quyết định. Đổi tên `payload.html` thành `payload.png` là qua được
+# mọi kiểm tra dựa trên đuôi file. File đó nằm trong `/public` và được phục vụ
+# tĩnh, nên nội dung thật của nó có ý nghĩa.
+#
+# WEBP và GIF dùng container RIFF/GIF nên kiểm hai đoạn; JPEG chỉ cần 3 byte đầu.
+MAGIC_BYTES = {
+    ".png": [(0, b"\x89PNG\r\n\x1a\n")],
+    ".jpg": [(0, b"\xff\xd8\xff")],
+    ".jpeg": [(0, b"\xff\xd8\xff")],
+    ".gif": [(0, b"GIF87a"), (0, b"GIF89a")],
+    ".webp": [(0, b"RIFF")],  # kèm kiểm "WEBP" ở byte 8-12 bên dưới
+    ".pdf": [(0, b"%PDF-")],
+}
+
+
+def _content_matches_extension(ext: str, content: bytes) -> bool:
+    """Nội dung thật có đúng là định dạng mà đuôi file khai không."""
+    signatures = MAGIC_BYTES.get(ext)
+    if not signatures:
+        return True
+    if not any(content[offset : offset + len(sig)] == sig for offset, sig in signatures):
+        return False
+    if ext == ".webp":
+        return content[8:12] == b"WEBP"
+    return True
+
 
 def get_file_extension(filename: str) -> str:
     _, ext = os.path.splitext(filename or "")
@@ -61,6 +90,10 @@ async def save_upload_file(file: UploadFile, field_name: str = "images") -> dict
     content = await file.read()
     if len(content) > MAX_FILE_SIZE:
         raise ApiError(413, code="upload.tooLarge", params={"max": MAX_FILE_SIZE // (1024 * 1024)})
+
+    if not _content_matches_extension(ext, content):
+        allowed = ", ".join(sorted(ALLOWED_IMAGE_EXTENSIONS | ALLOWED_PDF_EXTENSIONS))
+        raise ApiError(400, code="upload.contentMismatch", params={"allowed": allowed})
 
     (abs_dir / filename).write_bytes(content)
 

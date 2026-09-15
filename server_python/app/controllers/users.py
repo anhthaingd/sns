@@ -39,7 +39,22 @@ async def get_user_by_token(decoded_user: dict):
     )
 
 
-async def get_user_details(user_id: str):
+async def get_user_details(decoded_user: dict, user_id: str):
+    """Trang cá nhân của một người.
+
+    Hai điều bản cũ làm sai:
+
+    1. **Không cần đăng nhập cũng gọi được** — route thiếu
+       `Depends(get_current_user)`. Bất kỳ ai biết một id là đọc được username,
+       **email**, địa chỉ và danh sách người theo dõi. Điều đó đi ngược chính
+       cam kết ở README mục 1.1 ("không lộ email nào đã tồn tại"): màn hình
+       đăng nhập giấu email rất kỹ, còn endpoint này thì phát ra công khai.
+    2. **Luôn trả về email** kể cả khi xem trang của người khác. Email không
+       hiện ở đâu trên giao diện trang cá nhân, nên trả về là cho không một
+       danh sách email có thể quét sạch bằng vòng lặp.
+
+    Giờ: bắt buộc đăng nhập, và email chỉ trả về cho chính chủ.
+    """
     oid = to_object_id(user_id, "user_id")
     user = await User.get(oid)
     if not user:
@@ -50,10 +65,11 @@ async def get_user_details(user_id: str):
         "avatar": user.avatar,
         "cover_bg": user.cover_bg,
         "username": user.username,
-        "email": user.email,
         "intro": user.intro,
         "address": user.address,
     }
+    if str(decoded_user.get("_id")) == str(user.id):
+        user_data["email"] = user.email
     if user.role:
         user_data["role"] = role_brief(await Role.get(user.role))
 

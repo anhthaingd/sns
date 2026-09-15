@@ -143,13 +143,15 @@ async def post_resume(
         resume_data["desired_locations"] = [str(x) for x in locations if x]
 
     existed_resume = await Resume.find_one(Resume.user == user_id)
-    if not existed_resume:
-        resume = Resume(**resume_data)
-        await resume.insert()
-        await _refresh_match_profile(resume)
-        return ok(code="resume.saved")
 
-    if parse_old_certificates:
+    # Xử lý file TRƯỚC khi rẽ nhánh tạo mới / cập nhật.
+    #
+    # Bản cũ đặt đoạn này SAU một `return` sớm của nhánh tạo mới, nên người dùng
+    # điền CV lần đầu kèm ảnh và chứng chỉ thì file đã ghi xuống đĩa nhưng không
+    # được gắn vào CV: vừa mất dữ liệu, vừa để lại file rác, và phải bấm lưu lần
+    # thứ hai mới ăn. Không có test nào chạm vào vì test luôn lưu CV không kèm
+    # file.
+    if existed_resume and parse_old_certificates:
         for removed in _filter_different_elements(parse_old_certificates, parse_edit_certificates):
             await delete_file(removed.get("url", ""))
 
@@ -166,8 +168,14 @@ async def post_resume(
             for i, cf in enumerate(cert_files)
         ]
         resume_data["certificates"] = parse_edit_certificates + new_certs
-    else:
+    elif existed_resume or parse_edit_certificates:
         resume_data["certificates"] = parse_edit_certificates
+
+    if not existed_resume:
+        resume = Resume(**resume_data)
+        await resume.insert()
+        await _refresh_match_profile(resume)
+        return ok(code="resume.saved")
 
     await Resume.find_one(Resume.user == user_id).update({"$set": resume_data})
 

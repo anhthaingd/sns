@@ -14,7 +14,7 @@ async def route_get_chat(
     page: int | None = Query(1, ge=1),
     decoded=Depends(get_current_user),
 ):
-    return await get_chat(sender_id, receiver_id, page or 1)
+    return await get_chat(decoded, sender_id, receiver_id, page or 1)
 
 
 @router.get("/api/newest_messages", response_model=NewestMessageResponse)

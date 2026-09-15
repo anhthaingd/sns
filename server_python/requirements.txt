@@ -23,3 +23,9 @@ httpx==0.28.1
 # Tinh cosine cho ~700 vector: nhanh hon vong lap Python vai chuc lan,
 # va du nho de khong can them vector database.
 numpy==2.3.5  # ban 2.5.x moi ra, giu ban da kiem chung
+
+# Ma hoa noi dung tin nhan rieng truoc khi ghi xuong Mongo (AES-256-GCM).
+# Xem app/services/crypto.py.
+cryptography==46.0.3
+# Lam sach HTML cua bai viet (chong XSS luu tru). Xem app/utils/sanitize.py.
+bleach==6.2.0

@@ -2,8 +2,10 @@
 
 from app.controllers.user_common import FOLLOW_PAGE_SIZE, brief_users_of, total_page
 from app.errors import ApiError
+from app.messages import message_for
 from app.models.follower import Follower
 from app.models.following import Following
+from app.models.notification import Notification
 from app.utils.ids import to_object_id
 from app.utils.responses import ok
 
@@ -41,6 +43,20 @@ async def get_following(decoded_user: dict, page: int = 1):
 
 
 async def following_user(decoded_user: dict, target_id: str):
+    """Bật/tắt theo dõi một người.
+
+    Hai điểm sửa:
+
+    1. **Dùng `upsert`.** Beanie KHÔNG tự tạo document khi `update` không khớp
+       gì, nên tài khoản nào chưa có sẵn bản ghi `Following`/`Follower` sẽ nhận
+       về "Follow tài khoản thành công!" mà thực tế không ghi được gì — hỏng âm
+       thầm, không có lỗi nào để lần ra. Hiện `register_user` có tạo sẵn hai bản
+       ghi đó, nhưng bất kỳ đường tạo user nào khác (script seed, nhập tay) đều
+       sinh ra tài khoản hỏng chức năng follow.
+    2. **Sinh thông báo khi được follow.** README mục 1.2 hứa "thích, bình luận,
+       follow -> hiện trong chuông thông báo", nhưng chỉ có thích và bình luận
+       là thật; follow chưa bao giờ tạo `Notification` nào.
+    """
     user_id = decoded_user["_id"]
     if user_id == target_id:
         raise ApiError(409, code="follow.cannotFollowSelf")
@@ -54,8 +70,23 @@ async def following_user(decoded_user: dict, target_id: str):
         await Follower.find_one(Follower.user == target_oid).update({"$pull": {"followers": user_oid}})
         return ok(code="follow.unfollowed")
 
-    await Following.find_one(Following.user == user_oid).update({"$push": {"following": target_oid}})
-    await Follower.find_one(Follower.user == target_oid).update({"$push": {"followers": user_oid}})
+    await Following.get_pymongo_collection().update_one(
+        {"user": user_oid}, {"$addToSet": {"following": target_oid}}, upsert=True
+    )
+    await Follower.get_pymongo_collection().update_one(
+        {"user": target_oid}, {"$addToSet": {"followers": user_oid}}, upsert=True
+    )
+
+    username = decoded_user.get("username", "")
+    await Notification(
+        user=target_oid,
+        seeder=user_oid,
+        code="notification.userFollowed",
+        params={"username": username},
+        notification=message_for("notification.userFollowed", {"username": username}),
+        url=f"profile/{user_id}",
+    ).insert()
+
     return ok(code="follow.followed")
 
 

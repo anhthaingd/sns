@@ -31,7 +31,8 @@
     },
     "upload": {
       "unsupportedType": "Unsupported file type. Allowed: {{allowed}}",
-      "tooLarge": "File exceeds {{max}}MB."
+      "tooLarge": "File exceeds {{max}}MB.",
+      "contentMismatch": "The file content does not match its extension. Accepted: {{allowed}}"
     },
     "user": {
       "notFound": "User not found.",
@@ -80,7 +81,9 @@
       "userRemoved": "The user has been removed from the channel."
     },
     "chat": {
-      "conversationNotFound": "Conversation not found."
+      "conversationNotFound": "Conversation not found.",
+      "notYourConversation": "You cannot read someone else's messages.",
+      "unauthenticatedSocket": "The realtime connection requires you to be signed in."
     },
     "job": {
       "notFound": "Job posting not found."
@@ -113,6 +116,7 @@
       "postLiked": "{{username}} liked your post.",
       "postSaved": "{{username}} saved your post.",
       "postCommented": "{{username}} commented on your post.",
+      "userFollowed": "{{username}} started following you.",
       "removedFromChannel": "You were removed from the channel {{channel}}."
     },
     "whatif": {

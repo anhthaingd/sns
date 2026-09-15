@@ -34,7 +34,7 @@ from app.controllers.users import (
     search_users,
     update_user,
 )
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, require_self
 from app.middleware.upload import save_uploaded_files
 from app.schemas.requests import LoginRequest, RegisterRequest
 from app.schemas.responses import (
@@ -100,8 +100,8 @@ async def route_logout(
 
 
 @router.get("/api/users/{user_id}", response_model=UserDetailsResponse)
-async def route_get_user_details(user_id: str):
-    return await get_user_details(user_id)
+async def route_get_user_details(user_id: str, decoded=Depends(get_current_user)):
+    return await get_user_details(decoded, user_id)
 
 
 @router.put("/api/users/{user_id}", response_model=MessageResponse)
@@ -116,6 +116,9 @@ async def route_update_user(
     oldCoverBg: str | None = Form(None),
     update_images: str | None = Form(None),
     decoded=Depends(get_current_user),
+    # Khai TRƯỚC `files`: dependency chạy theo thứ tự khai báo, nên sửa hồ sơ
+    # người khác bị chặn trước khi có file nào kịp ghi xuống đĩa.
+    _owner: None = Depends(require_self),
     files: dict = Depends(save_uploaded_files),
     submitted: set[str] = Depends(submitted_fields),
 ):

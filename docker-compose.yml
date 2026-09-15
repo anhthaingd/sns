@@ -84,6 +84,8 @@ services:
       # Muon dung secret rieng (production): tao file .env o thu muc goc de ghi de.
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET:-dev_access_secret_change_in_production}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:-dev_refresh_secret_change_in_production}
+      # Khoa ma hoa tin nhan. Xem .env.example — doi khoa la mat lich su chat.
+      MESSAGE_ENCRYPTION_KEY: ${MESSAGE_ENCRYPTION_KEY:-}
       # Danh sach origin duoc phep goi API (phan tach bang dau phay).
       # `client:5173` la origin khi trinh duyet chay ben trong docker network (bo test E2E).
       CLIENT_URL: ${CLIENT_URL:-http://localhost:5173,http://client:5173}

@@ -23,20 +23,26 @@ async def update_web(
     website_quotes_login: str = None,
     old_logo: str = None,
     files: dict = None,
+    submitted: set[str] | None = None,
 ):
     require_admin(decoded_user)
+
+    fields = (
+        ("website_name", website_name),
+        ("color_title", color_title),
+        ("website_quotes_register", website_quotes_register),
+        ("website_quotes_login", website_quotes_login),
+    )
+    submitted = submitted if submitted is not None else {name for name, _ in fields}
 
     try:
         parse_old_logo = json.loads(old_logo) if old_logo else None
     except json.JSONDecodeError as err:
         raise ApiError(400, code="web.invalidOldLogo") from err
 
-    update_data = {
-        "website_name": website_name,
-        "color_title": color_title,
-        "website_quotes_register": website_quotes_register,
-        "website_quotes_login": website_quotes_login,
-    }
+    # Chỉ ghi trường request thật sự gửi lên; gán vô điều kiện thì một request
+    # chỉ đổi logo sẽ xoá trắng tên website và hai câu chào.
+    update_data = {name: (value if value is not None else "") for name, value in fields if name in submitted}
 
     images = files.get("images", []) if files else []
     if images:
@@ -44,5 +50,6 @@ async def update_web(
             await delete_file(parse_old_logo.get("url", ""))
         update_data["logo"] = {"name": images[0]["filename"], "url": images[0]["path"]}
 
-    await Web.find_one(Web.id == to_object_id(web_id, "web_id")).update({"$set": update_data})
+    if update_data:
+        await Web.find_one(Web.id == to_object_id(web_id, "web_id")).update({"$set": update_data})
     return ok(code="web.updated")

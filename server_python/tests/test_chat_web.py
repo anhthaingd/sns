@@ -72,22 +72,24 @@ async def test_socket_send_message_persists_and_delivers(client, user, other_use
 
     # Không gửi header Origin: đây là client server-to-server, không phải trình duyệt.
     # Phần CORS cho origin thật được test ở e2e/ bằng browser thật.
-    await sender.connect(base, wait_timeout=10)
-    await receiver.connect(base, wait_timeout=10)
+    #
+    # `auth` là bắt buộc kể từ khi vá lỗ mạo danh: máy chủ từ chối mọi kết nối
+    # không mang access token, và lấy danh tính người gửi từ token đó chứ không
+    # từ payload. Xem tests/test_authorization.py nhóm 3.
+    await sender.connect(base, auth={"token": user.token}, wait_timeout=10)
+    await receiver.connect(base, auth={"token": other_user.token}, wait_timeout=10)
 
     try:
-        await receiver.emit("joinChat", {"_id": other_user.id})
-        await sender.emit("joinChat", {"_id": user.id})
+        await receiver.emit("joinChat")
+        await sender.emit("joinChat")
         await sender.sleep(1)
 
         content = f"hello-{uuid.uuid4().hex[:6]}"
         await sender.emit(
             "sendMessage",
             {
-                "sender": {"_id": user.id},
                 "receiver": {"_id": other_user.id},
                 "content": content,
-                "lastSent": {"_id": user.id},
             },
         )
         await sender.sleep(2)

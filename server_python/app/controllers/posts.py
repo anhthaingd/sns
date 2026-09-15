@@ -15,6 +15,7 @@ from app.utils.ids import to_object_id, to_object_id_or_none
 from app.utils.loaders import brief_list, load_channels, load_roles_of, load_users, role_brief, user_brief
 from app.utils.permissions import require_admin
 from app.utils.responses import ok
+from app.utils.sanitize import sanitize_html
 from app.utils.search import contains, normalize_search
 from app.utils.serialization import serialize_doc, to_jsonable
 
@@ -23,6 +24,24 @@ PAGE_SIZE = 10
 
 def _comment_user_id(comment: dict):
     return comment.get("user")
+
+
+async def _require_member(decoded_user: dict, channel_id: str):
+    """Chỉ thành viên channel mới được ghi vào channel đó.
+
+    Bản cũ chỉ chặn ở đường ĐỌC (`get_channel_details` trả 403
+    `channel.notJoined`) mà bỏ trống mọi đường GHI: một `curl` là đăng được bài,
+    thích, lưu và bình luận trong channel chưa hề tham gia. Quy tắc đã có sẵn,
+    chỉ là chưa áp cho đúng nửa còn lại.
+
+    Trả về ObjectId của channel để chỗ gọi khỏi phải chuyển đổi lần nữa.
+    """
+    channel_oid = to_object_id(channel_id, "channel_id")
+    user_id = to_object_id(decoded_user["_id"], "user_id")
+    channel = await Channel.find_one({"_id": channel_oid, "members": user_id})
+    if not channel:
+        raise ApiError(403, code="channel.notJoined")
+    return channel_oid
 
 
 async def _populate_posts(posts: list[Post], *, with_author_role: bool = False) -> list[dict]:
@@ -57,6 +76,11 @@ async def _populate_posts(posts: list[Post], *, with_author_role: bool = False) 
     result = []
     for post in posts:
         data = serialize_doc(post)
+        # Làm sạch cả ở đường ĐỌC: những bài lưu trước khi có bước làm sạch vẫn
+        # đang nằm trong DB với HTML thô. Không có dòng này thì phải chạy
+        # migration mới an toàn được, và quên chạy là vẫn dính XSS.
+        if data.get("content"):
+            data["content"] = sanitize_html(data["content"])
 
         author = user_map.get(str(post.user)) if post.user else None
         if author is not None:
@@ -155,8 +179,11 @@ async def get_post_from_another_user(decoded_user: dict, target_user_id: str, pa
     return ok(posts=await _populate_posts(posts), totalPage=_page(total_posts))
 
 
-async def get_posts_in_channel(channel_id: str, page: int = 1):
-    oid = to_object_id(channel_id, "channel_id")
+async def get_posts_in_channel(decoded_user: dict, channel_id: str, page: int = 1):
+    # Cùng quy tắc với `get_channel_details`: chưa tham gia thì không đọc được
+    # nội dung của channel. Bản cũ chặn ở màn hình chi tiết channel nhưng để hở
+    # endpoint danh sách bài, nên gọi thẳng API là đọc được.
+    oid = await _require_member(decoded_user, channel_id)
     total_posts = await Post.find(Post.channel == oid).count()
     posts = (
         await Post.find(Post.channel == oid).sort("-updated_at").skip((page - 1) * PAGE_SIZE).limit(PAGE_SIZE).to_list()
@@ -164,10 +191,11 @@ async def get_posts_in_channel(channel_id: str, page: int = 1):
     return ok(posts=await _populate_posts(posts), totalPage=_page(total_posts))
 
 
-async def get_post_details(post_id: str):
+async def get_post_details(decoded_user: dict, post_id: str):
     post = await Post.get(to_object_id(post_id, "post_id"))
     if not post:
         raise ApiError(404, code="post.notFound")
+    await _require_member(decoded_user, str(post.channel))
     return ok(post=await _populate_post(post))
 
 
@@ -175,10 +203,19 @@ async def create_post(decoded_user: dict, channel_id: str, content: str = None, 
     if not content or not channel_id:
         raise ApiError(400, code="post.contentAndChannelRequired")
 
+    channel_oid = await _require_member(decoded_user, channel_id)
+
+    # `content` là HTML do trình soạn thảo sinh ra và sẽ được render bằng
+    # `dangerouslySetInnerHTML`. Làm sạch TẠI ĐÂY, chỗ duy nhất mọi đường ghi
+    # đều đi qua — tin vào trình soạn thảo phía client là tin nhầm chỗ.
+    clean = sanitize_html(content)
+    if not clean or not clean.strip():
+        raise ApiError(400, code="post.contentAndChannelRequired")
+
     post_data = {
         "user": to_object_id(decoded_user["_id"], "user_id"),
-        "content": content,
-        "channel": to_object_id(channel_id, "channel_id"),
+        "content": clean,
+        "channel": channel_oid,
     }
 
     images = files.get("images", []) if files else []
@@ -190,12 +227,21 @@ async def create_post(decoded_user: dict, channel_id: str, content: str = None, 
 
 
 async def updated_post(
-    decoded_user: dict, channel_id: str, post_id: str, content: str = None, old_images: str = None, files: dict = None
+    decoded_user: dict,
+    channel_id: str,
+    post_id: str,
+    content: str = None,
+    old_images: str = None,
+    files: dict = None,
+    submitted: set[str] | None = None,
 ):
+    submitted = submitted if submitted is not None else {"content"}
     try:
         parse_old_images = json.loads(old_images) if old_images else None
     except json.JSONDecodeError as err:
         raise ApiError(400, code="post.invalidOldImages") from err
+
+    await _require_member(decoded_user, channel_id)
 
     post_oid = to_object_id(post_id, "post_id")
     correct_post = await Post.find_one(
@@ -208,7 +254,13 @@ async def updated_post(
     if not correct_post:
         raise ApiError(403, code="post.cannotEditOthers")
 
-    update_data = {"content": content, "updated_at": datetime.utcnow()}
+    # Chỉ ghi `content` khi request thật sự gửi lên. Bản cũ gán vô điều kiện,
+    # nên một request chỉ muốn đổi ảnh sẽ ghi `content=None` và xoá trắng bài
+    # viết. Client hiện luôn gửi đủ nên chưa ai gặp — đó là may mắn, không phải
+    # thiết kế (cùng loại lỗi đã sửa ở `users.update_user`).
+    update_data = {"updated_at": datetime.utcnow()}
+    if "content" in submitted:
+        update_data["content"] = sanitize_html(content) or ""
 
     images = files.get("images", []) if files else []
     if images:
@@ -237,6 +289,7 @@ async def _find_post_in_channel(channel_id: str, post_id: str) -> Post:
 
 
 async def like_post(decoded_user: dict, channel_id: str, post_id: str):
+    await _require_member(decoded_user, channel_id)
     user_id = to_object_id(decoded_user["_id"], "user_id")
     post = await _find_post_in_channel(channel_id, post_id)
 
@@ -259,6 +312,7 @@ async def like_post(decoded_user: dict, channel_id: str, post_id: str):
 
 
 async def book_mark_post(decoded_user: dict, channel_id: str, post_id: str):
+    await _require_member(decoded_user, channel_id)
     user_id = to_object_id(decoded_user["_id"], "user_id")
     post = await _find_post_in_channel(channel_id, post_id)
 
@@ -291,6 +345,7 @@ async def post_comment_post(decoded_user: dict, channel_id: str, post_id: str, c
     if not content:
         raise ApiError(400, code="post.emptyComment")
 
+    await _require_member(decoded_user, channel_id)
     user_id = to_object_id(decoded_user["_id"], "user_id")
     post = await _find_post_in_channel(channel_id, post_id)
 

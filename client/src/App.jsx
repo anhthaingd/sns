@@ -19,8 +19,11 @@ function App() {
   const { state, setVisibleModal } = useContext(ModalContext);
   const location = useLocation();
 
+  // `|| null` chứ không phải `if (user)`: đăng xuất xong mà `me` vẫn giữ người
+  // cũ thì socket cứ nối tiếp bằng token đã bị thu hồi, và lần đăng nhập sau
+  // bằng tài khoản khác sẽ dùng lại đúng kết nối mang danh tính cũ đó.
   useEffect(() => {
-    if (user) setMe(user);
+    setMe(user || null);
   }, [user, setMe]);
 
   useEffect(() => {
