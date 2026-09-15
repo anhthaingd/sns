@@ -18,6 +18,8 @@
     "removeImage": "Remove image",
     "usernamePlaceholder": "Enter your new username…",
     "passwordPlaceholder": "Enter your new password…",
+    "currentPasswordPlaceholder": "Enter your current password…",
+    "passwordHint": "Fill in only if you want to change your password",
     "introPlaceholder": "Enter your new intro…",
     "addressPlaceholder": "Enter your new address…"
   },
@@ -52,6 +54,7 @@
     "coverBackground": "Cover Background",
     "username": "Username",
     "password": "Password",
+    "currentPassword": "Current password",
     "intro": "Intro",
     "address": "Address"
   }

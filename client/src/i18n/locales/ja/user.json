@@ -18,6 +18,8 @@
     "removeImage": "画像を削除",
     "usernamePlaceholder": "新しいユーザー名を入力",
     "passwordPlaceholder": "新しいパスワードを入力",
+    "currentPasswordPlaceholder": "現在のパスワードを入力",
+    "passwordHint": "パスワードを変更する場合のみ入力してください",
     "introPlaceholder": "新しい自己紹介を入力",
     "addressPlaceholder": "新しい住所を入力"
   },
@@ -52,6 +54,7 @@
     "coverBackground": "カバー画像",
     "username": "ユーザー名",
     "password": "パスワード",
+    "currentPassword": "現在のパスワード",
     "intro": "自己紹介",
     "address": "住所"
   }

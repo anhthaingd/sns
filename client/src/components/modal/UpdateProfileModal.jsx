@@ -51,8 +51,8 @@ function UpdateProfileModal() {
             username: user?.username ?? '',
             address: user?.address ?? '',
             intro: user?.intro ?? '',
-            oldPassword: user?.password ?? '',
-            newPassword: user?.password ?? '',
+            oldPassword: '',
+            newPassword: '',
             avatar: null,
             oldAvatar: user?.avatar,
             cover_bg: null,
@@ -69,8 +69,13 @@ function UpdateProfileModal() {
       data.append('username', form.username);
       data.append('address', form.address);
       data.append('intro', form.intro);
-      data.append('oldPassword', form.oldPassword);
-      data.append('newPassword', form.newPassword);
+      // Chỉ đính kèm khi người dùng thực sự muốn đổi mật khẩu. Gửi cả hai ô
+      // rỗng thì backend bỏ qua, nhưng gửi mật khẩu mới mà thiếu mật khẩu cũ
+      // thì luôn bị từ chối — nên hai ô đi liền nhau.
+      if (form.newPassword) {
+        data.append('oldPassword', form.oldPassword);
+        data.append('newPassword', form.newPassword);
+      }
       data.append('oldAvatar', JSON.stringify(form.oldAvatar));
       data.append('oldCoverBg', JSON.stringify(form.oldCoverBg));
       // Máy chủ nhận cả hai ảnh trong cùng một trường `images`, nên phải nói
@@ -81,9 +86,9 @@ function UpdateProfileModal() {
       if (form.avatar && !form.cover_bg) data.append('update_images', 'avatar');
       if (form.avatar) data.append('images', form.avatar);
       if (form.cover_bg) data.append('images', form.cover_bg);
-      await updateUser(data);
+      await updateUser({ id: user?._id, body: data });
     },
-    [updateUser, form]
+    [updateUser, form, user?._id]
   );
 
   useMutationToast(
@@ -145,6 +150,19 @@ function UpdateProfileModal() {
               placeholder={t('update.usernamePlaceholder')}
               value={form.username}
               onChange={set('username')}
+            />
+          )}
+        </Field>
+
+        <Field label={t('field.currentPassword')} hint={t('update.passwordHint')}>
+          {(aria) => (
+            <Input
+              {...aria}
+              type='password'
+              autoComplete='current-password'
+              placeholder={t('update.currentPasswordPlaceholder')}
+              value={form.oldPassword}
+              onChange={set('oldPassword')}
             />
           )}
         </Field>

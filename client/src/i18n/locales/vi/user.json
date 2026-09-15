@@ -18,6 +18,8 @@
     "removeImage": "Xoá ảnh",
     "usernamePlaceholder": "Nhập tên người dùng mới…",
     "passwordPlaceholder": "Nhập mật khẩu mới…",
+    "currentPasswordPlaceholder": "Nhập mật khẩu hiện tại…",
+    "passwordHint": "Chỉ điền khi muốn đổi mật khẩu",
     "introPlaceholder": "Nhập giới thiệu mới…",
     "addressPlaceholder": "Nhập địa chỉ mới…"
   },
@@ -52,6 +54,7 @@
     "coverBackground": "Ảnh bìa",
     "username": "Tên người dùng",
     "password": "Mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
     "intro": "Giới thiệu",
     "address": "Địa chỉ"
   }
