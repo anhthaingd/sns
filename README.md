@@ -27,6 +27,7 @@ muốn chạy nhanh, làm đúng [mục 3](#3-chạy-dự-án-bằng-docker-khuy
 | [9. Chạy test](#9-chạy-test) | Test API, E2E, lint, kiểm tra bản dịch |
 | [10. Cấu trúc thư mục](#10-cấu-trúc-thư-mục) | File nào nằm ở đâu |
 | [11. Tài liệu chi tiết](#11-tài-liệu-chi-tiết) | Muốn hiểu sâu / tự thêm chức năng |
+| [12. Deploy miễn phí để test](#12-deploy-miễn-phí-để-test) | Vercel + Render + Atlas + Upstash |
 
 ---
 
@@ -633,8 +634,8 @@ thật với một trang `data:` (không cần mạng), để bảo vệ quyết
 │   ├── data/skills.json      # Tu dien ~135 ky nang + alias (thay cho LLM khi trich ky nang)
 │   ├── tests/                # Test API + test ETL chay offline
 │   │   └── fixtures/         #   HTML that da luu -> test parser khong can mang
-│   ├── scripts/              # run_etl, seed_jobs_from_fixtures, seed_resumes,
-│   │                         # seed_demo_user, backfill_resumes, browser_smoke
+│   ├── scripts/              # run_etl, seed_required, seed_jobs_from_fixtures,
+│   │                         # seed_resumes, seed_demo_user, backfill_resumes
 │   ├── data/                 # Du lieu seed (roles, website)
 │   ├── public/               # File tinh + file upload
 │   └── Dockerfile
@@ -678,3 +679,79 @@ viết cho người chưa quen lập trình web, giải thích từng khái ni�
 | [8. Lỗi, log và kiểm thử](docs/08-loi-log-va-kiem-thu.md) | Có sự cố thì tra ở đâu |
 | [9. Đa ngôn ngữ](docs/09-da-ngon-ngu.md) | Giao diện Nhật · Việt · Anh: thêm chữ mới ở đâu |
 | [10. Mô phỏng đối chứng](docs/10-mo-phong-doi-chung.md) | "Học thêm X thì mở ra bao nhiêu cơ hội" tính thế nào |
+
+---
+
+## 12. Deploy miễn phí để test
+
+Dùng để đưa bản demo lên internet, không phải production. Embedder **để trống**
+— hệ thống tự chuyển sang chấm điểm thuần luật, không báo lỗi. Crawl (Playwright)
+cũng không cài browser trên free tier.
+
+| Phần | Nền tảng | Gói |
+|---|---|---|
+| Frontend React | [Vercel](https://vercel.com) | Free, HTTPS |
+| Backend FastAPI + Socket.IO | [Render](https://render.com) | Free web service (ngủ sau 15 phút không request) |
+| MongoDB | [Atlas](https://cloud.mongodb.com) M0 | 512 MB, có GUI xem data |
+| Redis | [Upstash](https://upstash.com) | Free, có dashboard |
+
+File cấu hình đã có trong repo: [`render.yaml`](render.yaml), [`client/vercel.json`](client/vercel.json).
+
+### 12.1. MongoDB Atlas
+
+1. Tạo cluster **M0**, region gần (Tokyo / Singapore).
+2. Database Access → user + mật khẩu.
+3. Network Access → IP `0.0.0.0/0` (Render không có IP cố định trên free tier).
+4. Connect → Drivers → connection string dạng
+   `mongodb+srv://USER:PASS@cluster.xxx.mongodb.net/fuurin`.
+5. Seed roles + website (bắt buộc, nếu không đăng ký sẽ lỗi):
+
+```bash
+cd server_python
+DATABASE_URL='mongodb+srv://USER:PASS@cluster.xxx.mongodb.net/fuurin' \
+  python -m scripts.seed_required
+```
+
+### 12.2. Upstash Redis
+
+1. Tạo database, region gần.
+2. Copy **Redis URL** (TLS), dạng `rediss://default:xxx@xxx.upstash.io:6379`.
+
+### 12.3. Backend trên Render
+
+1. New → Blueprint → chọn repo này (đọc `render.yaml`).
+   Hoặc New → Web Service, root `server_python`, runtime Python:
+   - Build: `pip install -r requirements.txt`
+   - Start: `uvicorn app.main:socket_app --host 0.0.0.0 --port $PORT`
+   - **Phải là `socket_app`**, không phải `app` — thiếu thì chat/WebSocket chết.
+2. Instance: **Free**. Health check: `/health`.
+3. Biến môi trường (Blueprint sinh sẵn secret; các dòng `sync: false` điền tay):
+
+| Biến | Giá trị |
+|---|---|
+| `DATABASE_URL` | Connection string Atlas (có `/fuurin`) |
+| `REDIS_URL` | Redis URL Upstash (`rediss://...`) |
+| `CLIENT_URL` | URL Vercel, ví dụ `https://fuurin.vercel.app` (điền sau bước 12.4) |
+| `COOKIE_SECURE` | `true` |
+| `COOKIE_SAMESITE` | `none` |
+| `TRUST_PROXY_HEADERS` | `true` |
+| `GEMINI_API_KEY` / `GROQ_API_KEY` | Tuỳ chọn |
+
+Lần đầu mở URL `*.onrender.com` có thể chờ ~30–60 giây (cold start).
+
+### 12.4. Frontend trên Vercel
+
+1. Import repo, **Root Directory** = `client`.
+2. Build: `npm run build`, Output: `dist`.
+3. Environment: `VITE_BACKEND_URL` = `https://<ten-service>.onrender.com` (không có `/` cuối).
+4. Deploy xong, copy URL `*.vercel.app` → dán lại `CLIENT_URL` trên Render → Redeploy backend.
+
+### 12.5. Kiểm tra
+
+- `GET https://<api>.onrender.com/health` → `{"status":"ok"}`.
+- Đăng ký / đăng nhập trên frontend.
+- Chat 2 tab: tin nhắn realtime (Socket.IO).
+- Xem data: Atlas Collections + Upstash Data Browser.
+
+> Free Render ngủ sau 15 phút. Request đầu sau khi ngủ mất khoảng 1 phút. Storage
+> upload trên Render **không bền** (mất khi instance restart) — chấp nhận được khi test.

@@ -1,0 +1,44 @@
+# Blueprint deploy backend Fuurin lên Render (free web service).
+# Dashboard: New → Blueprint → chọn repo này.
+# Secret (DATABASE_URL, REDIS_URL, CLIENT_URL) điền tay — không commit.
+#
+# Start command PHẢI là `socket_app`, không phải `app`. `app` chỉ có HTTP,
+# WebSocket/Socket.IO sẽ không kết nối được.
+
+services:
+  - type: web
+    name: fuurin-api
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: server_python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:socket_app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: MESSAGE_ENCRYPTION_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: none
+      - key: TRUST_PROXY_HEADERS
+        value: "true"
+      - key: REGISTER_RATE_LIMIT_MAX
+        value: "60"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
