@@ -29,6 +29,10 @@ class User(Document):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     role: PydanticObjectId | None = None
+    # DEPRECATED (Phase 3): socketId và socketCallId không còn được sử dụng.
+    # Trước đây mỗi connect/disconnect ghi trường này vào MongoDB, tạo write
+    # amplification cho collection users. Giờ dùng Socket.IO Room (in-memory)
+    # thay thế. Giữ field trong model để không cần migration dữ liệu cũ.
     socketId: str | None = None
     socketCallId: str | None = None
 
@@ -36,5 +40,4 @@ class User(Document):
         name = "users"
         indexes = [
             IndexModel([("email", ASCENDING)], name="email_unique", unique=True),
-            IndexModel([("socketId", ASCENDING)], name="socketId_idx", sparse=True),
         ]

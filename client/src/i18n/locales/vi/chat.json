@@ -15,7 +15,10 @@
     "loadingOlder": "Đang tải tin cũ…",
     "videoCall": "Gọi video",
     "minimize": "Thu nhỏ",
-    "open": "Mở lại"
+    "open": "Mở lại",
+    "typing": "Đang nhập...",
+    "online": "Đang hoạt động",
+    "noMessages": "Hãy bắt đầu cuộc trò chuyện!"
   },
   "video": {
     "ended": "Cuộc gọi đã kết thúc",

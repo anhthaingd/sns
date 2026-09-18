@@ -5,11 +5,10 @@ from datetime import datetime
 from bson import ObjectId
 
 from app.errors import ApiError
-from app.messages import message_for
 from app.models.channel import Channel
-from app.models.notification import Notification
 from app.models.post import Post
 from app.models.user import User
+from app.services.notify import create_and_push
 from app.utils.file_utils import delete_file
 from app.utils.ids import to_object_id, to_object_id_or_none
 from app.utils.loaders import brief_list, load_channels, load_roles_of, load_users, role_brief, user_brief
@@ -298,14 +297,13 @@ async def like_post(decoded_user: dict, channel_id: str, post_id: str):
         return ok(code="post.unliked")
 
     if str(post.user) != decoded_user["_id"]:
-        await Notification(
-            user=post.user,
-            seeder=user_id,
+        await create_and_push(
+            user_id=post.user,
+            seeder_id=user_id,
             code="notification.postLiked",
             params={"username": decoded_user.get("username", "")},
-            notification=message_for("notification.postLiked", {"username": decoded_user.get("username", "")}),
             url=f"channels/{post.channel}/posts/{post.id}",
-        ).insert()
+        )
 
     await Post.find_one(Post.id == post.id).update({"$push": {"liked": user_id}})
     return ok(code="post.liked")
@@ -321,14 +319,13 @@ async def book_mark_post(decoded_user: dict, channel_id: str, post_id: str):
         return ok(code="post.unsaved")
 
     if str(post.user) != decoded_user["_id"]:
-        await Notification(
-            user=post.user,
-            seeder=user_id,
+        await create_and_push(
+            user_id=post.user,
+            seeder_id=user_id,
             code="notification.postSaved",
             params={"username": decoded_user.get("username", "")},
-            notification=message_for("notification.postSaved", {"username": decoded_user.get("username", "")}),
             url=None,
-        ).insert()
+        )
 
     await Post.find_one(Post.id == post.id).update({"$push": {"book_marked": user_id}})
     return ok(code="post.saved")
@@ -353,14 +350,13 @@ async def post_comment_post(decoded_user: dict, channel_id: str, post_id: str, c
     await Post.find_one(Post.id == post.id).update({"$push": {"comments": comment}})
 
     if str(post.user) != decoded_user["_id"]:
-        await Notification(
-            user=post.user,
-            seeder=user_id,
+        await create_and_push(
+            user_id=post.user,
+            seeder_id=user_id,
             code="notification.postCommented",
             params={"username": decoded_user.get("username", "")},
-            notification=message_for("notification.postCommented", {"username": decoded_user.get("username", "")}),
             url=f"channels/{post.channel}/posts/{post.id}",
-        ).insert()
+        )
 
     return ok(code="post.commented")
 

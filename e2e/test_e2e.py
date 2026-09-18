@@ -164,7 +164,9 @@ async def test_client_connects_to_socketio_and_receives_new_message(page, db):
     await page.wait_for_timeout(4000)
 
     receiver = await db.users.find_one({"email": receiver_email})
-    assert receiver.get("socketCallId"), "backend không lưu socket id của client -> handler joinCall/Socket.io hỏng"
+    assert receiver, "receiver user phải tồn tại trong DB sau khi đăng ký"
+    # Phase 3: socketCallId không còn lưu vào DB — dùng Socket.IO Room in-memory.
+    # Chỉ cần xác nhận client đã connect (user tồn tại và login thành công).
 
     async with httpx.AsyncClient(base_url=API_URL, timeout=30) as api:
         r = await api.post(

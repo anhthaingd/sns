@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { FaXmark, FaPaperPlane, FaVideo, FaMinus } from 'react-icons/fa6';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { ModalContext } from '../../context/ModalProvider';
-import { socket } from '../../context/SocketProvider';
+import { socket, SocketContext } from '../../context/SocketProvider';
 import { useLazyGetChatQuery } from '../../services/redux/query/api/chatApi';
 import Avatar from '../ui/Avatar';
 import IconButton from '../ui/IconButton';
@@ -15,9 +15,13 @@ import cn from '../../services/utils/cn';
 // Cuộn tới trong khoảng này tính từ đầu danh sách thì coi như "muốn xem tin cũ".
 const LOAD_MORE_SCROLL_THRESHOLD_PX = 24;
 
+// Debounce gõ: gửi typing=true khi bắt đầu gõ, typing=false sau khi ngừng 2s.
+const TYPING_DEBOUNCE_MS = 2000;
+
 function ChatModal() {
   const { t } = useTranslation('chat');
-  const { user, refetchMessages } = useContext(FetchDataContext);
+  const { user } = useContext(FetchDataContext);
+  const { typingUsers, isUserOnline } = useContext(SocketContext);
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
@@ -35,7 +39,23 @@ function ChatModal() {
   // Guard bằng ref chứ không bằng state: `onScroll` bắn liên tục và state cập
   // nhật bất đồng bộ, nên chỉ dựa vào `isLoadingMore` sẽ tải trùng một trang.
   const isLoadingMoreRef = useRef(false);
+  const typingTimerRef = useRef(null);
   const [triggerGetChat] = useLazyGetChatQuery();
+
+  // Phase 4: Emit typing indicator khi người dùng gõ.
+  const emitTyping = useCallback(
+    (isTyping) => {
+      if (!selectedUser?._id) return;
+      socket.emit('typing', { receiverId: selectedUser._id, isTyping });
+    },
+    [selectedUser?._id]
+  );
+
+  const handleTyping = useCallback(() => {
+    emitTyping(true);
+    clearTimeout(typingTimerRef.current);
+    typingTimerRef.current = setTimeout(() => emitTyping(false), TYPING_DEBOUNCE_MS);
+  }, [emitTyping]);
 
   // Đi qua RTK Query (thay vì `fetch` thô) để dùng chung cơ chế tự gia hạn
   // access token; trước đây token hết hạn giữa chừng là khung chat trắng xoá.
@@ -102,9 +122,8 @@ function ChatModal() {
           (from === partnerId && to === user?._id) ||
           (from === user?._id && to === partnerId);
 
-        // Dù tin không thuộc hội thoại này, danh sách hội thoại vẫn phải cập
-        // nhật để chuông tin nhắn đếm đúng.
-        if (message?.refetch) refetchMessages();
+        // Badge tin nhắn (refetchMessages) giờ được xử lý ở tầng global trong
+        // SocketProvider — không cần gọi lại ở đây nữa.
         if (!inThisConversation) return;
 
         // Tin mới luôn nối xuống cuối -> cuộn xuống đáy.
@@ -121,7 +140,7 @@ function ChatModal() {
     }
     setMessages([]);
     return undefined;
-  }, [state.visibleChatModal, user?._id, refetchMessages]);
+  }, [state.visibleChatModal, user?._id]);
 
   useEffect(() => {
     if (state.visibleChatModal && selectedUser) {
@@ -153,15 +172,19 @@ function ChatModal() {
   const sendMessage = () => {
     const content = draft.trim();
     if (!selectedUser || !content) return;
-    // Chỉ cần id người nhận và nội dung: máy chủ lấy người gửi từ phiên socket
-    // đã xác thực, không tin `sender` do client khai (xem
-    // `server_python/app/sockets/handlers.py`).
     socket.emit('sendMessage', {
       receiver: { _id: selectedUser?._id },
       content,
     });
     setDraft('');
+    // Ngừng typing khi gửi xong.
+    emitTyping(false);
+    clearTimeout(typingTimerRef.current);
   };
+
+  // Phase 4: Người đối diện có đang gõ không?
+  const partnerIsTyping = selectedUser?._id && typingUsers[selectedUser._id];
+  const partnerIsOnline = selectedUser?._id && isUserOnline(selectedUser._id);
 
   if (!state.visibleChatModal) return null;
 
@@ -183,9 +206,21 @@ function ChatModal() {
               navigate(`/profile/${selectedUser?._id}`);
             }}
           >
-            <Avatar src={selectedUser?.avatar} name={selectedUser?.username} size='sm' />
-            <span className='truncate text-sm font-bold text-fg'>
-              {selectedUser?.username}
+            <Avatar
+              src={selectedUser?.avatar}
+              name={selectedUser?.username}
+              size='sm'
+              status={partnerIsOnline ? 'online' : undefined}
+            />
+            <span className='min-w-0'>
+              <span className='block truncate text-sm font-bold text-fg'>
+                {selectedUser?.username}
+              </span>
+              {partnerIsOnline && (
+                <span className='block text-2xs text-success'>
+                  {partnerIsTyping ? t('modal.typing') : t('modal.online')}
+                </span>
+              )}
             </span>
           </button>
           <IconButton
@@ -228,6 +263,11 @@ function ChatModal() {
                   {t('modal.loadingOlder')}
                 </p>
               )}
+              {messages?.length === 0 && !isLoadingMore && (
+                <p className='py-6 text-center text-sm text-fg-muted'>
+                  {t('modal.noMessages')}
+                </p>
+              )}
               {messages?.map((m, index) => {
                 const isSender = m?.sender?._id === user?._id;
                 return (
@@ -261,6 +301,22 @@ function ChatModal() {
                   </div>
                 );
               })}
+              {partnerIsTyping && (
+                <div className='flex items-end gap-2'>
+                  <Avatar
+                    src={selectedUser?.avatar}
+                    name={selectedUser?.username}
+                    size='xs'
+                  />
+                  <span className='rounded-2xl rounded-bl-sm bg-surface-2 px-3 py-1.5 text-sm text-fg-muted'>
+                    <span className='inline-flex gap-0.5'>
+                      <span className='size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:0ms]' />
+                      <span className='size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:150ms]' />
+                      <span className='size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:300ms]' />
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className='shrink-0 border-t border-line p-2'>
@@ -270,7 +326,10 @@ function ChatModal() {
                   className='max-h-24 w-full resize-none rounded-2xl bg-surface-2 py-2 pl-3 pr-10 text-sm text-fg ring-1 ring-inset ring-transparent transition-shadow placeholder:text-fg-subtle focus:bg-surface focus:ring-accent'
                   placeholder={t('modal.inputPlaceholder')}
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onChange={(e) => {
+                    setDraft(e.target.value);
+                    handleTyping();
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();

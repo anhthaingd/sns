@@ -2,10 +2,9 @@
 
 from app.controllers.user_common import FOLLOW_PAGE_SIZE, brief_users_of, total_page
 from app.errors import ApiError
-from app.messages import message_for
 from app.models.follower import Follower
 from app.models.following import Following
-from app.models.notification import Notification
+from app.services.notify import create_and_push
 from app.utils.ids import to_object_id
 from app.utils.responses import ok
 
@@ -78,14 +77,13 @@ async def following_user(decoded_user: dict, target_id: str):
     )
 
     username = decoded_user.get("username", "")
-    await Notification(
-        user=target_oid,
-        seeder=user_oid,
+    await create_and_push(
+        user_id=target_oid,
+        seeder_id=user_oid,
         code="notification.userFollowed",
         params={"username": username},
-        notification=message_for("notification.userFollowed", {"username": username}),
         url=f"profile/{user_id}",
-    ).insert()
+    )
 
     return ok(code="follow.followed")
 

@@ -15,7 +15,10 @@
     "loadingOlder": "以前のメッセージを読み込んでいます…",
     "videoCall": "ビデオ通話",
     "minimize": "最小化",
-    "open": "開く"
+    "open": "開く",
+    "typing": "入力中...",
+    "online": "オンライン",
+    "noMessages": "会話を始めましょう！"
   },
   "video": {
     "ended": "通話が終了しました",

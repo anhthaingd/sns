@@ -1,5 +1,7 @@
 import { Suspense, lazy, useContext, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { FaXmark, FaCircleInfo, FaTriangleExclamation, FaWrench } from 'react-icons/fa6';
 import Loading from './components/ui/Loading';
 import Header from './components/common/Header';
 import { DropdownProvider } from './context/NotificationProvider';
@@ -11,11 +13,23 @@ const ConfirmModal = lazy(() => import('./components/modal/ConfirmModal'));
 const VideoModal = lazy(() => import('./components/modal/VideoModal'));
 const ToastModal = lazy(() => import('./components/modal/ToastModal'));
 
+const ALERT_STYLES = {
+  info: 'bg-accent-soft text-accent-text',
+  warning: 'bg-yamabuki-100 text-yamabuki-800 dark:bg-yamabuki-800 dark:text-yamabuki-100',
+  maintenance: 'bg-shu-100 text-shu-800 dark:bg-shu-800 dark:text-shu-100',
+};
+const ALERT_ICONS = {
+  info: FaCircleInfo,
+  warning: FaTriangleExclamation,
+  maintenance: FaWrench,
+};
+
 const AUTH_ROUTES = ['/login', '/register'];
 
 function App() {
+  const { t } = useTranslation('common');
   const { user } = useContext(FetchDataContext);
-  const { call, setMe } = useContext(SocketContext);
+  const { call, setMe, systemAlert, dismissSystemAlert } = useContext(SocketContext);
   const { state, setVisibleModal } = useContext(ModalContext);
   const location = useLocation();
 
@@ -36,10 +50,28 @@ function App() {
 
   const showShell = !AUTH_ROUTES.includes(location.pathname) && user;
 
+  const AlertIcon = systemAlert ? (ALERT_ICONS[systemAlert.type] || FaCircleInfo) : null;
+
   return (
-    // Thanh trên cùng nằm NGOÀI <Suspense> của nội dung: khi chuyển sang một
-    // route tải chậm, khung ứng dụng vẫn đứng yên thay vì cả trang trắng xoá.
     <div className='min-h-screen bg-bg text-fg'>
+      {/* Phase 5: Banner thông báo hệ thống */}
+      {systemAlert && (
+        <div
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium ${ALERT_STYLES[systemAlert.type] || ALERT_STYLES.info}`}
+          role='alert'
+        >
+          {AlertIcon && <AlertIcon className='size-4 shrink-0' aria-hidden='true' />}
+          <span className='flex-1'>{systemAlert.message}</span>
+          <button
+            type='button'
+            className='shrink-0 rounded p-0.5 opacity-70 transition-opacity hover:opacity-100'
+            onClick={dismissSystemAlert}
+            aria-label={t('status.dismiss', 'Đóng')}
+          >
+            <FaXmark className='size-3.5' />
+          </button>
+        </div>
+      )}
       {showShell && (
         <DropdownProvider>
           <Header />

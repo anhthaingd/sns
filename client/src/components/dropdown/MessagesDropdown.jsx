@@ -6,6 +6,7 @@ import { currentDateLocale } from '../../i18n/dateLocale';
 import { DropdownContext } from '../../context/NotificationProvider';
 import { FetchDataContext } from '../../context/FetchDataProvider';
 import { ModalContext } from '../../context/ModalProvider';
+import { SocketContext } from '../../context/SocketProvider';
 import { useReadMessageMutation } from '../../services/redux/query/api/chatApi';
 import Popover from '../ui/Popover';
 import Avatar from '../ui/Avatar';
@@ -16,6 +17,7 @@ function MessagesDropdown() {
   const { user, newestMessages, refetchMessages } = useContext(FetchDataContext);
   const { setVisibleModal } = useContext(ModalContext);
   const { state, closeAllDropdown } = useContext(DropdownContext);
+  const { isUserOnline } = useContext(SocketContext);
   const [readMessage, { isSuccess: isSuccessReadMessages }] =
     useReadMessageMutation();
 
@@ -62,6 +64,7 @@ function MessagesDropdown() {
                 src={receiver?.user?.avatar}
                 name={receiver?.user?.username}
                 size='lg'
+                status={isUserOnline(receiver?.user?._id) ? 'online' : undefined}
               />
               <span className='min-w-0 flex-1'>
                 <span className='flex items-baseline justify-between gap-2'>
@@ -99,7 +102,7 @@ function MessagesDropdown() {
     // `t` phải nằm trong mảng phụ thuộc: đổi ngôn ngữ thì react-i18next trả về
     // một `t` mới, thiếu nó thì danh sách đã memo hoá giữ nguyên chữ của ngôn
     // ngữ cũ cho tới khi có thứ khác kích hoạt tính lại.
-    [newestMessages, user, handleOpenModal, t]
+    [newestMessages, user, handleOpenModal, t, isUserOnline]
   );
 
   return (

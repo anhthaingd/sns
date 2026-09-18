@@ -15,7 +15,10 @@
     "loadingOlder": "Loading older messages…",
     "videoCall": "Video call",
     "minimize": "Minimize",
-    "open": "Expand"
+    "open": "Expand",
+    "typing": "Typing...",
+    "online": "Active now",
+    "noMessages": "Start a conversation!"
   },
   "video": {
     "ended": "Call ended",

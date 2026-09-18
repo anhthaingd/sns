@@ -23,6 +23,7 @@ from app.routes.web import router as web_router
 from app.services.browser import browser_service
 from app.services.embedding import close_embedder
 from app.services.llm import close_llm
+from app.sockets import set_sio
 from app.sockets.handlers import register_handlers
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -99,6 +100,7 @@ UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 app.mount("/public", StaticFiles(directory=UPLOAD_ROOT), name="public")
 
 register_handlers(sio)
+set_sio(sio)
 
 socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
 

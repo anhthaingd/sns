@@ -2,14 +2,13 @@ import json
 import math
 
 from app.errors import ApiError
-from app.messages import message_for
 from app.models.channel import Channel
-from app.models.notification import Notification
 from app.models.post import Post
 from app.models.role import Role
 from app.models.shortcut import Shortcut
 from app.models.user import User
 from app.utils.file_utils import delete_file
+from app.services.notify import create_and_push
 from app.utils.ids import to_object_id
 from app.utils.loaders import load_roles_of, load_users, role_brief, user_brief
 from app.utils.permissions import is_admin, require_admin
@@ -151,14 +150,13 @@ async def remove_user_from_channel(decoded_user: dict, channel_id: str, user_id_
     await Shortcut.find_one({"user": target_oid, "channel": channel_oid}).update({"$set": {"isJoin": False}})
 
     if channel:
-        await Notification(
-            user=target_oid,
-            seeder=to_object_id(decoded_user["_id"], "user_id"),
+        await create_and_push(
+            user_id=target_oid,
+            seeder_id=to_object_id(decoded_user["_id"], "user_id"),
             code="notification.removedFromChannel",
             params={"channel": channel.name},
-            notification=message_for("notification.removedFromChannel", {"channel": channel.name}),
             url=None,
-        ).insert()
+        )
 
     return ok(code="channel.userRemoved")
 
