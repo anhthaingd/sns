@@ -24,6 +24,7 @@ Nếu bạn mới tiếp cận dự án, đọc lần lượt từ trên xuống
 | 12 | [Lời khuyên bằng LLM](12-loi-khuyen-bang-llm.md) | Cắm mô hình ngôn ngữ vào phần phân tích thì cắm ở đâu, và không được cắm vào đâu? |
 | 13 | [Rà soát lỗi ẩn](13-ra-soat-loi-an.md) | Đợt rà soát 14/09/2026: lỗi nào đã sửa, lỗi nào còn lại và tái hiện bằng lệnh gì? |
 | 14 | [Vá lỗi và bộ test phân quyền](14-va-loi-va-bo-test-phan-quyen.md) | Tin nhắn được mã hoá kiểu gì? Ai xem được? Bộ test nào canh phân quyền? |
+| 15 | [Deploy miễn phí](15-deploy-mien-phi.md) | Bản live Vercel + Render + Atlas + Upstash: bấm nút nào, điền biến gì, sự cố đã sửa |
 
 ## Dự án này là gì
 

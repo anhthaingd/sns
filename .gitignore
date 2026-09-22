@@ -1,5 +1,6 @@
 # Bien moi truong chua secret - KHONG commit (.env.example van duoc giu)
 .env
+.deploy-secrets
 
 # Node
 node_modules/

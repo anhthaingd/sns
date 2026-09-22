@@ -679,10 +679,14 @@ viết cho người chưa quen lập trình web, giải thích từng khái ni�
 | [8. Lỗi, log và kiểm thử](docs/08-loi-log-va-kiem-thu.md) | Có sự cố thì tra ở đâu |
 | [9. Đa ngôn ngữ](docs/09-da-ngon-ngu.md) | Giao diện Nhật · Việt · Anh: thêm chữ mới ở đâu |
 | [10. Mô phỏng đối chứng](docs/10-mo-phong-doi-chung.md) | "Học thêm X thì mở ra bao nhiêu cơ hội" tính thế nào |
+| [15. Deploy miễn phí](docs/15-deploy-mien-phi.md) | Nhật ký bản live: từng nền tảng, từng nút, từng biến |
 
 ---
 
 ## 12. Deploy miễn phí để test
+
+Nhật ký chi tiết bản đang chạy (URL, chỗ click, sự cố đã sửa):
+[docs/15-deploy-mien-phi.md](docs/15-deploy-mien-phi.md).
 
 Dùng để đưa bản demo lên internet, không phải production. Embedder **để trống**
 — hệ thống tự chuyển sang chấm điểm thuần luật, không báo lỗi. Crawl (Playwright)
